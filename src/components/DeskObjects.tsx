@@ -1,0 +1,1018 @@
+"use client";
+
+import { memo, useEffect, useMemo, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import { RoundedBox, useTexture } from "@react-three/drei";
+import * as THREE from "three";
+import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+
+type Vec3 = [number, number, number];
+const white = "#e8e8e5";
+const black = "#25282c";
+
+function textureFromCanvas(
+  draw: (ctx: CanvasRenderingContext2D) => void,
+  width = 512,
+  height = 512,
+) {
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  draw(canvas.getContext("2d")!);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 8;
+  return texture;
+}
+
+function woodTexture() {
+  return textureFromCanvas(
+    (ctx) => {
+      ctx.fillStyle = "#b08257";
+      ctx.fillRect(0, 0, 1024, 512);
+      let seed = 42;
+      const rand = () => {
+        seed = (seed * 16807) % 2147483647;
+        return seed / 2147483647;
+      };
+      for (let i = 0; i < 1800; i++) {
+        const y = rand() * 512;
+        ctx.strokeStyle =
+          rand() > 0.5
+            ? `rgba(55,28,10,${rand() * 0.18})`
+            : `rgba(247,210,161,${rand() * 0.2})`;
+        ctx.lineWidth = rand() * 1.6 + 0.2;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.bezierCurveTo(
+          260,
+          y + rand() * 16,
+          700,
+          y - rand() * 18,
+          1024,
+          y + rand() * 9,
+        );
+        ctx.stroke();
+      }
+    },
+    1024,
+    512,
+  );
+}
+
+function keyboardTexture(dark = false) {
+  return textureFromCanvas(
+    (ctx) => {
+      ctx.fillStyle = dark ? "#17181b" : "#bdbec0";
+      ctx.fillRect(0, 0, 1024, 384);
+      const rows = [
+        "esc  1  2  3  4  5  6  7  8  9  0  -  =",
+        "tab  Q  W  E  R  T  Y  U  I  O  P  [  ]",
+        "caps  A  S  D  F  G  H  J  K  L  ;  '  ↵",
+        "shift  Z  X  C  V  B  N  M  ,  .  /  ↑  ↑",
+      ];
+      rows.forEach((row, y) =>
+        row.split("  ").forEach((label, x) => {
+          ctx.fillStyle = dark ? "#25262a" : "#f3f3f1";
+          ctx.beginPath();
+          ctx.roundRect(8 + x * 78, 8 + y * 75, 69, 64, 8);
+          ctx.fill();
+          ctx.fillStyle = dark ? "#d0d1d4" : "#64666b";
+          ctx.font = "17px Arial";
+          ctx.fillText(label, 20 + x * 78, 43 + y * 75);
+        }),
+      );
+      [0, 1, 2, 9, 10, 11, 12].forEach((x) => {
+        ctx.fillStyle = dark ? "#25262a" : "#f3f3f1";
+        ctx.beginPath();
+        ctx.roundRect(8 + x * 78, 308, 69, 65, 8);
+        ctx.fill();
+      });
+      ctx.beginPath();
+      ctx.roundRect(242, 308, 454, 65, 8);
+      ctx.fill();
+    },
+    1024,
+    384,
+  );
+}
+
+function labelTexture(text: string, color = "#eee", font = "bold 68px Arial") {
+  return textureFromCanvas(
+    (ctx) => {
+      ctx.fillStyle = color;
+      ctx.font = font;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, 256, 64);
+    },
+    512,
+    128,
+  );
+}
+
+export function Box({
+  size,
+  position,
+  color = white,
+  radius = 0.02,
+  rotation,
+  metalness = 0,
+  roughness = 0.55,
+  map,
+}: {
+  size: Vec3;
+  position: Vec3;
+  color?: string;
+  radius?: number;
+  rotation?: Vec3;
+  metalness?: number;
+  roughness?: number;
+  map?: THREE.Texture;
+}) {
+  return (
+    <RoundedBox
+      args={size}
+      radius={Math.min(radius, Math.min(...size) / 2)}
+      smoothness={3}
+      position={position}
+      rotation={rotation}
+      castShadow
+      receiveShadow
+    >
+      <meshStandardMaterial
+        color={color}
+        roughness={roughness}
+        metalness={metalness}
+        map={map}
+      />
+    </RoundedBox>
+  );
+}
+
+function tubeGeometry(points: Vec3[], radius: number, segments = 28) {
+  return new THREE.TubeGeometry(
+    new THREE.CatmullRomCurve3(points.map((p) => new THREE.Vector3(...p))),
+    segments,
+    radius,
+    6,
+    false,
+  );
+}
+
+function Tube({
+  points,
+  radius = 0.018,
+  color = white,
+  metalness = 0,
+  roughness = 0.45,
+}: {
+  points: Vec3[];
+  radius?: number;
+  color?: string;
+  metalness?: number;
+  roughness?: number;
+}) {
+  const geometry = useMemo(
+    () => tubeGeometry(points, radius),
+    [points, radius],
+  );
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  return (
+    <mesh geometry={geometry} castShadow receiveShadow>
+      <meshStandardMaterial
+        color={color}
+        metalness={metalness}
+        roughness={roughness}
+      />
+    </mesh>
+  );
+}
+
+function Label({
+  text,
+  color,
+  position,
+  size,
+  rotation,
+}: {
+  text: string;
+  color?: string;
+  position: Vec3;
+  size: [number, number];
+  rotation?: Vec3;
+}) {
+  const map = useMemo(() => labelTexture(text, color), [text, color]);
+  useEffect(() => () => map.dispose(), [map]);
+  return (
+    <mesh position={position} rotation={rotation}>
+      <planeGeometry args={size} />
+      <meshBasicMaterial
+        map={map}
+        transparent
+        toneMapped={false}
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
+
+function BentPanel({
+  width,
+  height,
+  depth = 0,
+  position,
+  texture,
+  screen = false,
+  waking = false,
+  sleeping = false,
+}: {
+  width: number;
+  height: number;
+  depth?: number;
+  position: Vec3;
+  texture?: THREE.Texture;
+  screen?: boolean;
+  waking?: boolean;
+  sleeping?: boolean;
+}) {
+  const screenMaterial = useRef<THREE.MeshBasicMaterial>(null);
+  const wakeStarted = useRef(0);
+  useEffect(() => {
+    wakeStarted.current = performance.now();
+  }, [waking]);
+  useFrame(() => {
+    if (!screenMaterial.current) return;
+    const brightness = sleeping
+      ? 0
+      : waking
+        ? THREE.MathUtils.smoothstep(
+            (performance.now() - wakeStarted.current) / 1000,
+            2.3,
+            3.5,
+          ) * 0.88
+        : 0.88;
+    screenMaterial.current.color.setScalar(brightness);
+  });
+  const geometry = useMemo(() => {
+    const geo = depth
+      ? new THREE.BoxGeometry(width, height, depth, 64, 1, 1)
+      : new THREE.PlaneGeometry(width, height, 64, 1);
+    const p = geo.attributes.position;
+    const radius = 2.2;
+    for (let i = 0; i < p.count; i++) {
+      const angle = p.getX(i) / radius;
+      p.setXYZ(
+        i,
+        Math.sin(angle) * radius,
+        p.getY(i),
+        p.getZ(i) + radius * (1 - Math.cos(angle)),
+      );
+    }
+    geo.computeVertexNormals();
+    return geo;
+  }, [width, height, depth]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  return (
+    <mesh position={position} geometry={geometry} castShadow={!screen}>
+      {screen ? (
+        <meshBasicMaterial
+          ref={screenMaterial}
+          map={texture}
+          toneMapped={false}
+          color={sleeping || waking ? "#000" : "#e1e1e1"}
+        />
+      ) : (
+        <meshStandardMaterial
+          color="#16181c"
+          roughness={0.38}
+          metalness={0.3}
+        />
+      )}
+    </mesh>
+  );
+}
+
+const Laptop = memo(function Laptop({
+  wallpaper,
+  keyboard,
+}: {
+  wallpaper: THREE.Texture;
+  keyboard: THREE.Texture;
+}) {
+  return (
+    <group position={[-1.18, 1.72, 0.02]} rotation={[0, 0.23, 0]}>
+      <Box
+        size={[0.86, 0.045, 0.59]}
+        position={[0, 0, 0]}
+        color="#383a3d"
+        radius={0.02}
+        metalness={0.85}
+        roughness={0.28}
+      />
+      <Box
+        size={[0.35, 0.003, 0.175]}
+        position={[0, 0.024, 0.16]}
+        color="#424448"
+        radius={0.012}
+        metalness={0.75}
+        roughness={0.31}
+      />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.024, -0.105]}>
+        <planeGeometry args={[0.66, 0.3]} />
+        <meshStandardMaterial map={keyboard} roughness={0.55} />
+      </mesh>
+      {[-1, 1].map((side) => (
+        <group key={side}>
+          {Array.from({ length: 12 }, (_, i) => (
+            <Box
+              key={i}
+              size={[0.036, 0.0015, 0.003]}
+              position={[side * 0.373, 0.024, -0.235 + i * 0.024]}
+              color="#151618"
+              radius={0}
+            />
+          ))}
+          {[0, 1].map((i) => (
+            <Box
+              key={i}
+              size={[0.003, 0.013, 0.04]}
+              position={[side * 0.431, 0, -0.16 + i * 0.09]}
+              color="#111214"
+              radius={0.005}
+            />
+          ))}
+        </group>
+      ))}
+      <Box
+        size={[0.16, 0.006, 0.008]}
+        position={[0, 0.018, 0.292]}
+        color="#222427"
+        radius={0.003}
+      />
+      <group position={[0, 0.025, -0.282]} rotation={[-0.19, 0, 0]}>
+        <Box
+          size={[0.86, 0.56, 0.024]}
+          position={[0, 0.28, 0]}
+          color="#333539"
+          radius={0.016}
+          metalness={0.8}
+          roughness={0.28}
+        />
+        <Box
+          size={[0.829, 0.526, 0.004]}
+          position={[0, 0.287, 0.014]}
+          color="#08090b"
+          radius={0.012}
+        />
+        <mesh position={[0, 0.287, 0.017]}>
+          <planeGeometry args={[0.803, 0.5]} />
+          <meshBasicMaterial map={wallpaper} toneMapped={false} />
+        </mesh>
+        <Box
+          size={[0.093, 0.021, 0.004]}
+          position={[0, 0.527, 0.02]}
+          color="#070709"
+          radius={0.005}
+        />
+        <mesh position={[0, 0.526, 0.023]}>
+          <circleGeometry args={[0.0028, 12]} />
+          <meshBasicMaterial color="#1d293b" />
+        </mesh>
+      </group>
+    </group>
+  );
+});
+
+const AirPods = memo(function AirPods({ onMusic }: { onMusic: () => void }) {
+  const arch = (x: number, z: number): Vec3[] =>
+    Array.from({ length: 25 }, (_, i) => {
+      const a = (Math.PI * i) / 24;
+      return [Math.cos(a) * x, 0.4 + Math.sin(a) * 0.33, z];
+    });
+  return (
+    <group
+      name="AirPods Max on stand"
+      position={[1.46, 1.69, -0.38]}
+      rotation={[0, -0.16, 0]}
+      onClick={(event) => {
+        event.stopPropagation();
+        onMusic();
+      }}
+      onPointerOver={() => {
+        document.body.style.cursor = "pointer";
+      }}
+      onPointerOut={() => {
+        document.body.style.cursor = "auto";
+      }}
+    >
+      <Box
+        size={[0.4, 0.035, 0.29]}
+        position={[0, 0.018, 0]}
+        radius={0.016}
+        color="#cbced2"
+        metalness={0.85}
+        roughness={0.2}
+      />
+      <Tube
+        points={[
+          [0, 0.04, -0.035],
+          [0, 0.4, -0.035],
+          [0, 0.705, -0.035],
+        ]}
+        radius={0.014}
+        color="#c7ccd2"
+        metalness={1}
+        roughness={0.13}
+      />
+      <Box
+        size={[0.14, 0.025, 0.09]}
+        position={[0, 0.708, -0.035]}
+        color="#bcc1c6"
+        radius={0.012}
+        metalness={0.8}
+        roughness={0.23}
+      />
+      <group position={[0, 0.4, 0]} scale={[0.231, 0.33, 1]}>
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry
+            args={[1, 1, 0.085, 48, 1, true, Math.PI / 2, Math.PI]}
+          />
+          <meshStandardMaterial
+            color="#414447"
+            roughness={1}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      </group>
+      <Tube points={arch(0.231, -0.044)} radius={0.012} color="#26282b" />
+      <Tube points={arch(0.231, 0.044)} radius={0.012} color="#26282b" />
+      {Array.from({ length: 24 }, (_, i) => {
+        const a = 0.1 + ((Math.PI - 0.2) * i) / 23;
+        return (
+          <Tube
+            key={i}
+            points={[
+              [Math.cos(a) * 0.231, 0.4 + Math.sin(a) * 0.33, -0.04],
+              [Math.cos(a) * 0.225, 0.397 + Math.sin(a) * 0.33, 0],
+              [Math.cos(a) * 0.231, 0.4 + Math.sin(a) * 0.33, 0.04],
+            ]}
+            radius={0.0035}
+            color="#414246"
+          />
+        );
+      })}
+      {[-1, 1].map((side) => (
+        <group
+          key={side}
+          position={[side * 0.2, 0.28, 0.015]}
+          rotation={[0, side * -0.19, side * -0.13]}
+        >
+          <Tube
+            points={[
+              [side * 0.02, 0.17, 0],
+              [side * 0.025, 0.11, 0],
+              [0, 0.09, 0],
+            ]}
+            radius={0.009}
+            color="#c4c9ce"
+            metalness={1}
+            roughness={0.18}
+          />
+          <Box
+            size={[0.12, 0.27, 0.195]}
+            position={[0, 0, 0]}
+            color="#484b50"
+            radius={0.056}
+            metalness={0.8}
+            roughness={0.32}
+          />
+          <Box
+            size={[0.048, 0.25, 0.178]}
+            position={[-side * 0.07, 0, 0]}
+            color="#17191d"
+            radius={0.023}
+            roughness={0.98}
+          />
+          <Box
+            size={[0.008, 0.13, 0.079]}
+            position={[-side * 0.095, 0, 0]}
+            color="#08090c"
+            radius={0.003}
+          />
+          <Box
+            size={[0.002, 0.033, 0.006]}
+            position={[side * 0.061, -0.07, 0.025]}
+            color="#101114"
+            radius={0}
+          />
+          {side === 1 && (
+            <mesh position={[0.015, 0.137, -0.035]}>
+              <cylinderGeometry args={[0.015, 0.015, 0.012, 20]} />
+              <meshStandardMaterial
+                color="#888d93"
+                metalness={0.8}
+                roughness={0.22}
+              />
+            </mesh>
+          )}
+        </group>
+      ))}
+    </group>
+  );
+});
+
+const Owala = memo(function Owala() {
+  const shape = useMemo(
+    () =>
+      new THREE.LatheGeometry(
+        [
+          new THREE.Vector2(0, 0),
+          new THREE.Vector2(0.085, 0),
+          new THREE.Vector2(0.103, 0.012),
+          new THREE.Vector2(0.111, 0.04),
+          new THREE.Vector2(0.111, 0.48),
+          new THREE.Vector2(0.108, 0.505),
+          new THREE.Vector2(0.103, 0.515),
+          new THREE.Vector2(0, 0.515),
+        ],
+        48,
+      ),
+    [],
+  );
+  useEffect(() => () => shape.dispose(), [shape]);
+  return (
+    <group
+      name="Blue Owala FreeSip bottle"
+      position={[-1.57, 1.69, 0.4]}
+      rotation={[0, 0.3, 0]}
+    >
+      <mesh geometry={shape} castShadow>
+        <meshStandardMaterial
+          color="#3c86a1"
+          metalness={0.18}
+          roughness={0.48}
+        />
+      </mesh>
+      <mesh position={[0, 0.515, 0]} castShadow>
+        <cylinderGeometry args={[0.115, 0.115, 0.045, 48]} />
+        <meshStandardMaterial color="#bdc8c7" roughness={0.55} />
+      </mesh>
+      <mesh position={[0, 0.582, 0]} scale={[1, 0.87, 1]} castShadow>
+        <sphereGeometry
+          args={[0.111, 32, 24, 0, Math.PI * 2, 0, Math.PI / 2]}
+        />
+        <meshStandardMaterial color="#5e656d" roughness={0.55} />
+      </mesh>
+      <Box
+        size={[0.19, 0.07, 0.15]}
+        position={[0, 0.561, -0.004]}
+        color="#5e656d"
+        radius={0.032}
+      />
+      <Box
+        size={[0.133, 0.045, 0.106]}
+        position={[0, 0.654, -0.02]}
+        color="#c3cdcc"
+        radius={0.02}
+        rotation={[-0.2, 0, 0]}
+      />
+      <Tube
+        points={[
+          [-0.103, 0.566, 0.02],
+          [-0.099, 0.651, 0.015],
+          [0, 0.679, 0.02],
+          [0.099, 0.651, 0.015],
+          [0.103, 0.566, 0.02],
+        ]}
+        radius={0.014}
+        color="#78a6b5"
+      />
+      <Box
+        size={[0.038, 0.034, 0.016]}
+        position={[0, 0.568, 0.105]}
+        color="#454b50"
+        radius={0.007}
+      />
+      <Label
+        text="owala"
+        color="#204354"
+        position={[-0.014, 0.14, 0.112]}
+        size={[0.15, 0.037]}
+        rotation={[0, 0, Math.PI / 2]}
+      />
+    </group>
+  );
+});
+
+export const Desk = memo(function Desk({
+  standing,
+  onEnter,
+  onMusic,
+  waking,
+  sleeping,
+}: {
+  standing: boolean;
+  onEnter: () => void;
+  onMusic: () => void;
+  waking: boolean;
+  sleeping: boolean;
+}) {
+  const wallpaper = useTexture("/images/black-wallpaper.png");
+  const textures = useMemo(() => {
+    wallpaper.colorSpace = THREE.SRGBColorSpace;
+    const screen = textureFromCanvas(
+      (ctx) => {
+        ctx.drawImage(wallpaper.image as HTMLImageElement, 0, 0, 1280, 540);
+        ctx.fillStyle = "#ffffff26";
+        ctx.fillRect(0, 0, 1280, 22);
+        ctx.fillStyle = "#fff";
+        ctx.font = "12px Arial";
+        ctx.fillText(
+          "●    Finder     File     Edit     View     Go     Window     Help",
+          14,
+          15,
+        );
+        ctx.fillStyle = "#ffffff40";
+        ctx.beginPath();
+        ctx.roundRect(405, 475, 470, 55, 16);
+        ctx.fill();
+        ["#52b5f5", "#dedee5", "#84b9f3", "#ffc34b", "#4396ff", "#eee"].forEach(
+          (c, i) => {
+            ctx.fillStyle = c;
+            ctx.beginPath();
+            ctx.roundRect(422 + i * 74, 483, 39, 39, 9);
+            ctx.fill();
+          },
+        );
+        ["Selected work", "About me", "Experience"].forEach((s, i) => {
+          ctx.fillStyle = "#5cbcf6";
+          ctx.beginPath();
+          ctx.roundRect(1172, 53 + i * 103, 56, 40, 5);
+          ctx.fill();
+          ctx.fillStyle = "#fff";
+          ctx.font = "12px Arial";
+          ctx.fillText(s, 1156, 111 + i * 103);
+        });
+      },
+      1280,
+      540,
+    );
+    return {
+      wood: woodTexture(),
+      keyboard: keyboardTexture(),
+      laptopKeys: keyboardTexture(true),
+      screen,
+    };
+  }, [wallpaper]);
+  useEffect(
+    () => () => Object.values(textures).forEach((texture) => texture.dispose()),
+    [textures],
+  );
+  const offset = standing ? 0.48 : 0;
+  return (
+    <group>
+      {[-1.43, 1.43].map((x) => (
+        <group key={x}>
+          <Box
+            size={[0.19, 0.7, 0.21]}
+            position={[x, 0.47, -0.22]}
+            color="#d7d9d9"
+            metalness={0.5}
+            roughness={0.35}
+          />
+          <Box
+            size={[0.155, 0.66, 0.17]}
+            position={[x, 0.96, -0.22]}
+            color="#e7e8e6"
+            metalness={0.35}
+          />
+          <Box
+            size={[0.12, 0.5 + offset, 0.13]}
+            position={[x, 1.3 + offset / 2, -0.22]}
+            color="#f0f0ec"
+            metalness={0.4}
+          />
+          <Box
+            size={[0.21, 0.075, 1.24]}
+            position={[x, 0.075, -0.22]}
+            color="#d5d7d7"
+            metalness={0.5}
+            roughness={0.35}
+          />
+          {[-0.72, 0.28].map((z) => (
+            <Box
+              key={z}
+              size={[0.14, 0.035, 0.12]}
+              position={[x, 0.025, z]}
+              color="#404348"
+              radius={0.012}
+            />
+          ))}
+        </group>
+      ))}
+      <group position={[0, offset, 0]}>
+        <Box
+          size={[3.65, 0.12, 1.62]}
+          position={[0, 1.62, -0.24]}
+          color="#fff"
+          map={textures.wood}
+          radius={0.032}
+          roughness={0.42}
+        />
+        <Box
+          size={[2.95, 0.1, 0.2]}
+          position={[0, 1.49, -0.46]}
+          color="#d5d8d9"
+          metalness={0.4}
+        />
+        <Box
+          size={[0.26, 0.045, 0.12]}
+          position={[1.45, 1.54, 0.52]}
+          color="#25292b"
+          radius={0.012}
+        />
+        <Label
+          text={standing ? "112  ↑  ↓" : "74  ↑  ↓"}
+          position={[1.45, 1.539, 0.582]}
+          size={[0.19, 0.036]}
+          color="#c5efff"
+        />
+        <Box
+          size={[1.7, 0.012, 0.65]}
+          position={[0.15, 1.688, 0.13]}
+          color="#696760"
+          radius={0.006}
+          roughness={1}
+        />
+        <group
+          name="LG curved ultrawide monitor"
+          position={[0.08, 0, -0.78]}
+          onClick={(event) => {
+            event.stopPropagation();
+            onEnter();
+          }}
+          onPointerOver={() => {
+            document.body.style.cursor = "pointer";
+          }}
+          onPointerOut={() => {
+            document.body.style.cursor = "auto";
+          }}
+        >
+          <Box
+            size={[0.44, 0.032, 0.33]}
+            position={[0, 1.707, -0.04]}
+            color="#404246"
+            radius={0.025}
+            metalness={0.6}
+            roughness={0.3}
+          />
+          <Box
+            size={[0.105, 0.43, 0.095]}
+            position={[0, 1.92, -0.07]}
+            color="#484a4e"
+            metalness={0.6}
+            roughness={0.3}
+          />
+          <BentPanel
+            width={2.16}
+            height={0.95}
+            depth={0.06}
+            position={[0, 2.34, 0]}
+          />
+          <BentPanel
+            width={2.105}
+            height={0.887}
+            position={[0, 2.35, 0.032]}
+            texture={textures.screen}
+            screen
+            waking={waking}
+            sleeping={sleeping}
+          />
+          <Label
+            text="LG"
+            position={[0, 1.887, 0.033]}
+            size={[0.052, 0.014]}
+            color="#c1c2c5"
+          />
+          <mesh position={[0.08, 1.886, 0.033]}>
+            <circleGeometry args={[0.003, 8]} />
+            <meshBasicMaterial color="#b0ddff" />
+          </mesh>
+        </group>
+        <Laptop wallpaper={wallpaper} keyboard={textures.laptopKeys} />
+        <Box
+          size={[0.92, 0.037, 0.32]}
+          position={[0.16, 1.719, 0.23]}
+          color="#babfc3"
+          radius={0.018}
+          metalness={0.7}
+          roughness={0.33}
+        />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.16, 1.739, 0.23]}>
+          <planeGeometry args={[0.89, 0.29]} />
+          <meshStandardMaterial map={textures.keyboard} roughness={0.6} />
+        </mesh>
+        <mesh
+          position={[0.9, 1.73, 0.24]}
+          scale={[0.092, 0.035, 0.15]}
+          castShadow
+        >
+          <sphereGeometry args={[1, 32, 20]} />
+          <meshPhysicalMaterial
+            color="#f7f7f5"
+            roughness={0.18}
+            clearcoat={0.8}
+          />
+        </mesh>
+        <AirPods onMusic={onMusic} />
+        <Owala />
+        <Tube
+          points={[
+            [0.08, 2.12, -0.88],
+            [0.1, 1.75, -0.92],
+            [0.55, 1.54, -0.92],
+            [1.35, 1.53, -0.65],
+          ]}
+          radius={0.012}
+          color="#292b2d"
+        />
+        <Box
+          size={[0.75, 0.1, 0.14]}
+          position={[0.8, 1.45, -0.73]}
+          color="#45484a"
+        />
+      </group>
+    </group>
+  );
+});
+
+export const SaylChair = memo(function SaylChair() {
+  // A continuous suspension mesh, narrower at the shoulders, with a bowed lumbar region.
+  const lattice = useMemo(() => {
+    const point = (u: number, t: number): Vec3 => {
+      const width = 0.47 - 0.15 * t + 0.025 * Math.sin(t * Math.PI);
+      return [
+        u * width,
+        0.97 + t * 0.94,
+        0.39 + t * 0.15 - 0.095 * Math.sin(t * Math.PI) + 0.1 * (1 - u * u),
+      ];
+    };
+    const pieces: THREE.BufferGeometry[] = [];
+    for (let row = 0; row < 29; row++)
+      pieces.push(
+        tubeGeometry(
+          Array.from({ length: 13 }, (_, i) => point(i / 6 - 1, row / 28)),
+          0.007,
+          22,
+        ),
+      );
+    for (let col = 0; col < 31; col++)
+      pieces.push(
+        tubeGeometry(
+          Array.from({ length: 15 }, (_, i) => point(col / 15 - 1, i / 14)),
+          0.007,
+          24,
+        ),
+      );
+    const merged = mergeGeometries(pieces);
+    pieces.forEach((p) => p.dispose());
+    return merged;
+  }, []);
+  useEffect(() => () => lattice.dispose(), [lattice]);
+  return (
+    <group
+      name="Herman Miller Sayl chair"
+      position={[0.24, 0, 1.39]}
+      rotation={[0, -0.32, 0]}
+    >
+      <mesh position={[0, 0.47, 0]} castShadow>
+        <cylinderGeometry args={[0.044, 0.052, 0.62, 24]} />
+        <meshStandardMaterial
+          color="#282b2e"
+          metalness={0.65}
+          roughness={0.22}
+        />
+      </mesh>
+      <mesh position={[0, 0.24, 0]} castShadow>
+        <cylinderGeometry args={[0.085, 0.1, 0.19, 32]} />
+        <meshStandardMaterial color="#b6bdc3" metalness={1} roughness={0.15} />
+      </mesh>
+      {Array.from({ length: 5 }, (_, i) => {
+        const a = (i * Math.PI * 2) / 5,
+          x = Math.sin(a) * 0.56,
+          z = Math.cos(a) * 0.56;
+        return (
+          <group key={i}>
+            <Tube
+              points={[
+                [0, 0.29, 0],
+                [x * 0.45, 0.22, z * 0.45],
+                [x * 0.87, 0.14, z * 0.87],
+                [x, 0.12, z],
+              ]}
+              radius={0.035}
+              color="#c1c6ca"
+              metalness={1}
+              roughness={0.16}
+            />
+            <group position={[x, 0.085, z]} rotation={[0, a, 0]}>
+              {[-1, 1].map((side) => (
+                <mesh
+                  key={side}
+                  position={[side * 0.042, 0, 0]}
+                  rotation={[0, 0, Math.PI / 2]}
+                  castShadow
+                >
+                  <cylinderGeometry args={[0.073, 0.073, 0.045, 24]} />
+                  <meshStandardMaterial color="#16191c" roughness={0.8} />
+                </mesh>
+              ))}
+            </group>
+          </group>
+        );
+      })}
+      <Box
+        size={[0.62, 0.12, 0.5]}
+        position={[0, 0.69, 0.06]}
+        color="#d6d8d7"
+        radius={0.05}
+        roughness={0.5}
+      />
+      <Box
+        size={[0.94, 0.09, 0.85]}
+        position={[0, 0.79, -0.015]}
+        color="#eeeeea"
+        radius={0.04}
+        roughness={0.4}
+      />
+      <Box
+        size={[0.93, 0.14, 0.84]}
+        position={[0, 0.88, -0.02]}
+        color="#85878a"
+        radius={0.068}
+        roughness={0.95}
+      />
+      {[-1, 1].map((side) => (
+        <group key={side}>
+          <Tube
+            points={[
+              [side * 0.34, 0.73, 0.22],
+              [side * 0.51, 0.83, 0.2],
+              [side * 0.52, 1.1, 0.14],
+              [side * 0.53, 1.22, 0.07],
+            ]}
+            radius={0.039}
+            color="#e3e5e3"
+            roughness={0.43}
+          />
+          <Box
+            size={[0.17, 0.048, 0.4]}
+            position={[side * 0.53, 1.25, -0.005]}
+            color="#a8aaab"
+            radius={0.023}
+            roughness={0.75}
+          />
+        </group>
+      ))}
+      <mesh geometry={lattice} castShadow receiveShadow>
+        <meshStandardMaterial color="#a6aaad" roughness={0.68} />
+      </mesh>
+      <Tube
+        points={[
+          [0, 0.66, 0.15],
+          [0, 0.76, 0.48],
+          [0, 1.12, 0.57],
+          [0, 1.62, 0.65],
+          [0, 1.87, 0.64],
+        ]}
+        radius={0.046}
+        color="#eff0eb"
+        roughness={0.42}
+      />
+      {[-1, 1].map((side) => (
+        <Tube
+          key={side}
+          points={[
+            [0, 1.14, 0.57],
+            [side * 0.12, 1.54, 0.63],
+            [side * 0.28, 1.88, 0.6],
+          ]}
+          radius={0.024}
+          color="#e8eae6"
+          roughness={0.43}
+        />
+      ))}
+      <mesh position={[-0.22, 0.7, -0.2]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.065, 0.065, 0.08, 24]} />
+        <meshStandardMaterial color="#979b9d" roughness={0.6} />
+      </mesh>
+      <Box
+        size={[0.2, 0.025, 0.065]}
+        position={[0.44, 0.72, -0.13]}
+        color="#7d8284"
+        radius={0.012}
+      />
+    </group>
+  );
+});
