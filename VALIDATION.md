@@ -3,7 +3,7 @@
 ## Build
 
 - `npm run typecheck`: passed.
-- `npm run build`: passed after the scene, camera, desktop, and ambient contrast changes. `/`, `/portfolio`, `/_not-found`, and `/icon.svg` prerender successfully.
+- `npm run build`: passed after the scene, camera, desktop, and ambient contrast changes. `/`, `/portfolio`, `/_not-found`, `/icon.svg`, and all four `/writing/[slug]` pages prerender successfully.
 - Application source formatted with Prettier 3.6.2.
 
 ## Browser checks
@@ -46,12 +46,23 @@ Checked in Chromium through Playwright, using isolated browser contexts so sessi
 
 Screenshots from the checks are in `.playwright-mcp/` (ignored local artifacts). This is browser emulation, not verification on a physical phone or Safari.
 
+## Annotation fixes
+
+- Chair enlarged uniformly by 12%, anchored at the floor and positioned clear of the desk.
+- AirPods rebuilt with beveled aluminum shells, recessed fabric cushions, a fine mesh canopy, telescoping stems, crown/button details, an elliptical base, and a curved cradle below the headband. Inspected from close front/side and overhead angles; corrected the post-to-cradle connection during review.
+- Supplied portrait loads successfully in About; inspected at desktop and phone sizes.
+- The 1200 × 2596 wallpaper is displayed horizontally using its original resolution; inspected in the desktop and on the laptop/monitor.
+- All five employment entries checked against the authenticated LinkedIn profile on 2026-10-18. Próspera is Aug–Oct 2026 exactly as displayed in the source; no assumption of a current role.
+- Each imported article's full text matches the published HTML after whitespace normalization and removal of empty embedded widgets.
+- All four articles open inside Notes; headings receive focus on opening, and Back restores focus to the originating note.
+- All four Notes render and scroll on a 390 × 844 emulated phone with no horizontal overflow or runtime errors.
+- Notes also opens with Enter from the list and renders correctly in the inherited dark desktop appearance.
+- All four static article routes return 200 with JavaScript disabled; an unknown slug returns 404.
+
 ## Remaining limitations
 
-- The supplied wallpaper is only 235 × 152 pixels. It is used unchanged and needs a full-resolution replacement.
 - The hardware models are original procedural interpretations, not exact manufacturer models.
-- The public LinkedIn project dates were corrected. Full About and employment-history updates await a profile export or pasted sections.
 - Spotify is intentionally not integrated; the listening note is a placeholder until the playlist and playback behavior are specified.
-- Existing article and résumé links still depend on the old website/Framer-hosted files.
+- The résumé PDF still depends on the existing Framer-hosted asset. Articles are now local.
 - A nonfatal `THREE.Clock` deprecation warning originates from the installed React Three Fiber version. There are no application runtime errors in the normal tested flows.
 - No deployment, Git repository initialization, commit, push, or domain modification was performed.

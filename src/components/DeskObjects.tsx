@@ -300,6 +300,15 @@ const Laptop = memo(function Laptop({
   wallpaper: THREE.Texture;
   keyboard: THREE.Texture;
 }) {
+  const displayWallpaper = useMemo(() => {
+    const texture = wallpaper.clone();
+    const image = wallpaper.image as HTMLCanvasElement;
+    texture.repeat.x = 0.803 / 0.5 / (image.width / image.height);
+    texture.offset.x = (1 - texture.repeat.x) / 2;
+    texture.needsUpdate = true;
+    return texture;
+  }, [wallpaper]);
+  useEffect(() => () => displayWallpaper.dispose(), [displayWallpaper]);
   return (
     <group position={[-1.18, 1.72, 0.02]} rotation={[0, 0.23, 0]}>
       <Box
@@ -367,7 +376,7 @@ const Laptop = memo(function Laptop({
         />
         <mesh position={[0, 0.287, 0.017]}>
           <planeGeometry args={[0.803, 0.5]} />
-          <meshBasicMaterial map={wallpaper} toneMapped={false} />
+          <meshBasicMaterial map={displayWallpaper} toneMapped={false} />
         </mesh>
         <Box
           size={[0.093, 0.021, 0.004]}
@@ -384,12 +393,93 @@ const Laptop = memo(function Laptop({
   );
 });
 
+function roundedProfile(width: number, height: number, radius: number) {
+  const shape = new THREE.Shape();
+  const x = -width / 2,
+    y = -height / 2;
+  shape.moveTo(x + radius, y);
+  shape.lineTo(x + width - radius, y);
+  shape.quadraticCurveTo(x + width, y, x + width, y + radius);
+  shape.lineTo(x + width, y + height - radius);
+  shape.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  shape.lineTo(x + radius, y + height);
+  shape.quadraticCurveTo(x, y + height, x, y + height - radius);
+  shape.lineTo(x, y + radius);
+  shape.quadraticCurveTo(x, y, x + radius, y);
+  return shape;
+}
+
 const AirPods = memo(function AirPods({ onMusic }: { onMusic: () => void }) {
-  const arch = (x: number, z: number): Vec3[] =>
-    Array.from({ length: 25 }, (_, i) => {
-      const a = (Math.PI * i) / 24;
-      return [Math.cos(a) * x, 0.4 + Math.sin(a) * 0.33, z];
+  const parts = useMemo(() => {
+    const shell = new THREE.ExtrudeGeometry(roundedProfile(0.17, 0.25, 0.069), {
+      depth: 0.039,
+      bevelEnabled: true,
+      bevelSegments: 6,
+      steps: 1,
+      bevelSize: 0.012,
+      bevelThickness: 0.012,
+      curveSegments: 16,
     });
+    shell.translate(0, 0, -0.0195);
+    const cushionShape = roundedProfile(0.163, 0.245, 0.067);
+    cushionShape.holes.push(roundedProfile(0.092, 0.169, 0.044));
+    const cushion = new THREE.ExtrudeGeometry(cushionShape, {
+      depth: 0.034,
+      bevelEnabled: true,
+      bevelSegments: 5,
+      steps: 1,
+      bevelSize: 0.008,
+      bevelThickness: 0.008,
+      curveSegments: 16,
+    });
+    cushion.translate(0, 0, -0.017);
+    const lining = new THREE.ShapeGeometry(
+      roundedProfile(0.12, 0.196, 0.052),
+      20,
+    );
+    const canopy = new THREE.PlaneGeometry(Math.PI, 0.104, 64, 8);
+    const positions = canopy.attributes.position;
+    for (let i = 0; i < positions.count; i++) {
+      const angle = positions.getX(i) + Math.PI / 2;
+      const z = positions.getY(i);
+      // A soft mesh sling suspended below the two structural headband rails.
+      const sag = 0.018 * (1 - Math.pow(z / 0.052, 2)) * Math.sin(angle);
+      positions.setXYZ(
+        i,
+        Math.cos(angle) * 0.224,
+        0.43 + Math.sin(angle) * 0.32 - sag,
+        z,
+      );
+    }
+    canopy.computeVertexNormals();
+    const knit = textureFromCanvas(
+      (ctx) => {
+        ctx.fillStyle = "#888a8c";
+        ctx.fillRect(0, 0, 128, 128);
+        for (let y = 0; y < 128; y += 4) {
+          for (let x = 0; x < 128; x += 4) {
+            ctx.fillStyle = (x + y) % 8 ? "#77797b" : "#999b9d";
+            ctx.fillRect(x, y, 2, 3);
+          }
+        }
+      },
+      128,
+      128,
+    );
+    knit.wrapS = knit.wrapT = THREE.RepeatWrapping;
+    knit.repeat.set(8, 8);
+    return { shell, cushion, lining, canopy, knit };
+  }, []);
+  useEffect(
+    () => () => Object.values(parts).forEach((part) => part.dispose()),
+    [parts],
+  );
+  const rail = (z: number): Vec3[] =>
+    Array.from({ length: 33 }, (_, i) => {
+      const a = (Math.PI * i) / 32;
+      return [Math.cos(a) * 0.224, 0.43 + Math.sin(a) * 0.32, z];
+    });
+
   return (
     <group
       name="AirPods Max on stand"
@@ -406,116 +496,163 @@ const AirPods = memo(function AirPods({ onMusic }: { onMusic: () => void }) {
         document.body.style.cursor = "auto";
       }}
     >
-      <Box
-        size={[0.4, 0.035, 0.29]}
-        position={[0, 0.018, 0]}
-        radius={0.016}
-        color="#cbced2"
-        metalness={0.85}
-        roughness={0.2}
-      />
+      {/* Elliptical weighted base and a post that ends below the canopy. */}
+      <mesh
+        position={[0, 0.023, 0]}
+        scale={[1.35, 1, 1]}
+        castShadow
+        receiveShadow
+      >
+        <cylinderGeometry args={[0.147, 0.151, 0.03, 64]} />
+        <meshPhysicalMaterial
+          color="#dce0e2"
+          metalness={0.65}
+          roughness={0.3}
+          clearcoat={0.25}
+        />
+      </mesh>
+      <mesh position={[0, 0.01, 0]} scale={[1.35, 1, 1]}>
+        <cylinderGeometry args={[0.14, 0.14, 0.008, 64]} />
+        <meshStandardMaterial color="#44474a" roughness={1} />
+      </mesh>
       <Tube
         points={[
-          [0, 0.04, -0.035],
-          [0, 0.4, -0.035],
-          [0, 0.705, -0.035],
+          [0, 0.038, 0],
+          [0, 0.36, 0],
+          [0, 0.723, 0],
         ]}
-        radius={0.014}
-        color="#c7ccd2"
+        radius={0.011}
+        color="#c4cbd0"
         metalness={1}
-        roughness={0.13}
+        roughness={0.15}
       />
-      <Box
-        size={[0.14, 0.025, 0.09]}
-        position={[0, 0.708, -0.035]}
-        color="#bcc1c6"
-        radius={0.012}
-        metalness={0.8}
-        roughness={0.23}
+      {/* The curved cradle follows the underside of the sling; it cannot poke through it. */}
+      <Tube
+        points={[
+          [-0.057, 0.711, 0],
+          [-0.028, 0.721, 0],
+          [0, 0.724, 0],
+          [0.028, 0.721, 0],
+          [0.057, 0.711, 0],
+        ]}
+        radius={0.007}
+        color="#858b91"
+        metalness={0.35}
+        roughness={0.5}
       />
-      <group position={[0, 0.4, 0]} scale={[0.231, 0.33, 1]}>
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry
-            args={[1, 1, 0.085, 48, 1, true, Math.PI / 2, Math.PI]}
-          />
-          <meshStandardMaterial
-            color="#414447"
-            roughness={1}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-      </group>
-      <Tube points={arch(0.231, -0.044)} radius={0.012} color="#26282b" />
-      <Tube points={arch(0.231, 0.044)} radius={0.012} color="#26282b" />
-      {Array.from({ length: 24 }, (_, i) => {
-        const a = 0.1 + ((Math.PI - 0.2) * i) / 23;
-        return (
-          <Tube
-            key={i}
-            points={[
-              [Math.cos(a) * 0.231, 0.4 + Math.sin(a) * 0.33, -0.04],
-              [Math.cos(a) * 0.225, 0.397 + Math.sin(a) * 0.33, 0],
-              [Math.cos(a) * 0.231, 0.4 + Math.sin(a) * 0.33, 0.04],
-            ]}
-            radius={0.0035}
-            color="#414246"
-          />
-        );
-      })}
+      <mesh geometry={parts.canopy} castShadow>
+        <meshStandardMaterial
+          color="#44484b"
+          map={parts.knit}
+          bumpMap={parts.knit}
+          bumpScale={0.0008}
+          roughness={0.95}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      <Tube
+        points={rail(-0.052)}
+        radius={0.009}
+        color="#34383b"
+        roughness={0.65}
+      />
+      <Tube
+        points={rail(0.052)}
+        radius={0.009}
+        color="#34383b"
+        roughness={0.65}
+      />
       {[-1, 1].map((side) => (
-        <group
-          key={side}
-          position={[side * 0.2, 0.28, 0.015]}
-          rotation={[0, side * -0.19, side * -0.13]}
-        >
+        <group key={side}>
+          {/* Polished telescoping stems meet the cup swivel above the aluminum shell. */}
           <Tube
             points={[
-              [side * 0.02, 0.17, 0],
-              [side * 0.025, 0.11, 0],
-              [0, 0.09, 0],
+              [side * 0.224, 0.43, 0],
+              [side * 0.224, 0.399, 0],
+              [side * 0.211, 0.381, 0],
             ]}
-            radius={0.009}
-            color="#c4c9ce"
+            radius={0.008}
+            color="#d1d8dd"
             metalness={1}
-            roughness={0.18}
+            roughness={0.12}
           />
-          <Box
-            size={[0.12, 0.27, 0.195]}
-            position={[0, 0, 0]}
-            color="#484b50"
-            radius={0.056}
-            metalness={0.8}
-            roughness={0.32}
-          />
-          <Box
-            size={[0.048, 0.25, 0.178]}
-            position={[-side * 0.07, 0, 0]}
-            color="#17191d"
-            radius={0.023}
-            roughness={0.98}
-          />
-          <Box
-            size={[0.008, 0.13, 0.079]}
-            position={[-side * 0.095, 0, 0]}
-            color="#08090c"
-            radius={0.003}
-          />
-          <Box
-            size={[0.002, 0.033, 0.006]}
-            position={[side * 0.061, -0.07, 0.025]}
-            color="#101114"
-            radius={0}
-          />
-          {side === 1 && (
-            <mesh position={[0.015, 0.137, -0.035]}>
-              <cylinderGeometry args={[0.015, 0.015, 0.012, 20]} />
-              <meshStandardMaterial
-                color="#888d93"
-                metalness={0.8}
-                roughness={0.22}
+          <group
+            position={[side * 0.213, 0.255, 0]}
+            rotation={[0, side * -0.16, side * -0.095]}
+          >
+            <mesh
+              geometry={parts.shell}
+              rotation={[0, Math.PI / 2, 0]}
+              castShadow
+              receiveShadow
+            >
+              <meshPhysicalMaterial
+                color="#555d65"
+                metalness={0.85}
+                roughness={0.33}
+                clearcoat={0.15}
               />
             </mesh>
-          )}
+            <mesh
+              geometry={parts.cushion}
+              position={[-side * 0.051, 0, 0]}
+              rotation={[0, Math.PI / 2, 0]}
+              castShadow
+            >
+              <meshStandardMaterial
+                color="#414549"
+                map={parts.knit}
+                bumpMap={parts.knit}
+                bumpScale={0.0007}
+                roughness={1}
+              />
+            </mesh>
+            <mesh
+              geometry={parts.lining}
+              position={[-side * 0.033, 0, 0]}
+              rotation={[0, Math.PI / 2, 0]}
+            >
+              <meshStandardMaterial
+                color="#16191d"
+                map={parts.knit}
+                roughness={1}
+                side={THREE.DoubleSide}
+              />
+            </mesh>
+            <mesh position={[0, 0.131, 0]} castShadow>
+              <sphereGeometry args={[0.013, 16, 12]} />
+              <meshStandardMaterial
+                color="#929ba1"
+                metalness={1}
+                roughness={0.2}
+              />
+            </mesh>
+            <Box
+              size={[0.002, 0.023, 0.004]}
+              position={[side * 0.032, -0.063, 0.039]}
+              color="#15191d"
+              radius={0.001}
+            />
+            {side === 1 && (
+              <>
+                <mesh position={[0.009, 0.134, -0.048]} castShadow>
+                  <cylinderGeometry args={[0.012, 0.012, 0.011, 32]} />
+                  <meshStandardMaterial
+                    color="#a5adb5"
+                    metalness={0.85}
+                    roughness={0.25}
+                  />
+                </mesh>
+                <Box
+                  size={[0.015, 0.008, 0.031]}
+                  position={[0.006, 0.133, 0.045]}
+                  color="#8a949e"
+                  radius={0.004}
+                  metalness={0.8}
+                />
+              </>
+            )}
+          </group>
         </group>
       ))}
     </group>
@@ -618,12 +755,38 @@ export const Desk = memo(function Desk({
   waking: boolean;
   sleeping: boolean;
 }) {
-  const wallpaper = useTexture("/images/black-wallpaper.png");
+  const sourceWallpaper = useTexture("/images/pro-wallpaper-portrait.jpg");
+  const wallpaper = useMemo(() => {
+    const image = sourceWallpaper.image as HTMLImageElement;
+    // Rotate the original portrait image clockwise at its native resolution.
+    return textureFromCanvas(
+      (ctx) => {
+        ctx.translate(image.height, 0);
+        ctx.rotate(Math.PI / 2);
+        ctx.drawImage(image, 0, 0);
+      },
+      image.height,
+      image.width,
+    );
+  }, [sourceWallpaper]);
+  useEffect(() => () => wallpaper.dispose(), [wallpaper]);
   const textures = useMemo(() => {
     wallpaper.colorSpace = THREE.SRGBColorSpace;
     const screen = textureFromCanvas(
       (ctx) => {
-        ctx.drawImage(wallpaper.image as HTMLImageElement, 0, 0, 1280, 540);
+        const image = wallpaper.image as HTMLCanvasElement;
+        const cropHeight = image.width * (540 / 1280);
+        ctx.drawImage(
+          image,
+          0,
+          (image.height - cropHeight) / 2,
+          image.width,
+          cropHeight,
+          0,
+          0,
+          1280,
+          540,
+        );
         ctx.fillStyle = "#ffffff26";
         ctx.fillRect(0, 0, 1280, 22);
         ctx.fillStyle = "#fff";
@@ -883,7 +1046,8 @@ export const SaylChair = memo(function SaylChair() {
   return (
     <group
       name="Herman Miller Sayl chair"
-      position={[0.24, 0, 1.39]}
+      position={[0.24, 0, 1.48]}
+      scale={1.12}
       rotation={[0, -0.32, 0]}
     >
       <mesh position={[0, 0.47, 0]} castShadow>

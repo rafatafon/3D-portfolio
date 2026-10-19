@@ -1,0 +1,2308 @@
+[
+  {
+    "slug": "claude-code-changed-how-i-build-software",
+    "name": "Claude Code Changed How I Build Software",
+    "date": "March 23, 2026",
+    "isoDate": "2026-03-23",
+    "sourceUrl": "https://fredymaldonado.com/blog/claude-code-changed-how-i-build-software",
+    "minutes": 7,
+    "body": [
+      {
+        "tag": "h3",
+        "children": [
+          "I Finally Tried Claude Code… and It Changed How I Build Software"
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "For months I kept seeing developers online talk about ",
+          {
+            "tag": "strong",
+            "children": ["Claude Code"]
+          },
+          "."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["The comments were always the same:"]
+      },
+      {
+        "tag": "blockquote",
+        "children": [
+          {
+            "tag": "p",
+            "children": [
+              "“Claude Code is insane.”",
+              {
+                "tag": "br",
+                "children": []
+              },
+              "“It’s the best AI coding experience right now.”",
+              {
+                "tag": "br",
+                "children": []
+              },
+              "“It feels like pair programming with a senior engineer.”"
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "But every time I looked into it, I had the same reaction."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["“That’s expensive.”"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["So I never tried it."]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "I stuck with the tools most developers were already using — ChatGPT, Copilot, a few browser extensions, and the occasional AI coding assistant. They worked fine. They helped me write functions, debug things, and occasionally generate boilerplate."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "But nothing that really felt ",
+          {
+            "tag": "em",
+            "children": ["transformational"]
+          },
+          "."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["Then something changed."]
+      },
+      {
+        "tag": "p",
+        "children": ["My workload increased."]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Client projects started stacking up, deadlines got tighter, and suddenly I needed more than autocomplete and code snippets. I needed something that could help me think through ",
+          {
+            "tag": "strong",
+            "children": ["architecture, workflows, and system design"]
+          },
+          ", not just individual lines of code."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["So I finally decided to try Claude Code."]
+      },
+      {
+        "tag": "p",
+        "children": ["And honestly?"]
+      },
+      {
+        "tag": "p",
+        "children": ["I wish I had done it sooner."]
+      },
+      {
+        "tag": "h3",
+        "children": ["The Difference Isn’t Just “Better Code”"]
+      },
+      {
+        "tag": "p",
+        "children": ["Most AI coding tools can write code."]
+      },
+      {
+        "tag": "p",
+        "children": ["That’s not new."]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "The real difference with Claude Code is how it behaves inside a project."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Instead of acting like a chatbot that occasionally writes code, it behaves much more like a ",
+          {
+            "tag": "strong",
+            "children": ["technical collaborator"]
+          },
+          " that understands the structure of your repository."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["Once it’s properly configured, Claude can:"]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["understand your project architecture"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["follow project rules"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["use external tools"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["test your UI in a browser"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["inspect databases"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": [
+                  "reason about complex changes across multiple files"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "In other words, it stops feeling like “AI autocomplete” and starts feeling more like ",
+          {
+            "tag": "strong",
+            "children": ["another engineer on the team"]
+          },
+          "."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["But there’s an important catch."]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "If you install Claude Code and just start throwing random prompts at it, you’re missing most of its power."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "The real magic comes from ",
+          {
+            "tag": "strong",
+            "children": [
+              "how you structure your development environment around it"
+            ]
+          },
+          "."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Here are the tricks that made the biggest difference for me."
+        ]
+      },
+      {
+        "tag": "ol",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "h3",
+                "children": [
+                  "The Most Important File: ",
+                  {
+                    "tag": "code",
+                    "children": ["CLAUDE.md"]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "The first major upgrade was learning about something called ",
+          {
+            "tag": "strong",
+            "children": ["CLAUDE.md"]
+          },
+          "."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "This file lives in the root of your project and acts as a ",
+          {
+            "tag": "strong",
+            "children": ["project brain"]
+          },
+          " for Claude Code."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Instead of guessing how your project works, Claude reads this file every time it starts working in your repository."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["Inside this file you can define things like:"]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["repository structure"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["architecture rules"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["security constraints"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["coding conventions"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["git workflow"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["testing requirements"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["For example, you can tell Claude things like:"]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["where routes live"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["which pages are public vs protected"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["which plugins should be used for certain tasks"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["how commits should be structured"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["how authentication works"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["Without this file, Claude has to make assumptions."]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "With this file, Claude starts behaving like someone who ",
+          {
+            "tag": "strong",
+            "children": ["already understands the codebase"]
+          },
+          "."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "For me, this was the moment when Claude Code started feeling significantly more powerful."
+        ]
+      },
+      {
+        "tag": "ol",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "h3",
+                "children": ["Use Subagents (This Was a Game Changer)"]
+              }
+            ]
+          }
+        ],
+        "start": 2
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Another feature that completely changed how I use Claude Code is ",
+          {
+            "tag": "strong",
+            "children": ["subagents"]
+          },
+          "."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Instead of relying on one AI to do everything, you can create ",
+          {
+            "tag": "strong",
+            "children": ["specialized agents"]
+          },
+          " for different responsibilities."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["For example, I created agents like:"]
+      },
+      {
+        "tag": "p",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["frontend-developer"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["Responsible for:"]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["React"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["Tailwind"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["UI components"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["layout structure"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["backend-engineer"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["Responsible for:"]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["server logic"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["API design"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["validation"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["data flow"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["supabase-rls-engineer"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["Responsible for:"]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["database schema"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["row-level security"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["authentication flows"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["qa-playwright"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["Responsible for:"]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["end-to-end testing"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["browser verification"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["UI flows"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["test-specialist"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["Responsible for:"]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["unit tests"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["integration tests"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Once these are defined, Claude can delegate work internally."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Instead of asking Claude to build everything, you can tell it something like:"
+        ]
+      },
+      {
+        "tag": "blockquote",
+        "children": [
+          {
+            "tag": "p",
+            "children": ["“Delegate the UI changes to the frontend agent.”"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "This keeps the development process much more organized and prevents Claude from mixing concerns across the system."
+        ]
+      },
+      {
+        "tag": "ol",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "h3",
+                "children": ["Plugins Turn Claude Into Something Much Bigger"]
+              }
+            ]
+          }
+        ],
+        "start": 3
+      },
+      {
+        "tag": "p",
+        "children": [
+          "One of the things that surprised me the most is how powerful Claude becomes once you enable ",
+          {
+            "tag": "strong",
+            "children": ["plugins"]
+          },
+          "."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Without plugins, Claude is just reasoning about text and code."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "With plugins, it can ",
+          {
+            "tag": "strong",
+            "children": ["interact with real systems"]
+          },
+          "."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["Here are the ones I’ve been using the most."]
+      },
+      {
+        "tag": "h4",
+        "children": [
+          {
+            "tag": "code",
+            "children": ["Frontend Design"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "This plugin helps Claude improve ",
+          {
+            "tag": "strong",
+            "children": ["UI structure and layout decisions"]
+          },
+          "."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Instead of producing very generic interfaces, it helps with:"
+        ]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["component structure"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["spacing systems"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["layout hierarchy"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["responsive behavior"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["accessibility considerations"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["It’s particularly useful when designing pages like:"]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["job boards"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["dashboards"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["filtering systems"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["complex forms"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "h4",
+        "children": [
+          {
+            "tag": "code",
+            "children": ["UI-UX Pro Max"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["This plugin adds something different."]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Instead of just helping with frontend implementation, it gives Claude ",
+          {
+            "tag": "strong",
+            "children": ["design intelligence"]
+          },
+          "."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["It helps with:"]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["visual direction"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["typography pairing"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["color palette ideas"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["UX structure"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["design system consistency"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "One of the biggest problems with AI-generated interfaces is that they often look ",
+          {
+            "tag": "strong",
+            "children": ["generic"]
+          },
+          "."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["They’re technically correct, but visually uninspired."]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Using ",
+          {
+            "tag": "strong",
+            "children": ["UI-UX Pro Max"]
+          },
+          " together with the frontend design plugin helps Claude generate interfaces that feel more intentional and closer to what a designer might produce."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "code",
+            "children": ["Playwright"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["This one might be my favorite."]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "With the Playwright plugin, Claude can actually ",
+          {
+            "tag": "strong",
+            "children": ["open a browser and test your application"]
+          },
+          "."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["It can:"]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["open your development server"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["navigate pages"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["click buttons"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["fill forms"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["verify flows"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["take screenshots"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "For example, you can ask Claude to verify something like:"
+        ]
+      },
+      {
+        "tag": "blockquote",
+        "children": [
+          {
+            "tag": "p",
+            "children": [
+              "“Test the job creation flow and confirm the job appears on the public page.”"
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["And it will actually do it."]
+      },
+      {
+        "tag": "p",
+        "children": ["This is extremely helpful when debugging UI issues."]
+      },
+      {
+        "tag": "h4",
+        "children": [
+          {
+            "tag": "code",
+            "children": ["Supabase Plugin"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "If your project uses Supabase, this plugin is incredibly useful."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["Claude can inspect:"]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["database tables"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["migrations"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["policies"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["schema structure"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["It can help you design or debug things like:"]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["row level security"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["authentication flows"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["query performance"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Instead of manually switching between documentation and SQL, you can reason about the database architecture directly with Claude."
+        ]
+      },
+      {
+        "tag": "h4",
+        "children": [
+          {
+            "tag": "code",
+            "children": ["Security Guidance"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["This plugin acts like a safety net."]
+      },
+      {
+        "tag": "p",
+        "children": ["It helps detect common security mistakes such as:"]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["exposing API keys"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["unsafe authentication patterns"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["insecure queries"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["leaking environment variables"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "When building real applications, this kind of guardrail is extremely valuable."
+        ]
+      },
+      {
+        "tag": "ol",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "h3",
+                "children": ["Always Ask Claude to Plan Before Coding"]
+              }
+            ]
+          }
+        ],
+        "start": 4
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Another habit that dramatically improved results was asking Claude to ",
+          {
+            "tag": "strong",
+            "children": ["plan changes before implementing them"]
+          },
+          "."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["Instead of immediately saying:"]
+      },
+      {
+        "tag": "blockquote",
+        "children": [
+          {
+            "tag": "p",
+            "children": ["“Implement this feature.”"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["I usually start with something like:"]
+      },
+      {
+        "tag": "p",
+        "children": ["Then I describe the problem."]
+      },
+      {
+        "tag": "p",
+        "children": ["This forces Claude to:"]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["analyze the repository"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["think about architecture"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["propose a step-by-step plan"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["identify which files will change"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "It reduces messy refactors and helps keep the codebase stable."
+        ]
+      },
+      {
+        "tag": "ol",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "h3",
+                "children": ["Keep Changes Small and Structured"]
+              }
+            ]
+          }
+        ],
+        "start": 5
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Claude is powerful, but it’s still important to maintain good engineering discipline."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["I always instruct it to:"]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["make small diffs"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["avoid large refactors unless necessary"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["commit using conventional commit messages"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["For example:"]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "This keeps the repository readable and makes collaboration easier."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": ["The Mindset Shift That Helped Me Most"]
+      },
+      {
+        "tag": "p",
+        "children": ["The biggest change wasn’t technical."]
+      },
+      {
+        "tag": "p",
+        "children": ["It was mental."]
+      },
+      {
+        "tag": "p",
+        "children": ["At first, I treated Claude like a chatbot."]
+      },
+      {
+        "tag": "p",
+        "children": ["Ask a question. Get an answer."]
+      },
+      {
+        "tag": "p",
+        "children": ["But that’s not the best way to use it."]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "The moment things improved was when I started treating Claude like ",
+          {
+            "tag": "strong",
+            "children": ["a developer on the team"]
+          },
+          "."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["That means:"]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["giving it context"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["defining architecture"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["establishing rules"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["reviewing its work"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Once you do that, the quality of the output changes dramatically."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": ["Is Claude Code Worth the Cost?"]
+      },
+      {
+        "tag": "p",
+        "children": ["Initially I hesitated because of the price."]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "But after using it for real projects, I started thinking about it differently."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["The real question isn’t:"]
+      },
+      {
+        "tag": "blockquote",
+        "children": [
+          {
+            "tag": "p",
+            "children": ["“Is this expensive?”"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["The real question is:"]
+      },
+      {
+        "tag": "blockquote",
+        "children": [
+          {
+            "tag": "p",
+            "children": ["“How much developer time does this save?”"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "If it helps you design architecture faster, debug faster, and ship features faster, the cost starts to make much more sense."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "For me, it feels less like a coding assistant and more like ",
+          {
+            "tag": "strong",
+            "children": ["an AI development partner"]
+          },
+          "."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": ["Final Thoughts"]
+      },
+      {
+        "tag": "p",
+        "children": ["Claude Code didn’t magically replace programming."]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "But it definitely changed the way I approach building software."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Instead of struggling alone through architecture decisions, debugging sessions, and refactors, I now have a system that can reason through the entire codebase with me."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "And once you start building the right workflow around it, the experience becomes far more powerful than most people expect."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "If you’ve heard the hype but haven’t tried it yet, my recommendation is simple."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["Try it on a real project."]
+      },
+      {
+        "tag": "p",
+        "children": ["That’s when it starts to make sense."]
+      }
+    ]
+  },
+  {
+    "slug": "what-i-actually-learned-studying-software-engineering-in-germany",
+    "name": "What I Actually Learned Studying Software Engineering in Germany",
+    "date": "January 12, 2026",
+    "isoDate": "2026-01-12",
+    "sourceUrl": "https://fredymaldonado.com/blog/what-i-actually-learned-studying-software-engineering-in-germany",
+    "minutes": 3,
+    "body": [
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["More Than Just Writing Code"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Studying Software Engineering in Germany ended up being about much more than programming languages, frameworks, or passing exams. It was an experience that slowly reshaped how I think about work, systems, and responsibility. Over time, I realized that the most valuable lessons weren’t always technical — they were about mindset."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "From the beginning, there was a strong emphasis on understanding ",
+          {
+            "tag": "em",
+            "children": ["why"]
+          },
+          " something should be built before focusing on ",
+          {
+            "tag": "em",
+            "children": ["how"]
+          },
+          ". That alone changed the way I approach problems today."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["Learning to Value Clarity"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "One of the strongest lessons I took from my studies in Germany was the importance of clarity. Requirements were clear, expectations were explicit, and ambiguity was treated as something to resolve early — not something to work around later."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "In practice, this meant slowing down before jumping into solutions. Taking the time to understand constraints, edge cases, and long-term implications became the norm. Over time, I noticed how this translated naturally into better system design, cleaner code, and fewer “quick fixes” that come back to haunt you later."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "This mindset still guides how I build software today: clarity first, complexity only when it’s truly necessary."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["Discipline, Consistency, and Process"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Progress in Germany rarely felt dramatic. Instead of big moments or sudden breakthroughs, improvement came from discipline and consistency. Showing up prepared, meeting deadlines, and respecting processes were expected, not celebrated."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "At first, this felt rigid. Over time, I understood its value. Systems that are built carefully and consistently tend to be more reliable, easier to maintain, and easier to scale. That applies not only to software, but to habits, teams, and long-term goals as well."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["Thinking in Systems, Not Just Features"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Another important shift was learning to think in terms of systems rather than isolated features. Many courses emphasized architecture, structure, and the relationships between components instead of just individual implementations."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "This helped me develop a more holistic way of thinking: how changes in one part of a system affect others, how decisions today influence maintainability tomorrow, and why simple designs often outperform clever ones in the long run."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "It’s a perspective I now apply whether I’m working on AI pipelines, backend systems, or web applications."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["Growing in a Multicultural Environment"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Studying in an international environment also played a huge role in my development. Working alongside people from different cultures and backgrounds forced me to communicate more clearly, listen more carefully, and collaborate without ego."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Technical skills matter, but being able to explain ideas, accept feedback, and work toward a shared goal matters just as much. These experiences helped me become more adaptable and comfortable working in diverse teams — something I value deeply today."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["Ownership and Responsibility"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "One subtle but powerful lesson was the expectation of ownership. You were responsible for your work, your decisions, and the outcome. Excuses didn’t go far. If something didn’t work, the expectation was to understand why and improve it."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "That sense of responsibility shaped how I approach projects now. I don’t just focus on shipping features — I think about reliability, maintainability, and the impact of my decisions over time."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["Looking Back"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Looking back, studying Software Engineering in Germany wasn’t just about earning a degree. It was about learning how to think, how to build, and how to approach problems with intention."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "The technical knowledge matters, of course. But the deeper lessons — clarity, discipline, systems thinking, and responsibility — are the ones that continue to influence how I work today, long after university."
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "how-i-actually-use-ai-in-real-projects-without-the-hype",
+    "name": "How I Actually Use AI in Real Projects (Without the Hype)",
+    "date": "January 12, 2026",
+    "isoDate": "2026-01-12",
+    "sourceUrl": "https://fredymaldonado.com/blog/how-i-actually-use-ai-in-real-projects-(without-the-hype)",
+    "minutes": 3,
+    "body": [
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["AI Is a Tool, Not the Product"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "AI is everywhere right now. New tools, new models, new promises — often presented as magic solutions to complex problems. But in real projects, AI rarely works that way."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "In my experience, AI is most valuable when treated as a tool, not the product itself. It doesn’t replace good engineering, clear requirements, or thoughtful system design. Instead, it amplifies them when used correctly."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "The biggest mistake I see is trying to “add AI” before understanding what problem actually needs solving."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["Start With the Problem, Not the Model"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "When working on AI-driven projects, I always start by asking simple questions:",
+          {
+            "tag": "br",
+            "children": []
+          },
+          "What is slow? What is repetitive? Where do humans lose time or make avoidable mistakes?"
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Only after those questions are answered does it make sense to consider AI. Sometimes the solution is automation. Sometimes it’s better UX. And sometimes, yes, AI is the right choice — but only when it adds clear value."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "This mindset avoids unnecessary complexity and keeps systems focused on outcomes, not trends."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["Where AI Actually Adds Value"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "In practice, I’ve seen AI work best in areas like text processing, speech workflows, classification, and decision support. These are places where patterns exist, scale matters, and small improvements can save a lot of time."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Instead of trying to make AI “smart,” I focus on making it useful. That usually means:"
+        ]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["Clear inputs"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["Well-defined outputs"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["Human-readable results"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["Fallbacks when AI is uncertain"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "AI doesn’t need to be perfect. It needs to be reliable enough to support real workflows."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["AI Needs Structure Around It"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "One thing that’s often overlooked is that AI systems don’t live in isolation. They need structure around them: pipelines, validation, logging, monitoring, and clear boundaries."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Most of the work in AI projects isn’t training models — it’s building the systems that make those models usable in production. Without that structure, even the best model becomes unreliable."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "This is where traditional software engineering matters just as much as machine learning."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["Avoiding the “Black Box” Trap"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Another lesson I learned early is to avoid treating AI as a black box. If a system makes decisions that no one understands, trust erodes quickly."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "I try to design AI-powered features in a way that keeps humans in the loop. Outputs should be explainable, adjustable, and easy to override when needed. This makes systems more trustworthy and easier to improve over time."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "AI should support human decision-making, not replace it blindly."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["Simple Systems Beat Clever Ones"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "It’s tempting to overengineer AI solutions — chaining models, adding complexity, optimizing too early. In reality, the most successful AI systems I’ve worked on were simple, focused, and easy to reason about."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "A clear pipeline with one well-chosen model often outperforms a complex system that’s hard to maintain. Simplicity makes systems easier to debug, scale, and evolve."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["My Takeaway"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "AI is powerful, but it’s not special on its own. It becomes valuable when combined with clear thinking, solid engineering, and a deep understanding of the problem."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "The projects that succeed aren’t the ones with the most advanced models — they’re the ones where AI quietly improves real workflows without getting in the way."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "That’s the approach I aim for: practical, intentional, and grounded in reality."
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "why-i-built-archimedes-systems",
+    "name": "Why I Built Archimedes Systems",
+    "date": "January 12, 2026",
+    "isoDate": "2026-01-12",
+    "sourceUrl": "https://fredymaldonado.com/blog/why-i-built-archimedes-systems",
+    "minutes": 3,
+    "body": [
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["It Started With a Simple Observation"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "After returning to Honduras and working closely with local businesses, I noticed a recurring pattern: technology was rarely treated as a strategic priority. Many companies still rely on manual processes, disconnected tools, or outdated workflows — not because they don’t care, but because technology is often seen as optional rather than foundational."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "AI, automation, and modern software are still underutilized in many parts of the local market. In most cases, the challenge isn’t ambition or talent — it’s awareness, access, and the lack of systems designed with long-term efficiency in mind. That gap is what led me to build Archimedes Systems."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["The Meaning Behind the Name"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Archimedes is known for the idea that with the right leverage, even something heavy can be moved."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "That principle resonated deeply with how I see technology. When designed correctly, software and AI act as leverage — not by replacing people, but by amplifying what they’re already capable of."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Archimedes Systems exists to build that leverage in a practical, intentional way."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["Technology as Leverage, Not Noise"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Archimedes Systems is not about chasing trends or adding AI for the sake of it. The focus is on identifying friction inside workflows and designing systems that reduce it."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["That can mean:"]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["Automation where repetition exists"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["AI where scale or pattern recognition adds value"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["Clear architecture instead of scattered tools"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "The goal is always the same: systems that quietly improve how work gets done."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["A Strong Engineering Foundation"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "At its core, Archimedes Systems is built on solid software engineering principles. Clear structure, reliability, and maintainability matter just as much as innovation."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Most of the real work happens around the AI: building pipelines, defining boundaries, handling edge cases, and ensuring systems behave predictably over time. Without that foundation, even the most powerful tools fall apart in production."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["Human-Centered by Design"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "One important principle behind Archimedes Systems is keeping humans in the loop. Systems should be understandable, adjustable, and transparent."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "AI should support decision-making, not obscure it. Good systems make people’s work easier, not more confusing."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "This philosophy keeps solutions grounded in reality and aligned with actual business needs."
+        ]
+      },
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["A Long-Term Approach"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Archimedes Systems is intentionally built with a long-term mindset. No shortcuts, no overengineering, no unnecessary complexity."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["Every project is approached with the same questions:"]
+      },
+      {
+        "tag": "ul",
+        "children": [
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["Does this actually solve a problem?"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["Will this system still make sense in a year?"]
+              }
+            ]
+          },
+          {
+            "tag": "li",
+            "children": [
+              {
+                "tag": "p",
+                "children": ["Can it be maintained and evolved easily?"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": ["If the answer isn’t clear, the solution isn’t ready."]
+      },
+      {
+        "tag": "h3",
+        "children": [
+          {
+            "tag": "strong",
+            "children": ["Looking Ahead"]
+          }
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Archimedes Systems is still growing, but the vision is clear: build thoughtful systems that create real leverage through technology."
+        ]
+      },
+      {
+        "tag": "p",
+        "children": [
+          "Not louder software.",
+          {
+            "tag": "br",
+            "children": []
+          },
+          "Not trend-driven solutions.",
+          {
+            "tag": "br",
+            "children": []
+          },
+          "Just clear, intentional systems that help people and businesses move forward."
+        ]
+      }
+    ]
+  }
+]

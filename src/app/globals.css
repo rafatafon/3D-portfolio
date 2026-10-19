@@ -2373,7 +2373,17 @@ a svg {
   --finder-selected: #0a84ff;
 }
 .desktop-wallpaper {
-  background: #09090b url("/images/black-wallpaper.png") center/cover no-repeat;
+  background: #09090b;
+}
+.desktop-wallpaper::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100dvh;
+  height: 100dvw;
+  transform: translate(-50%, -50%) rotate(90deg);
+  background: url("/images/pro-wallpaper-portrait.jpg") center / cover no-repeat;
 }
 .desktop-day .desktop-wallpaper {
   filter: none;
@@ -2956,5 +2966,197 @@ a svg {
   }
   .desktop {
     animation: none;
+  }
+}
+
+/* Portrait and the local Notes reader. */
+.profile-portrait {
+  display: block;
+  width: 104px;
+  height: 104px;
+  object-fit: cover;
+  border-radius: 25px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px #0000000c;
+}
+.experience-list .experience-context {
+  font-size: 11px;
+  line-height: 1.65;
+  color: var(--finder-muted);
+  margin: 8px 0 0;
+}
+.writing-list > button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 16px;
+  border: 0;
+  border-top: 1px solid var(--finder-line);
+  padding: 21px 0;
+  background: transparent;
+  color: var(--finder-ink);
+  text-align: left;
+  cursor: pointer;
+}
+.writing-list > button > span {
+  flex: 1;
+}
+.writing-list > button svg {
+  flex-shrink: 0;
+  color: var(--finder-muted);
+}
+.writing-list .note-file-icon {
+  color: #b69b57;
+}
+.writing-list small {
+  color: var(--finder-muted);
+  font-size: 10px;
+}
+.writing-list button:hover h3 {
+  color: var(--finder-selected);
+}
+.writing-list button:focus-visible {
+  outline: 2px solid var(--finder-selected);
+  outline-offset: 5px;
+  border-radius: 4px;
+}
+.notes-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 0;
+  padding: 4px 0;
+  color: var(--finder-selected);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.note-header {
+  padding: 26px 0 22px;
+  border-bottom: 1px solid var(--finder-line, #deded8);
+  margin-bottom: 26px;
+}
+.note-header h2 {
+  font-size: clamp(23px, 2.3vw, 31px);
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+}
+.note-header h2:focus {
+  outline: none;
+}
+.note-header .note-byline {
+  color: var(--finder-muted, #686862);
+  font-size: 12px;
+  margin: 14px 0 0;
+}
+.article-prose {
+  color: var(--finder-ink, #292824);
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+}
+.article-prose p {
+  margin: 0 0 1.1em;
+  color: inherit;
+  line-height: inherit;
+  font-size: inherit;
+}
+.article-prose h3,
+.article-prose h4 {
+  color: inherit;
+  margin: 2em 0 0.7em;
+  line-height: 1.4;
+}
+.article-prose h3 {
+  font-size: 1.25em;
+  letter-spacing: -0.02em;
+}
+.article-prose h4 {
+  font-size: 1.08em;
+}
+.article-prose ul,
+.article-prose ol {
+  padding-left: 1.4em;
+  margin: 1em 0 1.4em;
+}
+.article-prose li {
+  padding-left: 0.25em;
+  margin: 0.35em 0;
+}
+.article-prose li p {
+  margin: 0;
+}
+.article-prose li h3 {
+  margin: 1.6em 0 0.7em;
+}
+.article-prose blockquote {
+  margin: 1.5em 0;
+  padding: 0.1em 0 0.1em 1.2em;
+  border-left: 3px solid #bda768;
+  color: var(--finder-muted, #686862);
+}
+.article-prose blockquote p:last-child {
+  margin: 0;
+}
+.article-prose code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+  background: var(--finder-line, #e7e5dd);
+  border-radius: 4px;
+  padding: 0.1em 0.3em;
+}
+.article-prose > :first-child {
+  margin-top: 0;
+}
+.note-reader {
+  font-size: 13px;
+}
+.notes-end {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid var(--finder-line);
+  width: 100%;
+}
+.readable-note {
+  max-width: 850px;
+}
+.readable-note > article {
+  margin-top: 70px;
+}
+.readable-note .note-header {
+  padding: 0 0 30px;
+}
+.readable-note .note-header h1 {
+  font-size: clamp(32px, 5vw, 58px);
+  line-height: 1.1;
+  letter-spacing: -0.045em;
+}
+.readable-note .article-prose {
+  font-size: 17px;
+}
+.readable-note footer {
+  margin-top: 45px;
+  padding: 25px 0;
+}
+@media (max-width: 700px) {
+  .profile-portrait {
+    width: 88px;
+    height: 88px;
+    border-radius: 21px;
+  }
+  .note-header h2 {
+    font-size: 25px;
+  }
+  .writing-list > button {
+    gap: 10px;
+  }
+  .writing-list .note-file-icon {
+    display: none;
+  }
+  .readable-note > article {
+    margin-top: 42px;
+  }
+  .readable-note .article-prose {
+    font-size: 16px;
   }
 }

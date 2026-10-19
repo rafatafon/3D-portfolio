@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
+import Notes from "./Notes";
 import {
   ArrowUpRight,
   Check,
@@ -15,7 +17,6 @@ import {
   profile,
   projects,
   skills,
-  writing,
   type FolderId,
 } from "@/lib/content";
 
@@ -37,9 +38,15 @@ export default function PortfolioContent({ folder }: { folder: FolderId }) {
   if (folder === "about")
     return (
       <article className="about-content">
-        <div className="profile-mark" aria-hidden="true">
-          fm<span>.</span>
-        </div>
+        <Image
+          className="profile-portrait"
+          src="/images/fredy-portrait.png"
+          width={104}
+          height={104}
+          sizes="104px"
+          loading="eager"
+          alt="Fredy Maldonado"
+        />
         <p className="document-eyebrow">A little introduction</p>
         <h2>{profile.introduction}</h2>
         <p className="lead-text">{profile.bio}</p>
@@ -65,10 +72,12 @@ export default function PortfolioContent({ folder }: { folder: FolderId }) {
           <p>
             University of Europe for Applied Sciences · 2022–2025
             <br />
-            Focus on AI, machine learning, and cloud computing.
+            Full merit scholarship · Potsdam, Germany.
           </p>
         </div>
-        <p className="language-note">Spanish · English · French · German</p>
+        <p className="language-note">
+          Spanish (native) · English (fluent) · French (DELF B1)
+        </p>
       </article>
     );
 
@@ -130,6 +139,7 @@ export default function PortfolioContent({ folder }: { folder: FolderId }) {
               <div className="experience-date">{job.period}</div>
               <h3>{job.company}</h3>
               <strong>{job.role}</strong>
+              <p className="experience-context">{job.context}</p>
               <p>{job.detail}</p>
             </article>
           ))}
@@ -145,37 +155,7 @@ export default function PortfolioContent({ folder }: { folder: FolderId }) {
       </div>
     );
 
-  if (folder === "writing")
-    return (
-      <div className="writing-content">
-        <div className="notes-illustration" aria-hidden="true">
-          Notes to self<span>and anyone curious.</span>
-        </div>
-        <h2>Thoughts & notes</h2>
-        <p className="content-subtitle">
-          Software, learning, and making things happen.
-        </p>
-        <div className="writing-list">
-          {writing.map((article) => (
-            <a
-              key={article.url}
-              href={article.url}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <span>
-                <small>{article.date}</small>
-                <h3>{article.name}</h3>
-              </span>
-              <ArrowUpRight size={20} />
-              <span className="sr-only">
-                Opens original article in a new tab
-              </span>
-            </a>
-          ))}
-        </div>
-      </div>
-    );
+  if (folder === "writing") return <Notes />;
 
   return (
     <div className="contact-content">

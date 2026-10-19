@@ -32,7 +32,9 @@ npm start
 
 ## Main files
 
-- `src/lib/content.ts`: profile, projects, experience, article links, and résumé URL.
+- `src/lib/content.ts`: profile, projects, verified experience, and résumé URL.
+- `src/lib/writing.json`: four complete imported articles, with publication dates and source URLs.
+- `src/components/Notes.tsx` and `ArticleBody.tsx`: internal Notes navigation and shared article rendering.
 - `src/lib/ambience.ts`: lighting palettes, interpolation, and text contrast.
 - `src/components/DeskObjects.tsx`: original desk, chair, laptop, monitor, headphones, bottle, and procedural textures.
 - `src/components/StudioScene.tsx`: lighting, reflections, camera choreography, rendering readiness, and failure boundary.
@@ -40,14 +42,18 @@ npm start
 - `src/components/Desktop.tsx`: window management, Dock, menus, search, and appearance.
 - `src/components/PortfolioContent.tsx`: portfolio window contents.
 - `src/app/portfolio/page.tsx`: readable portfolio without a 3D dependency.
-- `public/images/black-wallpaper.png`: user-supplied wallpaper; currently the low-resolution reference.
+- `public/images/pro-wallpaper-portrait.jpg`: original 1200 × 2596 user wallpaper, rotated in CSS and Three.js to landscape.
+- `public/images/fredy-portrait.png`: user-supplied portrait for About.
+- `src/app/writing/[slug]/page.tsx`: static, shareable article pages that also work without JavaScript.
 - `DESIGN.md`: current visual direction and scope.
 - `VALIDATION.md`: verified checks and remaining limitations.
 
 ## Content and assets
 
-The initial content was sourced from https://fredymaldonado.com/. A public LinkedIn review on 2026-10-18 corrected the AI Text Summarizer and Resume Keyword Matcher years to 2025. The full About and employment history still need the user's profile export or pasted text; no new job titles or employment dates were guessed.
+Profile and employment history were verified against the user's LinkedIn profile on 2026-10-18. The five roles now include Próspera and preserve the displayed job titles and month-level dates (including Próspera's Aug–Oct 2026 dates). About reflects the verified founder role, degree, and scholarship.
 
-The wallpaper needs a full-resolution replacement. The current file is 235 × 152. Article links and résumé currently point to the existing website/Framer-hosted assets and must be migrated before replacing the production domain.
+All four published blog posts were imported from fredymaldonado.com on 2026-10-18. Notes opens the full articles internally; the readable portfolio links to local `/writing/[slug]` pages. Article text was checked against the downloaded source. Framer wrappers, scripts, styles, and empty code widgets were discarded; the original prose and semantic formatting are preserved. Source URLs are retained as provenance, not runtime dependencies.
+
+The new portrait and wallpaper are copied unchanged. The wallpaper rotates clockwise at display time, and the screen textures crop to preserve its proportions. The résumé still points to the existing Framer-hosted PDF.
 
 The hardware is original procedural geometry, not manufacturer CAD or copied portfolio assets. The contact action opens the visitor's email client. No database, email service, Spotify integration, production deployment, or domain changes are configured.

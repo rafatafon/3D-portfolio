@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { profile, projects, experience, writing } from "@/lib/content";
+import { profile, projects, experience } from "@/lib/content";
+import { writing } from "@/lib/writing";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -60,19 +61,17 @@ export default function ReadablePortfolio() {
           </article>
         ))}
       </section>
-      <section>
+      <section id="writing">
         <h2>Writing</h2>
         {writing.map((article) => (
-          <a
+          <Link
             className="readable-article"
-            href={article.url}
-            key={article.url}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={`/writing/${article.slug}`}
+            key={article.slug}
           >
             <span>{article.name}</span>
-            <span>↗</span>
-          </a>
+            <span>→</span>
+          </Link>
         ))}
       </section>
       <footer>

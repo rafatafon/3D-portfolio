@@ -7,7 +7,7 @@ export const profile = {
   linkedin: "https://www.linkedin.com/in/fredy-rafael-maldonado",
   cv: "https://framerusercontent.com/assets/cAKwsE62CI2ZohnHGUJV9tX2r8.pdf",
   introduction: "I build useful things with software.",
-  bio: "I'm a software engineer based in Honduras, working across AI-powered systems, automation, and modern web applications. I enjoy turning complicated problems into clear, practical tools people can rely on.",
+  bio: "I'm a software engineer from Honduras and the founder of Archimedes Systems. I build production AI systems, automation, and full-stack platforms, turning business requirements into reliable software. I earned my BSc in Software Engineering in Germany on a full merit scholarship.",
 };
 
 export const projects = [
@@ -73,57 +73,47 @@ export const projects = [
   },
 ];
 
+// Roles and dates verified against Fredy's LinkedIn profile on October 18, 2026.
 export const experience = [
   {
     company: "Archimedes Systems",
-    role: "Founder & Software Engineer",
-    period: "2025 — Present",
+    role: "Founder & CEO",
+    period: "Jan 2026 — Present",
+    context: "Full-time · Comayagua, Honduras · Remote",
     detail:
-      "Building an AI and software consulting initiative focused on automation, intelligent systems, and modern web solutions. Leading projects from architecture through implementation and deployment.",
+      "Founded an AI and software consulting firm serving international clients. Lead client acquisition, technical architecture, implementation, testing, and deployment. Build automation workflows, AI pipelines, and production platforms with Next.js, TypeScript, FastAPI, and Supabase.",
   },
   {
-    company: "MES Inc.",
-    role: "Technology Support & Learning Facility Coordinator",
-    period: "2026 — Present",
+    company: "Próspera",
+    role: "Full Stack Engineer",
+    period: "Aug 2026 — Oct 2026",
+    context: "Full-time · Roatán, Honduras · On-site",
     detail:
-      "Coordinating a technology-enabled learning facility, supporting computer labs and classroom systems, and improving scheduling and daily operations through automated systems.",
+      "Owned the design, development, deployment, and operational reliability of business-critical applications and internal platforms. Built full-stack features, APIs, integrations, dashboards, and automation. Managed cloud infrastructure and Cloudflare, administered Google Workspace, Microsoft 365, and GitHub, and supported production incidents and runbooks.",
   },
   {
-    company: "AeroCielo",
+    company: "MES, Inc.",
+    role: "Multiuse Learning Facility Coordinator – Computer Lab & Technology Support",
+    period: "Jan 2026 — Jul 2026",
+    context: "Part-time · Comayagua, Honduras · On-site",
+    detail:
+      "Coordinated computer labs, classrooms, and digital learning environments. Managed scheduling, access, and utilization tracking; provided technical support and preventive maintenance; supported learning platforms; and reported on equipment performance, system availability, and security compliance.",
+  },
+  {
+    company: "Aero Cielo",
     role: "Software Engineer & Branch Manager",
-    period: "2025",
+    period: "Aug 2025 — Jul 2026",
+    context: "Part-time · Comayagua, Honduras · Remote",
     detail:
-      "Developed the company's website and mobile application, integrated AI-powered tools into logistics, and supported customer experience and business operations.",
+      "Led the company's digital transformation and regional branch operations. Built its official website and React Native mobile application as the sole engineer, integrated AI into internal logistics, and managed sales strategy and regional growth.",
   },
   {
     company: "XRF",
-    role: "Generative AI Intern",
-    period: "2024 — 2025",
+    role: "Intern Computer Vision using Generative AI",
+    period: "Aug 2024 — Feb 2025",
+    context: "Full-time · Las Palmas de Gran Canaria, Spain · Remote",
     detail:
-      "Contributed to multilingual text and speech pipelines, large language model applications, and scalable cloud-based deployments in a collaborative engineering team.",
-  },
-];
-
-export const writing = [
-  {
-    name: "Claude Code Changed How I Build Software",
-    date: "March 23, 2026",
-    url: "https://fredymaldonado.com/blog/claude-code-changed-how-i-build-software",
-  },
-  {
-    name: "What I Actually Learned Studying Software Engineering in Germany",
-    date: "January 12, 2026",
-    url: "https://fredymaldonado.com/blog/what-i-actually-learned-studying-software-engineering-in-germany",
-  },
-  {
-    name: "How I Actually Use AI in Real Projects (Without the Hype)",
-    date: "January 12, 2026",
-    url: "https://fredymaldonado.com/blog/how-i-actually-use-ai-in-real-projects-(without-the-hype)",
-  },
-  {
-    name: "Why I Built Archimedes Systems",
-    date: "January 12, 2026",
-    url: "https://fredymaldonado.com/blog/why-i-built-archimedes-systems",
+      "Developed multilingual text and speech solutions across 10+ languages, improving system accuracy by 15%. Contributed to scalable pipelines and AWS deployments that improved performance by 30%, working with large language models, computer vision, and Python in a production engineering team.",
   },
 ];
 
@@ -132,6 +122,7 @@ export const skills = [
   "React",
   "Next.js",
   "Python",
+  "FastAPI",
   "Node.js",
   "PostgreSQL",
   "AWS",
