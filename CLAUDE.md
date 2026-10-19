@@ -19,6 +19,7 @@ npx prettier@3.6.2 --write src   # source follows Prettier 3.6.2 defaults; not a
 ```
 
 There is no test runner or lint script. Verification is `typecheck` + `build`, then a browser pass over the flows in `VALIDATION.md`.
+CI (`.github/workflows/ci.yml`) runs typecheck, the Prettier check, and the build on pull requests and pushes to `main`.
 
 ## Architecture
 
