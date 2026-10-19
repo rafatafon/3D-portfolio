@@ -1,6 +1,13 @@
 "use client";
 
-import { Component, Suspense, useEffect, useRef, type ReactNode } from "react";
+import {
+  Component,
+  Suspense,
+  useEffect,
+  useRef,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   CameraControls,
@@ -38,23 +45,60 @@ function CameraRig({
   standing,
   reducedMotion,
   onIntroComplete,
+  frame,
 }: Pick<
   SceneProps,
   "mode" | "reset" | "standing" | "reducedMotion" | "onIntroComplete"
->) {
+> & { frame: RefObject<HTMLDivElement | null> }) {
   const controls = useRef<CameraControls>(null);
   const started = useRef<number | null>(null);
   const completed = useRef(false);
-  const { size, invalidate } = useThree();
+  const { size, invalidate, camera, gl } = useThree();
   const narrow = size.width < 650;
   const home: [number, number, number] = narrow
     ? [5.1, 3.6, 6.2]
     : [6.1, 4.25, 7.4];
 
+  // The canvas fills the viewport so zooming and orbiting never crop the model.
+  // Offset the projection so the desk is framed inside `.scene-frame`, whose
+  // position per breakpoint lives in globals.css.
+  useEffect(() => {
+    const target = frame.current;
+    const canvas = gl.domElement;
+    if (!target) return;
+    const apply = () => {
+      const c = canvas.getBoundingClientRect();
+      const f = target.getBoundingClientRect();
+      if (!c.width || !c.height || !f.width || !f.height) return;
+      const scale = c.height / f.height;
+      const centerX = f.left - c.left + f.width / 2;
+      const centerY = f.top - c.top + f.height / 2;
+      camera.setViewOffset(
+        c.width,
+        c.height,
+        c.width / 2 - centerX * scale,
+        c.height / 2 - centerY * scale,
+        c.width * scale,
+        c.height * scale,
+      );
+      invalidate();
+    };
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(target);
+    observer.observe(canvas);
+    return () => {
+      observer.disconnect();
+      camera.clearViewOffset();
+    };
+  }, [camera, gl, invalidate, size, frame]);
+
   useEffect(() => {
     const current = controls.current;
     if (!current) return;
     current.smoothTime = reducedMotion ? 0 : 0.6;
+    // After free 360° orbiting, take the short way back to a preset view.
+    current.normalizeRotations();
     started.current = null;
     completed.current = false;
     if (mode === "loading" || mode === "intro") {
@@ -127,10 +171,8 @@ function CameraRig({
       enabled={mode === "room"}
       minDistance={5}
       maxDistance={16}
-      minPolarAngle={0.62}
-      maxPolarAngle={1.46}
-      minAzimuthAngle={-0.85}
-      maxAzimuthAngle={1.3}
+      minPolarAngle={0.15}
+      maxPolarAngle={1.5}
       dollySpeed={0.4}
       truckSpeed={0}
     />
@@ -189,8 +231,10 @@ class SceneErrorBoundary extends Component<
 
 export default function StudioScene(props: SceneProps) {
   const theme = getAmbience(props.ambience);
+  const frame = useRef<HTMLDivElement>(null);
   return (
     <SceneErrorBoundary onError={props.onError}>
+      <div className="scene-frame" ref={frame} aria-hidden="true" />
       <Canvas
         shadows={{ type: THREE.PCFShadowMap }}
         dpr={[1, 1.5]}
@@ -270,7 +314,7 @@ export default function StudioScene(props: SceneProps) {
             frames={1}
             key={String(props.standing)}
           />
-          <CameraRig {...props} />
+          <CameraRig {...props} frame={frame} />
           <Ready onReady={props.onReady} onError={props.onError} />
         </Suspense>
       </Canvas>

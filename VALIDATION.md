@@ -66,3 +66,10 @@ Screenshots from the checks are in `.playwright-mcp/` (ignored local artifacts).
 - The résumé PDF still depends on the existing Framer-hosted asset. Articles are now local.
 - A nonfatal `THREE.Clock` deprecation warning originates from the installed React Three Fiber version. There are no application runtime errors in the normal tested flows.
 - No deployment, Git repository initialization, commit, push, or domain modification was performed.
+
+## Camera freedom — 2026-10-18, second pass
+
+- The scene canvas now fills the viewport. An invisible `.scene-frame` box keeps the default framing (desk right of center on desktop, mid-band on phones) through a camera view offset, so zooming to the minimum distance and orbiting no longer crop the model at the old canvas edge.
+- Horizontal orbit is unrestricted (360°). Tilt runs from near top-down (0.15 rad) to just above the floor (1.5 rad). Reset view returns by the short path after free orbiting.
+- On phones the intro text block accepts touch, so short viewports can still scroll past the full-screen canvas.
+- Checked headless in Chromium at 1440 × 900 and 390 × 844: default framing unchanged; zoomed, rotated, top-down, and floor-level views uncropped; reset view; desktop entry; mobile orbit and zoom. No page errors.
