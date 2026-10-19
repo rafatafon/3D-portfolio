@@ -924,16 +924,19 @@ export const Desk = memo(function Desk({
           name="LG curved ultrawide monitor"
           position={[0.08, 0, -0.78]}
           onClick={(event) => {
-            if (!screenFacesCamera(event)) return;
+            // The monitor is opaque: stop the event before deciding, so a
+            // click on its back never reaches the headphones behind it.
             event.stopPropagation();
-            onEnter();
+            if (screenFacesCamera(event)) onEnter();
           }}
           onPointerOver={(event) => {
+            event.stopPropagation();
             document.body.style.cursor = screenFacesCamera(event)
               ? "pointer"
               : "auto";
           }}
           onPointerMove={(event) => {
+            event.stopPropagation();
             document.body.style.cursor = screenFacesCamera(event)
               ? "pointer"
               : "auto";

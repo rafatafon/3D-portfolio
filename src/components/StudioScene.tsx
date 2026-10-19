@@ -110,41 +110,41 @@ function CameraRig({
     const current = controls.current;
     if (!current) return;
     current.smoothTime = reducedMotion ? 0 : 0.6;
-    // After free 360° orbiting, take the short way back to a preset view.
-    current.normalizeRotations();
     started.current = null;
     completed.current = false;
+    // camera-controls animates to the exact azimuth of the requested position,
+    // so after free 360° orbiting a preset could take the long way round. Aim
+    // for the equivalent azimuth nearest the current one instead.
+    const glideTo = (
+      position: [number, number, number],
+      target: [number, number, number],
+      transition: boolean,
+    ) => {
+      const spherical = new THREE.Spherical().setFromVector3(
+        new THREE.Vector3(...position).sub(new THREE.Vector3(...target)),
+      );
+      void current.setLookAt(...position, ...target, transition);
+      const turns = Math.round(
+        (current.azimuthAngle - spherical.theta) / (2 * Math.PI),
+      );
+      void current.rotateTo(
+        spherical.theta + turns * 2 * Math.PI,
+        spherical.phi,
+        transition,
+      );
+    };
     if (mode === "loading" || mode === "intro") {
-      void current.setLookAt(
-        narrow ? 4.7 : 5.3,
-        narrow ? 2.6 : 2.8,
-        narrow ? 4.4 : 4.2,
-        0,
-        1.25,
-        0.1,
-        false,
-      );
-      invalidate();
+      const start: [number, number, number] = narrow
+        ? [4.7, 2.6, 4.4]
+        : [5.3, 2.8, 4.2];
+      glideTo(start, [0, 1.25, 0.1], false);
     } else if (mode === "entering" || mode === "desktop") {
-      void current.setLookAt(
-        0.08,
-        2.34 + (standing ? 0.48 : 0),
-        1.45,
-        0.08,
-        2.34 + (standing ? 0.48 : 0),
-        -0.78,
-        !reducedMotion,
-      );
+      const eye = 2.34 + (standing ? 0.48 : 0);
+      glideTo([0.08, eye, 1.45], [0.08, eye, -0.78], !reducedMotion);
     } else {
-      void current.setLookAt(
-        ...((narrow ? [5.1, 3.6, 6.2] : [6.1, 4.25, 7.4]) as [
-          number,
-          number,
-          number,
-        ]),
-        0,
-        1.27,
-        0,
+      glideTo(
+        home,
+        [0, 1.27, 0],
         mode === "leaving" || reset > 0 ? !reducedMotion : false,
       );
     }
