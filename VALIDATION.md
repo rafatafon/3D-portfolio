@@ -64,7 +64,7 @@ Screenshots from the checks are in `.playwright-mcp/` (ignored local artifacts).
 - The hardware models are original procedural interpretations, not exact manufacturer models.
 - Spotify is intentionally not integrated; the listening note is a placeholder until the playlist and playback behavior are specified.
 - The résumé PDF still depends on the existing Framer-hosted asset. Articles are now local.
-- A nonfatal `THREE.Clock` deprecation warning originates from the installed React Three Fiber version. There are no application runtime errors in the normal tested flows.
+- React Three Fiber 9 still constructs the deprecated `THREE.Clock`. `StudioScene.tsx` routes three's console output through `THREE.setConsoleFunction` and drops only that one warning; everything else three logs still reaches the console. There are no application runtime errors in the normal tested flows.
 - No deployment, Git repository initialization, commit, push, or domain modification was performed.
 
 ## Camera freedom — 2026-10-18, second pass

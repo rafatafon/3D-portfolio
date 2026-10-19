@@ -19,6 +19,19 @@ import * as THREE from "three";
 import { Desk, SaylChair } from "./DeskObjects";
 import { getAmbience } from "@/lib/ambience";
 
+// React Three Fiber 9 still constructs a THREE.Clock, which three r183+ reports
+// as deprecated on every load. Nothing here reads that clock, so route three's
+// console output through its official hook and drop only that message.
+// Remove once React Three Fiber creates a THREE.Timer instead.
+THREE.setConsoleFunction((type, message, ...params) => {
+  if (
+    type === "warn" &&
+    message.startsWith("THREE.Clock: This module has been deprecated")
+  )
+    return;
+  console[type](message, ...params);
+});
+
 export type SceneMode =
   | "loading"
   | "intro"
