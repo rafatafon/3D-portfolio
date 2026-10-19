@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useEffect, useMemo, useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { RoundedBox, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
@@ -9,6 +9,18 @@ import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 type Vec3 = [number, number, number];
 const white = "#e8e8e5";
 const black = "#25282c";
+
+// The monitor only responds while its screen faces the camera, so a visitor
+// orbiting behind the desk cannot step inside through the back panel. The
+// screen looks down its group's +z axis; a click ray travelling against that
+// axis means the camera is in front. -0.4 allows roughly a 65° cone.
+const screenNormal = new THREE.Vector3();
+function screenFacesCamera(
+  event: Pick<ThreeEvent<MouseEvent>, "eventObject" | "ray">,
+) {
+  event.eventObject.getWorldDirection(screenNormal);
+  return screenNormal.dot(event.ray.direction) < -0.4;
+}
 
 function textureFromCanvas(
   draw: (ctx: CanvasRenderingContext2D) => void,
@@ -912,11 +924,19 @@ export const Desk = memo(function Desk({
           name="LG curved ultrawide monitor"
           position={[0.08, 0, -0.78]}
           onClick={(event) => {
+            if (!screenFacesCamera(event)) return;
             event.stopPropagation();
             onEnter();
           }}
-          onPointerOver={() => {
-            document.body.style.cursor = "pointer";
+          onPointerOver={(event) => {
+            document.body.style.cursor = screenFacesCamera(event)
+              ? "pointer"
+              : "auto";
+          }}
+          onPointerMove={(event) => {
+            document.body.style.cursor = screenFacesCamera(event)
+              ? "pointer"
+              : "auto";
           }}
           onPointerOut={() => {
             document.body.style.cursor = "auto";

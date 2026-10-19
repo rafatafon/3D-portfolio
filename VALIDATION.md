@@ -73,3 +73,4 @@ Screenshots from the checks are in `.playwright-mcp/` (ignored local artifacts).
 - Horizontal orbit is unrestricted (360°). Tilt runs from near top-down (0.15 rad) to just above the floor (1.5 rad). Reset view returns by the short path after free orbiting.
 - On phones the intro text block accepts touch, so short viewports can still scroll past the full-screen canvas.
 - Checked headless in Chromium at 1440 × 900 and 390 × 844: default framing unchanged; zoomed, rotated, top-down, and floor-level views uncropped; reset view; desktop entry; mobile orbit and zoom. No page errors.
+- The monitor only enters the desktop while its screen faces the camera (click ray within about 65° of the screen axis). From behind or edge-on, the cursor stays plain and clicks on the back panel or stand do nothing. Checked headless: behind → stays in the room; front and default views → pointer cursor and desktop entry; edge-on side → stays in the room.
