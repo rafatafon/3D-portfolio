@@ -15,7 +15,7 @@ npm install
 npm run dev          # http://127.0.0.1:3000 (binds 127.0.0.1, not localhost)
 npm run typecheck    # tsc --noEmit
 npm run build        # must pass; prerenders /, /portfolio, /writing/[slug]
-npx prettier@3 --write src   # source follows Prettier defaults; not a dependency, no config
+npx prettier@3.6.2 --write src   # source follows Prettier 3.6.2 defaults; not a dependency, no config
 ```
 
 There is no test runner or lint script. Verification is `typecheck` + `build`, then a browser pass over the flows in `VALIDATION.md`.
