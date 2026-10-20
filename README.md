@@ -36,7 +36,7 @@ npm start
 - `src/lib/writing.json`: four complete imported articles, with publication dates and source URLs.
 - `src/components/Notes.tsx` and `ArticleBody.tsx`: internal Notes navigation and shared article rendering.
 - `src/lib/ambience.ts`: lighting palettes, interpolation, and text contrast.
-- `src/components/DeskObjects.tsx`: original desk, chair, laptop, monitor, headphones, bottle, and procedural textures.
+- `src/components/DeskObjects.tsx`: original desk, chair, laptop, monitor, headphones, bottle, coffee mug, and procedural textures.
 - `src/components/StudioScene.tsx`: lighting, reflections, camera choreography, rendering readiness, and failure boundary.
 - `src/components/Workspace.tsx`: preloader, arrival states, ambient controls, and desktop transitions.
 - `src/components/Desktop.tsx`: window management, Dock, menus, search, and appearance.

@@ -204,21 +204,65 @@ function Tube({
 function Label({
   text,
   color,
+  font,
   position,
   size,
   rotation,
 }: {
   text: string;
   color?: string;
+  font?: string;
   position: Vec3;
   size: [number, number];
   rotation?: Vec3;
 }) {
-  const map = useMemo(() => labelTexture(text, color), [text, color]);
+  const map = useMemo(
+    () => labelTexture(text, color, font),
+    [text, color, font],
+  );
   useEffect(() => () => map.dispose(), [map]);
   return (
     <mesh position={position} rotation={rotation}>
       <planeGeometry args={size} />
+      <meshBasicMaterial
+        map={map}
+        transparent
+        toneMapped={false}
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
+
+function CurvedLabel({
+  text,
+  color,
+  font,
+  radius,
+  height,
+  arc,
+  position,
+}: {
+  text: string;
+  color?: string;
+  font?: string;
+  radius: number;
+  height: number;
+  arc: number;
+  position: Vec3;
+}) {
+  // Wraps the label around a cylinder segment centred on +z, so text on a
+  // curved band is not clipped the way a flat plane would be.
+  const map = useMemo(
+    () => labelTexture(text, color, font),
+    [text, color, font],
+  );
+  useEffect(() => () => map.dispose(), [map]);
+  return (
+    <mesh position={position}>
+      <cylinderGeometry
+        args={[radius, radius, height, 24, 1, true, -arc / 2, arc]}
+      />
       <meshBasicMaterial
         map={map}
         transparent
@@ -671,84 +715,234 @@ const AirPods = memo(function AirPods({ onMusic }: { onMusic: () => void }) {
   );
 });
 
+// Owala FreeSip colorway taken from the product references: a matte teal
+// powder-coated body, light gray lid, periwinkle flip cap, teal carry loop,
+// and a pale yellow collar ring carrying the wordmark.
+const owalaTeal = "#3a7c8e";
+const owalaInk = "#1f4b58";
+const owalaLid = "#c8cbd6";
+const owalaCap = "#5c64a6";
+const owalaStrap = "#1e8087";
+const owalaRing = "#ecf0d2";
+const owalaButton = "#3c3e46";
+const wordmarkFont =
+  'bold 100px "Arial Rounded MT Bold", "Helvetica Neue", Arial, sans-serif';
+
+function roundedRectPath(path: THREE.Path, width: number, height: number) {
+  // A stadium outline: straight sides with fully rounded ends.
+  const r = width / 2;
+  const x = -r;
+  const y = -height / 2;
+  path.moveTo(x, y + r);
+  path.absarc(x + r, y + r, r, Math.PI, Math.PI * 1.5, false);
+  path.absarc(x + width - r, y + r, r, Math.PI * 1.5, Math.PI * 2, false);
+  path.lineTo(x + width, y + height - r);
+  path.absarc(x + width - r, y + height - r, r, 0, Math.PI / 2, false);
+  path.absarc(x + r, y + height - r, r, Math.PI / 2, Math.PI, false);
+  path.lineTo(x, y + r);
+}
+
 const Owala = memo(function Owala() {
-  const shape = useMemo(
+  const parts = useMemo(() => {
+    // Straight-walled body with a soft foot and a shoulder that tucks in
+    // under the lid collar, as on the 32 oz FreeSip.
+    const body = new THREE.LatheGeometry(
+      [
+        new THREE.Vector2(0, 0),
+        new THREE.Vector2(0.082, 0),
+        new THREE.Vector2(0.098, 0.005),
+        new THREE.Vector2(0.106, 0.018),
+        new THREE.Vector2(0.108, 0.05),
+        new THREE.Vector2(0.108, 0.47),
+        new THREE.Vector2(0.106, 0.497),
+        new THREE.Vector2(0.1, 0.515),
+        new THREE.Vector2(0.092, 0.526),
+        new THREE.Vector2(0.086, 0.53),
+        new THREE.Vector2(0, 0.53),
+      ],
+      56,
+    );
+    // Bullet-shaped gray lid base; the flip cap is embedded in its top front.
+    const lid = new THREE.LatheGeometry(
+      [
+        new THREE.Vector2(0, 0),
+        new THREE.Vector2(0.095, 0),
+        new THREE.Vector2(0.095, 0.015),
+        new THREE.Vector2(0.093, 0.045),
+        new THREE.Vector2(0.088, 0.07),
+        new THREE.Vector2(0.079, 0.09),
+        new THREE.Vector2(0.064, 0.107),
+        new THREE.Vector2(0.042, 0.119),
+        new THREE.Vector2(0.02, 0.124),
+        new THREE.Vector2(0, 0.125),
+      ],
+      56,
+    );
+    // The carry loop is a flat silicone strap, so extrude a stadium outline
+    // rather than sweeping a round tube.
+    const outline = new THREE.Shape();
+    roundedRectPath(outline, 0.106, 0.17);
+    const hole = new THREE.Path();
+    roundedRectPath(hole, 0.07, 0.134);
+    outline.holes.push(hole);
+    const strap = new THREE.ExtrudeGeometry(outline, {
+      depth: 0.006,
+      bevelEnabled: false,
+      curveSegments: 18,
+    });
+    strap.translate(0, 0, -0.003);
+    return { body, lid, strap };
+  }, []);
+  useEffect(
+    () => () => Object.values(parts).forEach((geometry) => geometry.dispose()),
+    [parts],
+  );
+  return (
+    <group
+      name="Teal Owala FreeSip bottle"
+      position={[1.64, 1.683, 0.38]}
+      rotation={[0, 0.55, 0]}
+    >
+      <mesh geometry={parts.body} castShadow receiveShadow>
+        <meshStandardMaterial
+          color={owalaTeal}
+          metalness={0.12}
+          roughness={0.58}
+        />
+      </mesh>
+      {/* Wordmark printed low on the front, reading upward. */}
+      <group rotation={[0, -0.3, 0]}>
+        <Label
+          text="owala"
+          color={owalaInk}
+          font={wordmarkFont}
+          position={[0, 0.17, 0.1105]}
+          size={[0.21, 0.0525]}
+          rotation={[0, 0, Math.PI / 2]}
+        />
+      </group>
+      {/* Pale collar ring between body and lid, embossed with the wordmark. */}
+      <mesh position={[0, 0.543, 0]} castShadow>
+        <cylinderGeometry args={[0.096, 0.096, 0.026, 56]} />
+        <meshStandardMaterial color={owalaRing} roughness={0.6} />
+      </mesh>
+      <CurvedLabel
+        text="owala"
+        color="#d3d8b2"
+        font={wordmarkFont}
+        radius={0.0975}
+        height={0.022}
+        arc={0.9}
+        position={[0, 0.543, 0]}
+      />
+      <group position={[0, 0.556, 0]}>
+        <mesh geometry={parts.lid} castShadow>
+          <meshStandardMaterial color={owalaLid} roughness={0.5} />
+        </mesh>
+        {/* Periwinkle flip cap seated in the top front of the lid. */}
+        <mesh
+          position={[0, 0.1, 0.018]}
+          rotation={[0.22, 0, 0]}
+          scale={[0.064, 0.046, 0.068]}
+          castShadow
+        >
+          <sphereGeometry args={[1, 40, 28]} />
+          <meshStandardMaterial color={owalaCap} roughness={0.45} />
+        </mesh>
+        <mesh
+          position={[0, 0.115, -0.03]}
+          rotation={[0, 0, Math.PI / 2]}
+          castShadow
+        >
+          <cylinderGeometry args={[0.005, 0.005, 0.085, 16]} />
+          <meshStandardMaterial color={owalaButton} roughness={0.4} />
+        </mesh>
+        {/* Push button under the cap's front lip. */}
+        <Box
+          size={[0.03, 0.026, 0.018]}
+          position={[0, 0.07, 0.09]}
+          color={owalaButton}
+          radius={0.006}
+          rotation={[0.3, 0, 0]}
+          roughness={0.4}
+        />
+        {/* Carry loop standing behind the cap, leaning back. */}
+        <mesh
+          geometry={parts.strap}
+          position={[0, 0.105, -0.058]}
+          rotation={[-0.4, 0, 0]}
+          castShadow
+        >
+          <meshStandardMaterial color={owalaStrap} roughness={0.7} />
+        </mesh>
+      </group>
+    </group>
+  );
+});
+
+const CoffeeMug = memo(function CoffeeMug() {
+  const body = useMemo(
     () =>
+      // The profile runs up the outside, over the rim, and back down the
+      // inside so the mug is hollow and shows the coffee surface.
       new THREE.LatheGeometry(
         [
           new THREE.Vector2(0, 0),
-          new THREE.Vector2(0.085, 0),
-          new THREE.Vector2(0.103, 0.012),
-          new THREE.Vector2(0.111, 0.04),
-          new THREE.Vector2(0.111, 0.48),
-          new THREE.Vector2(0.108, 0.505),
-          new THREE.Vector2(0.103, 0.515),
-          new THREE.Vector2(0, 0.515),
+          new THREE.Vector2(0.07, 0),
+          new THREE.Vector2(0.079, 0.003),
+          new THREE.Vector2(0.083, 0.012),
+          new THREE.Vector2(0.083, 0.03),
+          new THREE.Vector2(0.086, 0.07),
+          new THREE.Vector2(0.09, 0.16),
+          new THREE.Vector2(0.091, 0.205),
+          new THREE.Vector2(0.09, 0.213),
+          new THREE.Vector2(0.084, 0.213),
+          new THREE.Vector2(0.082, 0.2),
+          new THREE.Vector2(0.08, 0.1),
+          new THREE.Vector2(0.077, 0.04),
+          new THREE.Vector2(0.07, 0.03),
+          new THREE.Vector2(0, 0.03),
         ],
-        48,
+        56,
       ),
     [],
   );
-  useEffect(() => () => shape.dispose(), [shape]);
+  useEffect(() => () => body.dispose(), [body]);
   return (
     <group
-      name="Blue Owala FreeSip bottle"
-      position={[-1.57, 1.69, 0.4]}
-      rotation={[0, 0.3, 0]}
+      name="Ceramic coffee mug"
+      position={[1.3, 1.683, -0.05]}
+      rotation={[0, -2.35, 0]}
     >
-      <mesh geometry={shape} castShadow>
-        <meshStandardMaterial
-          color="#3c86a1"
-          metalness={0.18}
-          roughness={0.48}
+      <mesh geometry={body} castShadow receiveShadow>
+        <meshPhysicalMaterial
+          color="#f2f0ea"
+          roughness={0.3}
+          clearcoat={0.6}
+          clearcoatRoughness={0.25}
         />
       </mesh>
-      <mesh position={[0, 0.515, 0]} castShadow>
-        <cylinderGeometry args={[0.115, 0.115, 0.045, 48]} />
-        <meshStandardMaterial color="#bdc8c7" roughness={0.55} />
-      </mesh>
-      <mesh position={[0, 0.582, 0]} scale={[1, 0.87, 1]} castShadow>
-        <sphereGeometry
-          args={[0.111, 32, 24, 0, Math.PI * 2, 0, Math.PI / 2]}
+      <mesh position={[0, 0.168, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.0805, 48]} />
+        <meshPhysicalMaterial
+          color="#2a160d"
+          roughness={0.12}
+          clearcoat={1}
+          clearcoatRoughness={0.08}
         />
-        <meshStandardMaterial color="#5e656d" roughness={0.55} />
       </mesh>
-      <Box
-        size={[0.19, 0.07, 0.15]}
-        position={[0, 0.561, -0.004]}
-        color="#5e656d"
-        radius={0.032}
-      />
-      <Box
-        size={[0.133, 0.045, 0.106]}
-        position={[0, 0.654, -0.02]}
-        color="#c3cdcc"
-        radius={0.02}
-        rotation={[-0.2, 0, 0]}
-      />
       <Tube
         points={[
-          [-0.103, 0.566, 0.02],
-          [-0.099, 0.651, 0.015],
-          [0, 0.679, 0.02],
-          [0.099, 0.651, 0.015],
-          [0.103, 0.566, 0.02],
+          [0.078, 0.172, 0],
+          [0.128, 0.166, 0],
+          [0.15, 0.13, 0],
+          [0.15, 0.082, 0],
+          [0.128, 0.05, 0],
+          [0.078, 0.046, 0],
         ]}
-        radius={0.014}
-        color="#78a6b5"
-      />
-      <Box
-        size={[0.038, 0.034, 0.016]}
-        position={[0, 0.568, 0.105]}
-        color="#454b50"
-        radius={0.007}
-      />
-      <Label
-        text="owala"
-        color="#204354"
-        position={[-0.014, 0.14, 0.112]}
-        size={[0.15, 0.037]}
-        rotation={[0, 0, Math.PI / 2]}
+        radius={0.012}
+        color="#f2f0ea"
+        roughness={0.3}
       />
     </group>
   );
@@ -1013,6 +1207,7 @@ export const Desk = memo(function Desk({
         </mesh>
         <AirPods onMusic={onMusic} />
         <Owala />
+        <CoffeeMug />
         <Tube
           points={[
             [0.08, 2.12, -0.88],
