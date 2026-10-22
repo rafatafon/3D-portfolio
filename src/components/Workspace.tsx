@@ -36,6 +36,7 @@ import {
   clampHeight,
 } from "@/lib/desk";
 import SevenSegment from "./SevenSegment";
+import { ENTER_MS, LEAVE_MS } from "@/lib/transitions";
 
 const StudioScene = dynamic(() => import("./StudioScene"), { ssr: false });
 const INTRO_KEY = "fm-workspace-intro-v2";
@@ -232,7 +233,7 @@ export default function Workspace() {
         return;
       }
       setMode("entering");
-      transitionTimer.current = setTimeout(() => setMode("desktop"), 1250);
+      transitionTimer.current = setTimeout(() => setMode("desktop"), ENTER_MS);
     },
     [mode, reducedMotion, failed, ready],
   );
@@ -249,7 +250,7 @@ export default function Workspace() {
     setMode(reducedMotion || failed ? "room" : "leaving");
     transitionTimer.current = setTimeout(
       () => setMode("room"),
-      reducedMotion || failed ? 0 : 800,
+      reducedMotion || failed ? 0 : LEAVE_MS,
     );
   }, [reducedMotion, failed]);
 
@@ -738,11 +739,12 @@ export default function Workspace() {
           A little of my world.
         </div>
       )}
-      {mode === "desktop" && (
+      {(mode === "desktop" || mode === "leaving") && (
         <Desktop
           initialFolder={initialFolder}
           onExit={exit}
           daylight={ambience < 75}
+          leaving={mode === "leaving"}
         />
       )}
     </main>

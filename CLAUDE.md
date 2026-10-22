@@ -29,7 +29,7 @@ CI (`.github/workflows/ci.yml`) runs typecheck, the Prettier check, and the buil
 
 All copy lives in `src/lib/content.ts` (profile, projects, experience, skills, `folders`) and `src/lib/writing.json` (articles as a `{tag, children}` node tree rendered by `ArticleBody.tsx` through a tag allowlist). Every surface reads from these two files; edit content there, not in components.
 
-**Home-page state machine** (owned by `Workspace.tsx`): `SceneMode` = `loading → intro → room → entering → desktop → leaving`. The mode is passed to `StudioScene` (camera choreography in `CameraRig`) and applied as class `mode-<name>` on `.workspace` for CSS transitions. `Desktop` mounts only in `desktop` mode. Reduced motion, a failed renderer, or the `sessionStorage` intro flag collapse the animated states to immediate ones.
+**Home-page state machine** (owned by `Workspace.tsx`): `SceneMode` = `loading → intro → room → entering → desktop → leaving`. The mode is passed to `StudioScene` (camera choreography in `CameraRig`) and applied as class `mode-<name>` on `.workspace` for CSS transitions. `Desktop` mounts in `desktop` and `leaving` modes (inert and fading out while leaving). Reduced motion, a failed renderer, or the `sessionStorage` intro flag collapse the animated states to immediate ones.
 
 **Ambience** is a single 0–100 number. `getAmbience()` in `src/lib/ambience.ts` interpolates three palette stops and feeds both the Three.js lights in `StudioScene` and the CSS vars `--room / --scene-ink / --scene-muted` on `.workspace`. It guarantees ≥ 4.5:1 text contrast at every value; keep that invariant when touching palettes. Desktop dark appearance defaults on when ambience ≥ 75.
 
@@ -38,6 +38,7 @@ All copy lives in `src/lib/content.ts` (profile, projects, experience, skills, `
 - `StudioScene` is loaded with `dynamic(..., { ssr: false })`. Shader compile → `onReady`; a thrown error, WebGL context loss, or a 12 s stall → `failed`, after which the HTML desktop still works with no scene. Preserve this fallback path.
 - `DeskObjects.tsx` is original procedural geometry with canvas-painted textures (`textureFromCanvas`). No GLB, HDRI, or external 3D assets: this is a deliberate design and licensing constraint (`DESIGN.md`).
 - The standing desk's height is a number in cm (`src/lib/desk.ts`). `Desk` tweens toward it inside `useFrame`, moving the top group and scaling the upper legs imperatively, and calls `invalidate()` on every moving frame; it reports the live height through `onHeight`, which drives the keypad readout in `Workspace`, the desktop camera eye, and the contact-shadow re-bake (`settledHeight` key). `CameraRig` reads the height through a ref: it must never be an effect dependency there, or every height change would snap the camera to the home view.
+- Entering and leaving the desktop are fixed-length camera flights stepped in `CameraRig`'s `useFrame` (timings in `src/lib/transitions.ts`; the shade, overlay, and desktop animations in `globals.css` are tuned to them). `CameraControls` takes a subclass that clamps the frame delta to 1/30 s: with `frameloop="demand"` the first frame after idling hands camera-controls the whole idle time and its smooth damp would otherwise snap to the target. Keep both.
 - The canvas fills the viewport so orbiting and zooming never crop the model. An invisible `.scene-frame` box (positioned per breakpoint in `globals.css`) marks where the desk is framed; `CameraRig` measures it and offsets the projection with `setViewOffset`. To reframe the desk, move `.scene-frame` in CSS, not the camera. The `panel-hidden` class on `.workspace` (the side-panel toggle) transitions `.scene-frame` to full width, and `CameraRig` re-applies the offset every frame from `transitionrun` until `transitionend` (1.5 s safety stop).
 
 **Desktop** (`Desktop.tsx`): windows, Dock, sidebar, and search are all keyed by `FolderId`. Adding a section means updating `FolderId` + `folders` in `content.ts`, the branch in `PortfolioContent.tsx`, and `DockIcon` / `navIcons` in `Desktop.tsx`.
@@ -47,7 +48,7 @@ All copy lives in `src/lib/content.ts` (profile, projects, experience, skills, `
 ## Content constraints
 
 - Profile and experience were verified against LinkedIn, and articles imported from fredymaldonado.com, on 2026-10-18. Do not invent or "improve" biographical facts, dates, or article text.
-- Spotify is intentionally not integrated; the listening note is a placeholder. The résumé is an external Framer-hosted PDF.
+- Spotify is intentionally not integrated; the listening note is a placeholder. The résumé is `public/Fredy-Maldonado-CV.pdf`, linked through `profile.cv`; replace the file to update it.
 - `public/images/pro-wallpaper-portrait.jpg` is stored portrait and rotated to landscape at display time, in both CSS and the screen textures.
 
 ## Reference docs

@@ -172,10 +172,13 @@ export default function Desktop({
   initialFolder,
   onExit,
   daylight,
+  leaving = false,
 }: {
   initialFolder: FolderId;
   onExit: () => void;
   daylight: boolean;
+  // Still mounted while the workspace fades it out; keep it out of reach.
+  leaving?: boolean;
 }) {
   const [windows, setWindows] = useState<OpenWindow[]>([
     {
@@ -328,6 +331,7 @@ export default function Desktop({
       ref={desktopRef}
       className={`desktop ${dark ? "desktop-dark" : "desktop-light"}`}
       aria-label="Interactive portfolio desktop"
+      inert={leaving}
     >
       <div className="desktop-wallpaper" aria-hidden="true" />
       <nav className="menubar" aria-label="Desktop menu">

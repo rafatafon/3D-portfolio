@@ -11,6 +11,7 @@ import {
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   CameraControls,
+  CameraControlsImpl,
   ContactShadows,
   Environment,
   Lightformer,
@@ -19,6 +20,12 @@ import * as THREE from "three";
 import { Desk, SaylChair } from "./DeskObjects";
 import { getAmbience } from "@/lib/ambience";
 import { deskOffset } from "@/lib/desk";
+import {
+  ENTER_FLIGHT_MS,
+  LEAVE_FLIGHT_DELAY_MS,
+  LEAVE_FLIGHT_MS,
+  easeInOut,
+} from "@/lib/transitions";
 
 // React Three Fiber 9 still constructs a THREE.Clock, which three r183+ reports
 // as deprecated on every load. Nothing here reads that clock, so route three's
@@ -32,6 +39,30 @@ THREE.setConsoleFunction((type, message, ...params) => {
     return;
   console[type](message, ...params);
 });
+
+// camera-controls eases with a smooth damp that takes the frame delta as its
+// time step. Under `frameloop="demand"` the first frame after an idle spell
+// carries the whole idle time as its delta (seconds, not milliseconds), and the
+// damp then lands almost on its target in that one frame: the camera snapped
+// into the monitor after a pause and always snapped home when leaving the
+// desktop. Clamp the step so every glide starts from rest at a plausible frame
+// time (the cap only bites below 30 fps); drei takes the subclass through its
+// `impl` prop.
+class SteadyControls extends CameraControlsImpl {
+  update(delta: number) {
+    return super.update(Math.min(delta, 1 / 30));
+  }
+}
+
+// A camera pose in camera-controls' terms: spherical about the orbit target.
+type Pose = {
+  theta: number;
+  phi: number;
+  radius: number;
+  target: THREE.Vector3;
+};
+type Flight = { from: Pose; to: Pose; start: number; duration: number };
+const scratch = { target: new THREE.Vector3(), position: new THREE.Vector3() };
 
 export type SceneMode =
   | "loading"
@@ -77,6 +108,7 @@ function CameraRig({
   heightRef.current = height;
   const reframe = useRef<(() => void) | null>(null);
   const tracking = useRef(false);
+  const flight = useRef<Flight | null>(null);
   const { size, invalidate, camera, gl } = useThree();
   const narrow = size.width < 650;
   const home: [number, number, number] = narrow
@@ -164,46 +196,117 @@ function CameraRig({
     current.smoothTime = reducedMotion ? 0 : 0.6;
     started.current = null;
     completed.current = false;
+    flight.current = null;
+    type Point = [number, number, number];
+    const poseOf = (position: Point, target: Point): Pose => {
+      const centre = new THREE.Vector3(...target);
+      const spherical = new THREE.Spherical().setFromVector3(
+        new THREE.Vector3(...position).sub(centre),
+      );
+      return {
+        theta: spherical.theta,
+        phi: THREE.MathUtils.clamp(
+          spherical.phi,
+          current.minPolarAngle,
+          current.maxPolarAngle,
+        ),
+        radius: spherical.radius,
+        target: centre,
+      };
+    };
     // camera-controls animates to the exact azimuth of the requested position,
     // so after free 360° orbiting a preset could take the long way round. Aim
     // for the equivalent azimuth nearest the current one instead.
-    const glideTo = (
-      position: [number, number, number],
-      target: [number, number, number],
-      transition: boolean,
-    ) => {
-      const spherical = new THREE.Spherical().setFromVector3(
-        new THREE.Vector3(...position).sub(new THREE.Vector3(...target)),
-      );
+    const nearestTurn = (theta: number) =>
+      theta +
+      Math.round((current.azimuthAngle - theta) / (2 * Math.PI)) * 2 * Math.PI;
+    const glideTo = (position: Point, target: Point, transition: boolean) => {
+      const pose = poseOf(position, target);
       void current.setLookAt(...position, ...target, transition);
-      const turns = Math.round(
-        (current.azimuthAngle - spherical.theta) / (2 * Math.PI),
-      );
-      void current.rotateTo(
-        spherical.theta + turns * 2 * Math.PI,
-        spherical.phi,
-        transition,
-      );
+      void current.rotateTo(nearestTurn(pose.theta), pose.phi, transition);
     };
+    // Entering and leaving are fixed-length flights, stepped in the useFrame
+    // below: the camera swings around the desk in spherical space on an
+    // ease-in-out curve timed to the CSS (overlay, shade, desktop) and
+    // independent of the frame rate, instead of the damp's fast start and
+    // long tail.
+    const fly = (
+      position: Point,
+      target: Point,
+      duration: number,
+      delay = 0,
+    ) => {
+      const to = poseOf(position, target);
+      to.theta = nearestTurn(to.theta);
+      flight.current = {
+        from: {
+          theta: current.azimuthAngle,
+          phi: current.polarAngle,
+          radius: current.distance,
+          target: current.getTarget(new THREE.Vector3(), false),
+        },
+        to,
+        start: performance.now() + delay,
+        duration,
+      };
+    };
+    const eye = 2.34 + deskOffset(heightRef.current);
+    const screen: [Point, Point] = [
+      [0.08, eye, 1.45],
+      [0.08, eye, -0.78],
+    ];
+    const room: [Point, Point] = [home, [0, 1.27, 0]];
     if (mode === "loading" || mode === "intro") {
-      const start: [number, number, number] = narrow
-        ? [4.7, 2.6, 4.4]
-        : [5.3, 2.8, 4.2];
+      const start: Point = narrow ? [4.7, 2.6, 4.4] : [5.3, 2.8, 4.2];
       glideTo(start, [0, 1.25, 0.1], false);
+    } else if (mode === "entering" && !reducedMotion) {
+      fly(...screen, ENTER_FLIGHT_MS);
     } else if (mode === "entering" || mode === "desktop") {
-      const eye = 2.34 + deskOffset(heightRef.current);
-      glideTo([0.08, eye, 1.45], [0.08, eye, -0.78], !reducedMotion);
+      glideTo(...screen, false);
+    } else if (mode === "leaving" && !reducedMotion) {
+      fly(...room, LEAVE_FLIGHT_MS, LEAVE_FLIGHT_DELAY_MS);
     } else {
-      glideTo(
-        home,
-        [0, 1.27, 0],
-        mode === "leaving" || reset > 0 ? !reducedMotion : false,
-      );
+      glideTo(...room, reset > 0 ? !reducedMotion : false);
     }
     // Immediate camera moves do not emit a transition-start event. Render them
     // explicitly when reduced motion or a skipped intro uses demand rendering.
     invalidate();
   }, [mode, reset, reducedMotion, narrow, invalidate]);
+
+  useFrame(() => {
+    // Priority -2 runs ahead of drei's controls.update() at -1, so the pose
+    // set here reaches the camera in the same frame.
+    const current = controls.current;
+    const path = flight.current;
+    if (!current || !path) return;
+    const progress = THREE.MathUtils.clamp(
+      (performance.now() - path.start) / path.duration,
+      0,
+      1,
+    );
+    const eased = easeInOut(progress);
+    const target = scratch.target
+      .copy(path.from.target)
+      .lerp(path.to.target, eased);
+    const position = scratch.position
+      .setFromSphericalCoords(
+        THREE.MathUtils.lerp(path.from.radius, path.to.radius, eased),
+        THREE.MathUtils.lerp(path.from.phi, path.to.phi, eased),
+        THREE.MathUtils.lerp(path.from.theta, path.to.theta, eased),
+      )
+      .add(target);
+    void current.setLookAt(
+      position.x,
+      position.y,
+      position.z,
+      target.x,
+      target.y,
+      target.z,
+      false,
+    );
+    if (progress === 1) flight.current = null;
+    invalidate();
+  }, -2);
 
   useFrame(() => {
     if (mode !== "intro" || !controls.current || completed.current) return;
@@ -233,6 +336,7 @@ function CameraRig({
   return (
     <CameraControls
       ref={controls}
+      impl={SteadyControls}
       enabled={mode === "room"}
       minDistance={5}
       maxDistance={16}
