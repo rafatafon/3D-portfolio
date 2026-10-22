@@ -5,16 +5,16 @@ A local Next.js portfolio with an interactive 3D desk, adjustable ambient lighti
 ## Run locally
 
 ```sh
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
-Open http://127.0.0.1:3000. Node.js 22 or newer is recommended.
+Open http://127.0.0.1:3000. Node.js 22 or newer is recommended. The project uses pnpm (`brew install pnpm` on macOS); the exact version is pinned under `packageManager` in `package.json`.
 
 ```sh
-npm run typecheck
-npm run build
-npm start
+pnpm typecheck
+pnpm build
+pnpm start
 ```
 
 ## The experience

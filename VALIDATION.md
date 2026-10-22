@@ -84,3 +84,11 @@ Screenshots from the checks are in `.playwright-mcp/` (ignored local artifacts).
 - Clearances in scene units, from the geometry: mug to bottle 0.14; mug body to mouse 0.22 and handle tip to mouse 0.2; mug off the desk mat by 0.19; mug to the headphone-stand base 0.15; bottle to the flat desk top's right and front edges 0.045 and 0.05. Nothing touches.
 - Checked headless in Chrome (Playwright core driving the installed browser) at 1440 × 900 from the home view, maximum zoom, orbited right, desk level, and overhead, and at 390 × 844: both objects render with no page errors.
 - Known trade-off: from the home camera the bottle's lid overlaps part of the headphones' left ear cup in projection, because the front-right corner lies on the camera's line to the stand. The headphones stay clickable on the right cup, headband, and stand; moving the bottle to x ≈ 1.3 would clear the overlap.
+
+## Package manager switch to pnpm — 2026-10-22
+
+- The project now installs with pnpm; the version is pinned under `packageManager` in `package.json` and `pnpm-lock.yaml` replaces `package-lock.json`. The lockfile was produced with `pnpm import`, so every resolved version is unchanged.
+- `pnpm install --frozen-lockfile` completes with no blocked build scripts, `pnpm typecheck` and `pnpm dlx prettier@3.6.2 --check src` pass, and `pnpm build` prerenders `/`, `/portfolio`, `/_not-found`, `/icon.svg`, and the four `/writing/[slug]` pages.
+- `pnpm dev` serves `/`, `/portfolio`, and an article page with HTTP 200 and no console warnings.
+- CI (`.github/workflows/ci.yml`) installs pnpm through `pnpm/action-setup`, caches the pnpm store, and runs the same three checks with `--frozen-lockfile`.
+

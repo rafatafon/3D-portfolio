@@ -11,14 +11,14 @@ Next.js 16 differs from older versions (see `AGENTS.md`). Read the relevant guid
 ## Commands
 
 ```sh
-npm install
-npm run dev          # http://127.0.0.1:3000 (binds 127.0.0.1, not localhost)
-npm run typecheck    # tsc --noEmit
-npm run build        # must pass; prerenders /, /portfolio, /writing/[slug]
-npx prettier@3.6.2 --write src   # source follows Prettier 3.6.2 defaults; not a dependency, no config
+pnpm install
+pnpm dev          # http://127.0.0.1:3000 (binds 127.0.0.1, not localhost)
+pnpm typecheck    # tsc --noEmit
+pnpm build        # must pass; prerenders /, /portfolio, /writing/[slug]
+pnpm dlx prettier@3.6.2 --write src   # source follows Prettier 3.6.2 defaults; not a dependency, no config
 ```
 
-There is no test runner or lint script. Verification is `typecheck` + `build`, then a browser pass over the flows in `VALIDATION.md`.
+The package manager is pnpm, pinned under `packageManager` in `package.json`; `pnpm-lock.yaml` is the only lockfile, so do not add a `package-lock.json`. There is no test runner or lint script. Verification is `typecheck` + `build`, then a browser pass over the flows in `VALIDATION.md`.
 CI (`.github/workflows/ci.yml`) runs typecheck, the Prettier check, and the build on pull requests and pushes to `main`.
 
 ## Architecture
