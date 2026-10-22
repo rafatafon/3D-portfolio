@@ -7,11 +7,14 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type KeyboardEvent,
 } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
-  MoveUp,
+  ArrowUpDown,
+  ChevronDown,
+  ChevronUp,
   RotateCcw,
   Sun,
   Moon,
@@ -26,9 +29,19 @@ import Desktop, { LocalTime } from "./Desktop";
 import type { SceneMode } from "./StudioScene";
 import type { FolderId } from "@/lib/content";
 import { getAmbience } from "@/lib/ambience";
+import {
+  DEFAULT_PRESETS,
+  DESK_MAX,
+  DESK_MIN,
+  DESK_SIT,
+  clampHeight,
+} from "@/lib/desk";
+import SevenSegment from "./SevenSegment";
 
 const StudioScene = dynamic(() => import("./StudioScene"), { ssr: false });
 const INTRO_KEY = "fm-workspace-intro-v2";
+const PRESET_KEY = "fm-desk-presets-v1";
+type Presets = [number, number, number];
 
 function rememberIntro() {
   try {
@@ -38,11 +51,44 @@ function rememberIntro() {
   }
 }
 
+function loadPresets(): Presets {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(PRESET_KEY) ?? "");
+    if (
+      Array.isArray(parsed) &&
+      parsed.length === 3 &&
+      parsed.every(
+        (cm) => typeof cm === "number" && cm >= DESK_MIN && cm <= DESK_MAX,
+      )
+    )
+      return parsed as Presets;
+  } catch {
+    /* Defaults when storage is unavailable or holds something else. */
+  }
+  return DEFAULT_PRESETS;
+}
+
+function storePresets(presets: Presets) {
+  try {
+    localStorage.setItem(PRESET_KEY, JSON.stringify(presets));
+  } catch {
+    /* Presets still work for this visit. */
+  }
+}
+
 export default function Workspace() {
   const [mode, setMode] = useState<SceneMode>("loading");
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
-  const [standing, setStanding] = useState(false);
+  // Desk height in cm: the target the motor travels to, the live readout it
+  // reports on the way, and the last height it settled at (for shadows).
+  const [deskHeight, setDeskHeight] = useState(DESK_SIT);
+  const [liveHeight, setLiveHeight] = useState(DESK_SIT);
+  const [settledHeight, setSettledHeight] = useState(DESK_SIT);
+  const [remoteOpen, setRemoteOpen] = useState(false);
+  const [presets, setPresets] = useState<Presets>(DEFAULT_PRESETS);
+  const [arming, setArming] = useState(false);
+  const [savedSlot, setSavedSlot] = useState<number | null>(null);
   const [ambience, setAmbience] = useState(0);
   const [reset, setReset] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -56,12 +102,18 @@ export default function Workspace() {
   const introduction = useRef<HTMLElement>(null);
   const firstLine = useRef<HTMLSpanElement>(null);
   const returnFocus = useRef(false);
+  const liveRef = useRef(DESK_SIT);
+  const remote = useRef<HTMLDivElement>(null);
+  const deskButton = useRef<HTMLButtonElement>(null);
+  const hold = useRef<{ at: number; from: number } | null>(null);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const started = useRef(0);
   const skipIntro = useRef(false);
   const theme = getAmbience(ambience);
 
   useEffect(() => {
     started.current = performance.now();
+    setPresets(loadPresets());
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const sync = () => setReducedMotion(media.matches);
     sync();
@@ -74,6 +126,7 @@ export default function Workspace() {
     return () => {
       media.removeEventListener("change", sync);
       if (transitionTimer.current) clearTimeout(transitionTimer.current);
+      if (savedTimer.current) clearTimeout(savedTimer.current);
     };
   }, []);
 
@@ -164,6 +217,7 @@ export default function Workspace() {
       if (mode !== "room") return;
       setInitialFolder(folder);
       setMusicNote(false);
+      setRemoteOpen(false);
       document.body.style.cursor = "auto";
       if (reducedMotion || failed || !ready) {
         setMode("desktop");
@@ -195,6 +249,91 @@ export default function Workspace() {
     (panelHidden && !compact ? panelToggle : entryButton).current?.focus();
   }, [mode, panelHidden, compact]);
 
+  const onHeight = useCallback((cm: number, moving: boolean) => {
+    liveRef.current = cm;
+    setLiveHeight(cm);
+    if (!moving) setSettledHeight(cm);
+  }, []);
+
+  // Desk keypad: hold an arrow to run the motor, tap it to nudge 1 cm, tap a
+  // preset to travel there, or press S then a preset to store the height.
+  const beginHold = (direction: 1 | -1) => {
+    hold.current = { at: performance.now(), from: liveRef.current };
+    setArming(false);
+    setDeskHeight(direction > 0 ? DESK_MAX : DESK_MIN);
+  };
+  const endHold = (direction: 1 | -1) => {
+    const start = hold.current;
+    if (!start) return;
+    hold.current = null;
+    const tap = performance.now() - start.at < 220;
+    setDeskHeight(
+      clampHeight(Math.round(tap ? start.from + direction : liveRef.current)),
+    );
+  };
+  const pressPreset = (slot: number) => {
+    if (arming) {
+      const next: Presets = [presets[0], presets[1], presets[2]];
+      next[slot] = Math.round(liveRef.current);
+      setPresets(next);
+      storePresets(next);
+      setArming(false);
+      setSavedSlot(slot);
+      if (savedTimer.current) clearTimeout(savedTimer.current);
+      savedTimer.current = setTimeout(() => setSavedSlot(null), 900);
+      return;
+    }
+    setDeskHeight(presets[slot]);
+  };
+  const closeRemote = useCallback(() => {
+    setRemoteOpen(false);
+    deskButton.current?.focus();
+  }, []);
+  const remoteKeys = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeRemote();
+    } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+      event.preventDefault();
+      if (event.repeat) return;
+      setDeskHeight(
+        clampHeight(
+          Math.round(liveRef.current) + (event.key === "ArrowUp" ? 1 : -1),
+        ),
+      );
+    } else if (event.key === "Tab" && remote.current) {
+      const keys = remote.current.querySelectorAll<HTMLElement>("button");
+      const first = keys[0];
+      const last = keys[keys.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+  };
+  useEffect(() => {
+    if (!remoteOpen) {
+      setArming(false);
+      return;
+    }
+    remote.current?.focus();
+    const outside = (event: PointerEvent) => {
+      const node = event.target as Node;
+      if (remote.current?.contains(node) || deskButton.current?.contains(node))
+        return;
+      setRemoteOpen(false);
+    };
+    document.addEventListener("pointerdown", outside);
+    return () => document.removeEventListener("pointerdown", outside);
+  }, [remoteOpen]);
+  const readout =
+    savedSlot === null
+      ? liveHeight.toFixed(1).padStart(5, " ")
+      : ` S-${savedSlot + 1}`;
+
   // The toolbar sits above the mood slider on desktop and in the footer on
   // phones, where the slider is centred at the bottom.
   const controls = (
@@ -207,12 +346,15 @@ export default function Workspace() {
         <RotateCcw size={15} />
       </button>
       <button
-        onClick={() => setStanding((value) => !value)}
-        aria-label={standing ? "Lower standing desk" : "Raise standing desk"}
-        aria-pressed={standing}
-        title={standing ? "Lower desk" : "Raise desk"}
+        ref={deskButton}
+        onClick={() => setRemoteOpen((open) => !open)}
+        aria-haspopup="dialog"
+        aria-expanded={remoteOpen}
+        aria-controls="desk-remote"
+        aria-label="Desk height"
+        title="Desk height"
       >
-        <MoveUp size={16} />
+        <ArrowUpDown size={15} />
       </button>
       <button
         onClick={showMusic}
@@ -239,7 +381,9 @@ export default function Workspace() {
         {!failed && (
           <StudioScene
             mode={mode}
-            standing={standing}
+            height={deskHeight}
+            settledHeight={settledHeight}
+            onHeight={onHeight}
             ambience={ambience}
             reset={reset}
             reducedMotion={reducedMotion}
@@ -298,6 +442,99 @@ export default function Workspace() {
             <PanelLeftClose size={16} strokeWidth={1.7} />
           )}
         </button>
+        <div
+          id="desk-remote"
+          ref={remote}
+          className={`desk-remote${remoteOpen ? " open" : ""}`}
+          role="dialog"
+          aria-label="Desk height controller"
+          tabIndex={-1}
+          inert={!remoteOpen}
+          onKeyDown={remoteKeys}
+        >
+          <div
+            className="remote-screen"
+            role="status"
+            aria-live="polite"
+            aria-label={
+              savedSlot === null
+                ? `${liveHeight.toFixed(1)} centimeters`
+                : `Saved preset ${savedSlot + 1}`
+            }
+          >
+            <SevenSegment text={readout} />
+            <span className="remote-unit">cm</span>
+          </div>
+          <div className="remote-keys">
+            {([1, -1] as const).map((direction) => (
+              <button
+                key={direction}
+                className="remote-key"
+                aria-label={direction > 0 ? "Raise desk" : "Lower desk"}
+                title={
+                  direction > 0
+                    ? "Hold to raise, tap for 1 cm"
+                    : "Hold to lower, tap for 1 cm"
+                }
+                onPointerDown={(event) => {
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                  beginHold(direction);
+                }}
+                onPointerUp={() => endHold(direction)}
+                onPointerCancel={() => endHold(direction)}
+                onKeyDown={(event) => {
+                  if (
+                    (event.key === "Enter" || event.key === " ") &&
+                    !event.repeat
+                  )
+                    beginHold(direction);
+                }}
+                onKeyUp={(event) => {
+                  if (event.key === "Enter" || event.key === " ")
+                    endHold(direction);
+                }}
+                onContextMenu={(event) => event.preventDefault()}
+              >
+                {direction > 0 ? (
+                  <ChevronUp size={18} strokeWidth={2.4} />
+                ) : (
+                  <ChevronDown size={18} strokeWidth={2.4} />
+                )}
+              </button>
+            ))}
+            {presets.map((cm, slot) => (
+              <button
+                key={slot}
+                className={`remote-key${savedSlot === slot ? " saved" : ""}`}
+                aria-label={
+                  arming
+                    ? `Save current height as preset ${slot + 1}`
+                    : `Preset ${slot + 1}, ${cm} centimeters`
+                }
+                title={arming ? "Save here" : `${cm} cm`}
+                onClick={() => pressPreset(slot)}
+              >
+                {slot + 1}
+              </button>
+            ))}
+            <button
+              className={`remote-key remote-save${arming ? " armed" : ""}`}
+              aria-pressed={arming}
+              aria-label="Save a preset: press S, then 1, 2, or 3"
+              title="Save preset"
+              onClick={() => setArming((value) => !value)}
+            >
+              S
+            </button>
+          </div>
+          <button
+            className="remote-close"
+            aria-label="Close desk controller"
+            onClick={closeRemote}
+          >
+            <X size={13} />
+          </button>
+        </div>
         {failed && (
           <div className="webgl-notice" role="status">
             The desktop is ready.

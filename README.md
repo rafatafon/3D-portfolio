@@ -20,7 +20,7 @@ pnpm start
 ## The experience
 
 - An animated fm. preloader covers scene loading, followed by a four-second camera glide and monitor wake-up. Skip is always available; reduced motion and repeat visits bypass the glide.
-- Drag the desk to look around, or reset the camera. Raise/lower the standing desk.
+- Drag the desk to look around, or reset the camera. Open the desk controller to set the standing desk's height: hold the arrows to run the motor, tap them for 1 cm, or use the three presets (press S, then a number, to store the current height).
 - Drag “Set the mood” from daylight through warm amber to after hours. The range input supports keyboard controls and three preset buttons.
 - Hide the side panel with the toggle beside the title: the identity, introduction, toolbar, and mood slider ease out to the left (upward on phones) and the desk glides to the center; the docked toggle at the left edge brings them back.
 - Click the monitor or “Explore my desktop” to enter.

@@ -1,10 +1,11 @@
 "use client";
 
-import { memo, useEffect, useMemo, useRef } from "react";
-import { useFrame, type ThreeEvent } from "@react-three/fiber";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { RoundedBox, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { DESK_SPEED, deskOffset } from "@/lib/desk";
 
 type Vec3 = [number, number, number];
 const white = "#e8e8e5";
@@ -948,14 +949,39 @@ const CoffeeMug = memo(function CoffeeMug() {
   );
 });
 
+// The small display on the desk's front edge mirrors the keypad readout. It
+// keeps its own state so the desk tree does not re-render while the motor runs.
+function DeskReadout({
+  initial,
+  register,
+}: {
+  initial: number;
+  register: (set: (cm: number) => void) => void;
+}) {
+  const [cm, setCm] = useState(initial);
+  useEffect(() => register(setCm), [register]);
+  return (
+    <Label
+      text={`${cm}  ↑  ↓`}
+      position={[1.45, 1.539, 0.582]}
+      size={[0.19, 0.036]}
+      color="#c5efff"
+    />
+  );
+}
+
 export const Desk = memo(function Desk({
-  standing,
+  height,
+  onHeight,
+  reducedMotion,
   onEnter,
   onMusic,
   waking,
   sleeping,
 }: {
-  standing: boolean;
+  height: number;
+  onHeight: (cm: number, moving: boolean) => void;
+  reducedMotion: boolean;
   onEnter: () => void;
   onMusic: () => void;
   waking: boolean;
@@ -1038,10 +1064,58 @@ export const Desk = memo(function Desk({
     () => () => Object.values(textures).forEach((texture) => texture.dispose()),
     [textures],
   );
-  const offset = standing ? 0.48 : 0;
+  // Motorised height: the keypad sets a target in cm and the desk travels
+  // there at a constant speed inside the frame loop, moving the top group and
+  // stretching the upper leg segments imperatively so nothing re-renders.
+  // The frameloop is on demand, so each moving frame requests the next one.
+  const { invalidate } = useThree();
+  const top = useRef<THREE.Group>(null);
+  const legs = useRef<(THREE.Group | null)[]>([]);
+  const current = useRef(height);
+  const target = useRef(height);
+  const shown = useRef(Math.round(height));
+  const reported = useRef(height);
+  const wasMoving = useRef(false);
+  const readout = useRef<((cm: number) => void) | null>(null);
+  const registerReadout = useCallback((set: (cm: number) => void) => {
+    readout.current = set;
+  }, []);
+  useEffect(() => {
+    target.current = height;
+    invalidate();
+  }, [height, invalidate]);
+  useFrame((_, delta) => {
+    const goal = target.current;
+    let cm = current.current;
+    if (cm !== goal) {
+      const step = DESK_SPEED * Math.min(delta, 0.1);
+      cm = reducedMotion
+        ? goal
+        : cm < goal
+          ? Math.min(goal, cm + step)
+          : Math.max(goal, cm - step);
+      current.current = cm;
+    }
+    const rise = deskOffset(cm);
+    if (top.current) top.current.position.y = rise;
+    for (const leg of legs.current) if (leg) leg.scale.y = (0.5 + rise) / 0.5;
+    const whole = Math.round(cm);
+    if (whole !== shown.current) {
+      shown.current = whole;
+      readout.current?.(whole);
+    }
+    const moving = cm !== goal;
+    const value = moving ? Math.round(cm * 2) / 2 : cm;
+    if (value !== reported.current || (!moving && wasMoving.current)) {
+      reported.current = value;
+      onHeight(value, moving);
+    }
+    wasMoving.current = moving;
+    if (moving) invalidate();
+  });
   return (
     <group>
-      {[-1.43, 1.43].map((x) => (
+      {[-1.43, 1.43].map((x, index) => (
         <group key={x}>
           <Box
             size={[0.19, 0.7, 0.21]}
@@ -1056,12 +1130,19 @@ export const Desk = memo(function Desk({
             color="#e7e8e6"
             metalness={0.35}
           />
-          <Box
-            size={[0.12, 0.5 + offset, 0.13]}
-            position={[x, 1.3 + offset / 2, -0.22]}
-            color="#f0f0ec"
-            metalness={0.4}
-          />
+          <group
+            ref={(leg) => {
+              legs.current[index] = leg;
+            }}
+            position={[x, 1.05, -0.22]}
+          >
+            <Box
+              size={[0.12, 0.5, 0.13]}
+              position={[0, 0.25, 0]}
+              color="#f0f0ec"
+              metalness={0.4}
+            />
+          </group>
           <Box
             size={[0.21, 0.075, 1.24]}
             position={[x, 0.075, -0.22]}
@@ -1080,7 +1161,7 @@ export const Desk = memo(function Desk({
           ))}
         </group>
       ))}
-      <group position={[0, offset, 0]}>
+      <group ref={top}>
         <Box
           size={[3.65, 0.12, 1.62]}
           position={[0, 1.62, -0.24]}
@@ -1101,12 +1182,7 @@ export const Desk = memo(function Desk({
           color="#25292b"
           radius={0.012}
         />
-        <Label
-          text={standing ? "112  ↑  ↓" : "74  ↑  ↓"}
-          position={[1.45, 1.539, 0.582]}
-          size={[0.19, 0.036]}
-          color="#c5efff"
-        />
+        <DeskReadout initial={Math.round(height)} register={registerReadout} />
         <Box
           size={[1.7, 0.012, 0.65]}
           position={[0.15, 1.688, 0.13]}

@@ -25,7 +25,7 @@ Checked in Chromium through Playwright, using isolated browser contexts so sessi
 - Default ambient value is 0 (white); slider dragging and arrow keys work.
 - Warm and dark preset buttons work and the selected value survives desktop entry/exit.
 - Primary and secondary text contrast checked against the backdrop at all 101 integer slider values: minimum ratio 4.50036:1.
-- Standing desk raises and lowers.
+- Desk height keypad (toolbar arrows button): hold an arrow to run the motor, tap for 1 cm, presets travel, S then a number saves a preset; the desk moves at motor speed and the on-desk display counts along.
 - Both the 3D AirPods and the keyboard-accessible music button open the listening note.
 - The 3D monitor and HTML entry button open the desktop.
 - Desktop inherits dark appearance from dark ambience; its display setting toggles light/dark.
@@ -120,3 +120,12 @@ Screenshots from the checks are in `.playwright-mcp/` (ignored local artifacts).
 - The drag hint ("Drag to look around…") now lives in the footer's middle column (`grid-template-columns: 1fr auto 1fr`), centered between the location/time and "Make yourself at home." (which is hidden ≤ 1100px); it stays centered when the panel collapses. Phones keep the hint hidden and a flex footer.
 - The docked toggle lands on the gutter through `--dock-x`, measured with the title. On phones it docks at the top-left corner on the same gutter.
 - `pnpm typecheck`, the Prettier check, and `pnpm build` pass. Headless Chrome at 1440 × 900, 1100 × 800, 900 × 700, and 390 × 844 (touch): collapse, expand, desktop entry, and return all work with no page or console errors; the docked toggle sits at x = 63 on 1440 (the 4.4% gutter), and the phone footer keeps the toolbar at the right.
+
+## Desk height controller — 2026-10-22
+
+- The toolbar's desk button (`aria-haspopup="dialog"`) opens a dark keypad centered over the desk framing (59.5% of the viewport, 50% while the side panel is collapsed, 50%/51% on phones): a CSS seven-segment LED readout in cm, up and down keys, presets 1–3, and S. It scales in over 0.28s and closes on the X, Escape, a click outside, or the toolbar button again; focus moves into the dialog on open and back to the toolbar button on close, Tab cycles inside it, and ArrowUp/ArrowDown nudge 1 cm.
+- Motion: holding an arrow sets the target to the range limit (70–120 cm) and the desk travels at 12.7 cm/s (about 3 s from sitting at 74 cm to standing at 112 cm); releasing stops at the current height, and a press under 220 ms nudges 1 cm instead. Presets travel on their own. The tween runs inside `Desk`'s `useFrame`, moving the desk-top group and scaling the upper leg segments imperatively, and requests the next frame with `invalidate()` only while moving. Under reduced motion the desk snaps on the next frame.
+- The keypad readout updates every 0.5 cm during travel and shows the exact height at rest; the small display on the desk's front edge mirrors whole centimeters. The desktop camera eye uses the target height; contact shadows re-bake when the desk settles.
+- Presets default to 74 / 95 / 112 cm. Press S (it lights up), then a number, to store the current whole-cm height there; the readout shows `S-n` for 0.9s and the three values are kept in `localStorage` (`fm-desk-presets-v1`, validated on load). Tapping a preset while not arming travels to it.
+- Checked headless in Chrome at 1440 × 900 and 390 × 844 (touch): a 1.2s hold raises from 74 to about 93 cm, a tap lowers 1 cm, preset 3 reaches 112.0, S then 2 stores `[74,112,112]`, preset 1 returns to 74.0, Escape closes with focus on "Desk height". No page or console errors. `pnpm typecheck`, the Prettier check, and `pnpm build` pass.
+- Phones stack the display above the keys so the keypad fits inside the 24px gutters.

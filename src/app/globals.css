@@ -3162,3 +3162,233 @@ a svg {
     transition-delay: 0s !important;
   }
 }
+
+/* Desk height keypad: a dark controller with an LED readout, centred over the
+   desk framing (`.scene-frame` is 19%-100% wide, so its centre is 59.5%). */
+.desk-remote {
+  position: absolute;
+  left: 59.5%;
+  top: 50%;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #2c2e33, #16171a);
+  border: 1px solid #0009;
+  box-shadow:
+    0 22px 55px #0006,
+    inset 0 1px 0 #ffffff14;
+  color: #f1f3f5;
+  pointer-events: auto;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, -50%) scale(0.92);
+  transition:
+    opacity 0.28s var(--panel-ease),
+    transform 0.28s var(--panel-ease),
+    left var(--panel-time) var(--panel-ease),
+    visibility 0s linear 0.28s;
+}
+.desk-remote.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+  transition:
+    opacity 0.28s var(--panel-ease),
+    transform 0.28s var(--panel-ease),
+    left var(--panel-time) var(--panel-ease),
+    visibility 0s;
+}
+.desk-remote:focus {
+  outline: none;
+}
+.desk-remote:focus-visible {
+  outline: 2px solid #9fe8ff88;
+  outline-offset: 3px;
+}
+.panel-hidden .desk-remote {
+  left: 50%;
+}
+.remote-screen {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 9px 11px 8px;
+  border-radius: 8px;
+  background: #050607;
+  box-shadow:
+    inset 0 2px 7px #000d,
+    0 0 0 1px #ffffff0a;
+}
+.remote-unit {
+  font-size: 9px;
+  letter-spacing: 0.6px;
+  color: #8fb2c0;
+}
+.remote-keys {
+  display: flex;
+  gap: 6px;
+}
+.remote-key {
+  width: 37px;
+  height: 37px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #393b41, #212327);
+  border: 1px solid #000b;
+  box-shadow:
+    0 2px 0 #0a0b0d,
+    inset 0 1px 0 #ffffff1f;
+  color: #eef0f2;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition:
+    transform 0.08s,
+    box-shadow 0.08s,
+    background 0.15s,
+    color 0.15s;
+}
+.remote-key:hover {
+  background: linear-gradient(180deg, #43464d, #26282d);
+}
+.remote-key:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 0 0 #0a0b0d,
+    inset 0 1px 0 #ffffff1f;
+}
+.remote-key.armed,
+.remote-key.saved {
+  color: #a8ecff;
+  box-shadow:
+    0 2px 0 #0a0b0d,
+    inset 0 1px 0 #ffffff1f,
+    0 0 0 1px #a8ecff66,
+    0 0 14px #7fdcff55;
+}
+.remote-key:focus-visible {
+  outline: 2px solid #9fe8ff;
+  outline-offset: 2px;
+}
+.remote-close {
+  position: absolute;
+  top: -11px;
+  right: -11px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #2b2d32;
+  border: 1px solid #000a;
+  box-shadow: 0 4px 12px #0006;
+  color: #c9cdd3;
+}
+.remote-close:hover {
+  color: #fff;
+}
+
+/* Seven-segment digits: 14 × 24 cells with bars positioned by class. */
+.seg {
+  display: inline-flex;
+  gap: 7px;
+  transform: skewX(-5deg);
+}
+.seg-digit {
+  position: relative;
+  width: 14px;
+  height: 24px;
+}
+.seg-digit > i,
+.seg-digit > b {
+  position: absolute;
+  display: block;
+  background: #1a2227;
+  border-radius: 1.5px;
+}
+.seg-digit > i.on,
+.seg-digit > b.on {
+  background: #e2f8ff;
+  box-shadow: 0 0 6px #7fdcffaa;
+}
+.seg-a,
+.seg-d,
+.seg-g {
+  left: 2px;
+  width: 10px;
+  height: 2.5px;
+}
+.seg-a {
+  top: 0;
+}
+.seg-g {
+  top: 10.75px;
+}
+.seg-d {
+  bottom: 0;
+}
+.seg-b,
+.seg-c,
+.seg-e,
+.seg-f {
+  width: 2.5px;
+  height: 9.5px;
+}
+.seg-f {
+  left: 0;
+  top: 1.5px;
+}
+.seg-b {
+  right: 0;
+  top: 1.5px;
+}
+.seg-e {
+  left: 0;
+  bottom: 1.5px;
+}
+.seg-c {
+  right: 0;
+  bottom: 1.5px;
+}
+.seg-dot {
+  right: -5px;
+  bottom: 0;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+}
+@media (max-width: 720px) {
+  /* Narrow screens stack the display above the keys so the keypad stays
+     inside the 24px gutters. */
+  .desk-remote {
+    left: 50%;
+    top: 51%;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px 14px;
+  }
+  .remote-screen {
+    align-self: stretch;
+    justify-content: center;
+  }
+  .remote-key {
+    width: 34px;
+    height: 34px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .desk-remote {
+    transition-delay: 0s !important;
+  }
+}

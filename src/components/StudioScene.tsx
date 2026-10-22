@@ -18,6 +18,7 @@ import {
 import * as THREE from "three";
 import { Desk, SaylChair } from "./DeskObjects";
 import { getAmbience } from "@/lib/ambience";
+import { deskOffset } from "@/lib/desk";
 
 // React Three Fiber 9 still constructs a THREE.Clock, which three r183+ reports
 // as deprecated on every load. Nothing here reads that clock, so route three's
@@ -41,7 +42,9 @@ export type SceneMode =
   | "leaving";
 type SceneProps = {
   mode: SceneMode;
-  standing: boolean;
+  height: number;
+  settledHeight: number;
+  onHeight: (cm: number, moving: boolean) => void;
   ambience: number;
   reset: number;
   reducedMotion: boolean;
@@ -55,13 +58,13 @@ type SceneProps = {
 function CameraRig({
   mode,
   reset,
-  standing,
+  height,
   reducedMotion,
   onIntroComplete,
   frame,
 }: Pick<
   SceneProps,
-  "mode" | "reset" | "standing" | "reducedMotion" | "onIntroComplete"
+  "mode" | "reset" | "height" | "reducedMotion" | "onIntroComplete"
 > & { frame: RefObject<HTMLDivElement | null> }) {
   const controls = useRef<CameraControls>(null);
   const started = useRef<number | null>(null);
@@ -182,7 +185,7 @@ function CameraRig({
         : [5.3, 2.8, 4.2];
       glideTo(start, [0, 1.25, 0.1], false);
     } else if (mode === "entering" || mode === "desktop") {
-      const eye = 2.34 + (standing ? 0.48 : 0);
+      const eye = 2.34 + deskOffset(height);
       glideTo([0.08, eye, 1.45], [0.08, eye, -0.78], !reducedMotion);
     } else {
       glideTo(
@@ -194,7 +197,7 @@ function CameraRig({
     // Immediate camera moves do not emit a transition-start event. Render them
     // explicitly when reduced motion or a skipped intro uses demand rendering.
     invalidate();
-  }, [mode, reset, standing, reducedMotion, narrow, invalidate]);
+  }, [mode, reset, height, reducedMotion, narrow, invalidate]);
 
   useFrame(() => {
     if (mode !== "intro" || !controls.current || completed.current) return;
@@ -355,7 +358,9 @@ export default function StudioScene(props: SceneProps) {
           <Desk
             waking={props.mode === "intro"}
             sleeping={props.mode === "loading"}
-            standing={props.standing}
+            height={props.height}
+            onHeight={props.onHeight}
+            reducedMotion={props.reducedMotion}
             onEnter={props.onEnter}
             onMusic={props.onMusic}
           />
@@ -368,7 +373,7 @@ export default function StudioScene(props: SceneProps) {
             far={4}
             resolution={512}
             frames={1}
-            key={String(props.standing)}
+            key={String(props.settledHeight)}
           />
           <CameraRig {...props} frame={frame} />
           <Ready onReady={props.onReady} onError={props.onError} />
