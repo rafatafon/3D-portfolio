@@ -66,6 +66,8 @@ function CameraRig({
   const controls = useRef<CameraControls>(null);
   const started = useRef<number | null>(null);
   const completed = useRef(false);
+  const reframe = useRef<(() => void) | null>(null);
+  const tracking = useRef(false);
   const { size, invalidate, camera, gl } = useThree();
   const narrow = size.width < 650;
   const home: [number, number, number] = narrow
@@ -97,14 +99,55 @@ function CameraRig({
       invalidate();
     };
     apply();
+    reframe.current = apply;
     const observer = new ResizeObserver(apply);
     observer.observe(target);
     observer.observe(canvas);
+    // When `.scene-frame` transitions (the collapsible side panel), follow it
+    // every rendered frame: a ResizeObserver misses pure moves and does not
+    // tick in step with the transition. The useFrame below re-applies the
+    // offset and keeps the demand loop alive only while properties are running.
+    const running = new Set<string>();
+    let safety: ReturnType<typeof setTimeout> | undefined;
+    const stop = () => {
+      running.clear();
+      clearTimeout(safety);
+      tracking.current = false;
+      apply();
+    };
+    const begin = (event: TransitionEvent) => {
+      if (event.target !== target) return;
+      running.add(event.propertyName);
+      tracking.current = true;
+      clearTimeout(safety);
+      safety = setTimeout(stop, 1500);
+      invalidate();
+    };
+    const end = (event: TransitionEvent) => {
+      if (event.target !== target) return;
+      running.delete(event.propertyName);
+      if (running.size === 0) stop();
+    };
+    target.addEventListener("transitionrun", begin);
+    target.addEventListener("transitionend", end);
+    target.addEventListener("transitioncancel", end);
     return () => {
       observer.disconnect();
+      target.removeEventListener("transitionrun", begin);
+      target.removeEventListener("transitionend", end);
+      target.removeEventListener("transitioncancel", end);
+      clearTimeout(safety);
+      tracking.current = false;
+      reframe.current = null;
       camera.clearViewOffset();
     };
   }, [camera, gl, invalidate, size, frame]);
+
+  useFrame(() => {
+    // Runs inside R3F's frame, right before rendering, so the desk moves in the
+    // same frame as the CSS transition; apply() invalidates the next frame.
+    if (tracking.current) reframe.current?.();
+  });
 
   useEffect(() => {
     const current = controls.current;

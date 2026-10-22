@@ -25,7 +25,7 @@ CI (`.github/workflows/ci.yml`) runs typecheck, the Prettier check, and the buil
 
 **Three routes, one content source.**
 - `/` → `src/components/Workspace.tsx` (client): 3D scene + HTML desktop.
-- `/portfolio` → server-rendered, works without JS or WebGL. Linked from the `noscript` fallback and the workspace UI.
+- `/portfolio` → server-rendered, works without JS or WebGL. Linked from the `noscript` fallback and the preloader.
 - `/writing/[slug]` → static article pages (`dynamicParams = false`).
 
 All copy lives in `src/lib/content.ts` (profile, projects, experience, skills, `folders`) and `src/lib/writing.json` (articles as a `{tag, children}` node tree rendered by `ArticleBody.tsx` through a tag allowlist). Every surface reads from these two files; edit content there, not in components.
@@ -38,7 +38,7 @@ All copy lives in `src/lib/content.ts` (profile, projects, experience, skills, `
 - `Canvas` runs `frameloop="demand"`. After any imperative camera or scene change outside `useFrame`, call `invalidate()` or nothing redraws.
 - `StudioScene` is loaded with `dynamic(..., { ssr: false })`. Shader compile → `onReady`; a thrown error, WebGL context loss, or a 12 s stall → `failed`, after which the HTML desktop still works with no scene. Preserve this fallback path.
 - `DeskObjects.tsx` is original procedural geometry with canvas-painted textures (`textureFromCanvas`). No GLB, HDRI, or external 3D assets: this is a deliberate design and licensing constraint (`DESIGN.md`).
-- The canvas fills the viewport so orbiting and zooming never crop the model. An invisible `.scene-frame` box (positioned per breakpoint in `globals.css`) marks where the desk is framed; `CameraRig` measures it and offsets the projection with `setViewOffset`. To reframe the desk, move `.scene-frame` in CSS, not the camera.
+- The canvas fills the viewport so orbiting and zooming never crop the model. An invisible `.scene-frame` box (positioned per breakpoint in `globals.css`) marks where the desk is framed; `CameraRig` measures it and offsets the projection with `setViewOffset`. To reframe the desk, move `.scene-frame` in CSS, not the camera. The `panel-hidden` class on `.workspace` (the side-panel toggle) transitions `.scene-frame` to full width, and `CameraRig` re-applies the offset every frame from `transitionrun` until `transitionend` (1.5 s safety stop).
 
 **Desktop** (`Desktop.tsx`): windows, Dock, sidebar, and search are all keyed by `FolderId`. Adding a section means updating `FolderId` + `folders` in `content.ts`, the branch in `PortfolioContent.tsx`, and `DockIcon` / `navIcons` in `Desktop.tsx`.
 

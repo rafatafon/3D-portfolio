@@ -18,6 +18,8 @@ import {
   Sunset,
   MousePointer2,
   Monitor,
+  PanelLeftClose,
+  PanelLeftOpen,
   X,
 } from "lucide-react";
 import Desktop, { LocalTime } from "./Desktop";
@@ -46,8 +48,14 @@ export default function Workspace() {
   const [reducedMotion, setReducedMotion] = useState(false);
   const [initialFolder, setInitialFolder] = useState<FolderId>("about");
   const [musicNote, setMusicNote] = useState(false);
+  const [panelHidden, setPanelHidden] = useState(false);
+  const [compact, setCompact] = useState(false);
   const transitionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const entryButton = useRef<HTMLButtonElement>(null);
+  const panelToggle = useRef<HTMLButtonElement>(null);
+  const introduction = useRef<HTMLElement>(null);
+  const firstLine = useRef<HTMLSpanElement>(null);
+  const returnFocus = useRef(false);
   const started = useRef(0);
   const skipIntro = useRef(false);
   const theme = getAmbience(ambience);
@@ -67,6 +75,45 @@ export default function Workspace() {
       media.removeEventListener("change", sync);
       if (transitionTimer.current) clearTimeout(transitionTimer.current);
     };
+  }, []);
+
+  useEffect(() => {
+    // Phones stack the introduction above the desk and keep the Explore button
+    // in place when the panel collapses, so it must stay interactive there.
+    const media = window.matchMedia("(max-width: 720px)");
+    const sync = () => setCompact(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    // Seat the panel toggle just after the first line of the title. Layout
+    // offsets ignore transforms, so this stays correct while collapsed.
+    const toggle = panelToggle.current;
+    const section = introduction.current;
+    const line = firstLine.current;
+    if (!toggle || !section || !line) return;
+    const place = () => {
+      const x = section.offsetLeft + line.offsetLeft + line.offsetWidth + 14;
+      const y =
+        section.offsetTop +
+        line.offsetTop +
+        (line.offsetHeight - toggle.offsetHeight) / 2;
+      // Re-seat instantly: only a toggle should animate the button.
+      toggle.style.transition = "none";
+      toggle.style.setProperty("--toggle-x", `${Math.round(x)}px`);
+      toggle.style.setProperty("--toggle-y", `${Math.round(y)}px`);
+      toggle.style.setProperty("--dock-x", `${section.offsetLeft}px`);
+      void toggle.offsetWidth;
+      toggle.style.transition = "";
+    };
+    place();
+    const observer = new ResizeObserver(place);
+    observer.observe(section);
+    observer.observe(document.documentElement);
+    void document.fonts?.ready.then(place);
+    return () => observer.disconnect();
   }, []);
 
   const onReady = useCallback(() => setReady(true), []);
@@ -132,20 +179,54 @@ export default function Workspace() {
 
   const exit = useCallback(() => {
     if (transitionTimer.current) clearTimeout(transitionTimer.current);
+    returnFocus.current = true;
     setMode(reducedMotion || failed ? "room" : "leaving");
     transitionTimer.current = setTimeout(
-      () => {
-        setMode("room");
-        entryButton.current?.focus();
-      },
+      () => setMode("room"),
       reducedMotion || failed ? 0 : 800,
     );
   }, [reducedMotion, failed]);
 
+  useEffect(() => {
+    // Focus once the room is rendered: the overlay is inert until then. A
+    // collapsed desktop panel hides the Explore button, so use the toggle.
+    if (mode !== "room" || !returnFocus.current) return;
+    returnFocus.current = false;
+    (panelHidden && !compact ? panelToggle : entryButton).current?.focus();
+  }, [mode, panelHidden, compact]);
+
+  // The toolbar sits above the mood slider on desktop and in the footer on
+  // phones, where the slider is centred at the bottom.
+  const controls = (
+    <div className="scene-controls" aria-label="Workspace controls">
+      <button
+        onClick={() => setReset((value) => value + 1)}
+        aria-label="Reset camera view"
+        title="Reset view"
+      >
+        <RotateCcw size={15} />
+      </button>
+      <button
+        onClick={() => setStanding((value) => !value)}
+        aria-label={standing ? "Lower standing desk" : "Raise standing desk"}
+        aria-pressed={standing}
+        title={standing ? "Lower desk" : "Raise desk"}
+      >
+        <MoveUp size={16} />
+      </button>
+      <button
+        onClick={showMusic}
+        aria-label="About my listening corner"
+        title="My listening corner"
+      >
+        <span className="music-glyph">♫</span>
+      </button>
+    </div>
+  );
   const opening = mode === "loading" || mode === "intro";
   return (
     <main
-      className={`workspace mode-${mode}`}
+      className={`workspace mode-${mode}${panelHidden ? " panel-hidden" : ""}`}
       style={
         {
           "--room": theme.background,
@@ -171,48 +252,52 @@ export default function Workspace() {
         )}
       </div>
       <div className="room-interface" inert={mode !== "room"}>
-        <header className="room-header">
+        <header id="room-identity" className="room-header" inert={panelHidden}>
           <a className="identity" href="/" aria-label="Fredy Maldonado home">
             <span className="wordmark">fm.</span>
             <span>
               Fredy Maldonado<small>Software engineer</small>
             </span>
           </a>
-          <nav aria-label="Quick navigation">
-            <button onClick={() => enter("projects")}>
-              Selected work <ArrowUpRight size={13} />
-            </button>
-            <button onClick={() => enter("contact")}>
-              Say hello <ArrowUpRight size={13} />
-            </button>
-          </nav>
         </header>
-        <section className="room-introduction">
-          <div className="welcome-label">
-            <span /> Welcome to my workspace
+        <section ref={introduction} className="room-introduction">
+          <div id="room-title" className="intro-heading" inert={panelHidden}>
+            <h2>
+              <span ref={firstLine} className="intro-line">
+                Welcome to my
+              </span>
+              <br />
+              workspace.
+            </h2>
           </div>
-          <h2>
-            A space for
-            <br />
-            good work.
-          </h2>
-          <p>
-            Things I build.
-            <br /> The space I build them in.
-          </p>
           <button
             ref={entryButton}
             className="enter-desktop"
             onClick={() => enter()}
+            inert={panelHidden && !compact}
           >
             <Monitor size={17} />
             <span>Explore my desktop</span>
             <ArrowRight size={17} />
           </button>
-          <a className="simple-view" href="/portfolio">
-            Just here for the portfolio? <ArrowUpRight size={12} />
-          </a>
         </section>
+        <button
+          ref={panelToggle}
+          className="panel-toggle"
+          onClick={() => setPanelHidden((value) => !value)}
+          aria-expanded={!panelHidden}
+          aria-controls="room-identity room-title room-dock"
+          aria-label={
+            panelHidden ? "Show the side panel" : "Hide the side panel"
+          }
+          title={panelHidden ? "Show the side panel" : "Hide the side panel"}
+        >
+          {panelHidden ? (
+            <PanelLeftOpen size={16} strokeWidth={1.7} />
+          ) : (
+            <PanelLeftClose size={16} strokeWidth={1.7} />
+          )}
+        </button>
         {failed && (
           <div className="webgl-notice" role="status">
             The desktop is ready.
@@ -220,48 +305,47 @@ export default function Workspace() {
             This browser couldn't open the 3D workspace.
           </div>
         )}
-        <div className="scene-hint">
-          <MousePointer2 size={13} />
-          <span>Drag to look around. Click the screen to step inside.</span>
-        </div>
-        <div className="ambient-control">
-          <div className="ambient-heading">
-            <label htmlFor="ambience">Set the mood</label>
-            <span>{theme.label}</span>
-          </div>
-          <input
-            id="ambience"
-            aria-label="Ambient lighting"
-            aria-valuetext={`${theme.label}, ${ambience} percent`}
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            value={ambience}
-            onChange={(event) => setAmbience(Number(event.target.value))}
-          />
-          <div className="ambient-stops">
-            <button
-              aria-label="Set daylight ambience"
-              onClick={() => setAmbience(0)}
-            >
-              <Sun size={13} />
-              <span>Light</span>
-            </button>
-            <button
-              aria-label="Set warm ambience"
-              onClick={() => setAmbience(50)}
-            >
-              <Sunset size={13} />
-              <span>Warm</span>
-            </button>
-            <button
-              aria-label="Set dark ambience"
-              onClick={() => setAmbience(100)}
-            >
-              <Moon size={13} />
-              <span>Dark</span>
-            </button>
+        <div id="room-dock" className="room-dock" inert={panelHidden}>
+          {!compact && controls}
+          <div className="ambient-control">
+            <div className="ambient-heading">
+              <label htmlFor="ambience">Set the mood</label>
+              <span>{theme.label}</span>
+            </div>
+            <input
+              id="ambience"
+              aria-label="Ambient lighting"
+              aria-valuetext={`${theme.label}, ${ambience} percent`}
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={ambience}
+              onChange={(event) => setAmbience(Number(event.target.value))}
+            />
+            <div className="ambient-stops">
+              <button
+                aria-label="Set daylight ambience"
+                onClick={() => setAmbience(0)}
+              >
+                <Sun size={13} />
+                <span>Light</span>
+              </button>
+              <button
+                aria-label="Set warm ambience"
+                onClick={() => setAmbience(50)}
+              >
+                <Sunset size={13} />
+                <span>Warm</span>
+              </button>
+              <button
+                aria-label="Set dark ambience"
+                onClick={() => setAmbience(100)}
+              >
+                <Moon size={13} />
+                <span>Dark</span>
+              </button>
+            </div>
           </div>
         </div>
         <footer className="room-footer">
@@ -270,32 +354,14 @@ export default function Workspace() {
             Honduras<span className="footer-separator">/</span>
             <LocalTime />
           </div>
-          <div className="scene-controls" aria-label="Workspace controls">
-            <button
-              onClick={() => setReset((value) => value + 1)}
-              aria-label="Reset camera view"
-              title="Reset view"
-            >
-              <RotateCcw size={15} />
-            </button>
-            <button
-              onClick={() => setStanding((value) => !value)}
-              aria-label={
-                standing ? "Lower standing desk" : "Raise standing desk"
-              }
-              aria-pressed={standing}
-              title={standing ? "Lower desk" : "Raise desk"}
-            >
-              <MoveUp size={16} />
-            </button>
-            <button
-              onClick={showMusic}
-              aria-label="About my listening corner"
-              title="My listening corner"
-            >
-              <span className="music-glyph">♫</span>
-            </button>
-          </div>
+          {compact ? (
+            controls
+          ) : (
+            <div className="scene-hint">
+              <MousePointer2 size={13} />
+              <span>Drag to look around. Click the screen to step inside.</span>
+            </div>
+          )}
           <span className="made-with-care">Make yourself at home.</span>
         </footer>
         {musicNote && (

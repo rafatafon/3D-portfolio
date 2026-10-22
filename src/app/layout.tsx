@@ -3,11 +3,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://fredymaldonado.com"),
-  title: "Fredy Maldonado — A space for good work",
+  title: "Fredy Maldonado — Welcome to my workspace",
   description:
     "Step inside my workspace. I'm Fredy Maldonado, a software engineer based in Honduras, building thoughtful web applications, AI systems, and automation.",
   openGraph: {
-    title: "Fredy Maldonado — A space for good work",
+    title: "Fredy Maldonado — Welcome to my workspace",
     description:
       "Software, ideas, and a space for good work. Explore my interactive workspace.",
     type: "website",
