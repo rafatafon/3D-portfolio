@@ -1601,7 +1601,18 @@ a svg {
     left: 7%;
     font-size: 27px;
   }
-  .finder-window,
+  /* Phone windows cascade from the top-left like on desktop: about 91% of the
+     width and 64% of the windows layer, offset by --window-x/y (Desktop.tsx
+     steps 5px across and 18px down, so the whole stack stays on screen). */
+  .finder-window {
+    left: 8px;
+    top: 12px;
+    width: calc(100% - 32px);
+    height: 64%;
+    min-width: 0;
+    min-height: 0;
+    border-radius: 10px;
+  }
   .finder-window.window-maximized {
     left: 8px;
     right: 8px;
@@ -1609,9 +1620,7 @@ a svg {
     bottom: 99px;
     height: auto;
     width: auto;
-    min-width: 0;
-    transform: none !important;
-    border-radius: 10px;
+    transform: none;
   }
   .window-toolbar {
     padding: 0 12px;
@@ -2632,10 +2641,10 @@ a svg {
   .menu-left button:nth-child(3) {
     display: none;
   }
-  .finder-window,
-  .finder-window.window-maximized {
+  .finder-window {
     border-radius: 14px;
-    top: 12px;
+  }
+  .finder-window.window-maximized {
     bottom: 106px;
   }
   .window-toolbar {
