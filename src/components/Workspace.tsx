@@ -107,6 +107,15 @@ export default function Workspace() {
   const deskButton = useRef<HTMLButtonElement>(null);
   const hold = useRef<{ at: number; from: number } | null>(null);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const offset = useRef({ x: 0, y: 0 });
+  const drag = useRef<{
+    id: number;
+    x: number;
+    y: number;
+    fromX: number;
+    fromY: number;
+  } | null>(null);
+  const [dragging, setDragging] = useState(false);
   const started = useRef(0);
   const skipIntro = useRef(false);
   const theme = getAmbience(ambience);
@@ -230,6 +239,10 @@ export default function Workspace() {
   );
   const enterMonitor = useCallback(() => enter(), [enter]);
   const showMusic = useCallback(() => setMusicNote(true), []);
+  // Clicking the controller on the 3D desk opens the keypad too.
+  const openRemote = useCallback(() => {
+    if (mode === "room") setRemoteOpen(true);
+  }, [mode]);
 
   const exit = useCallback(() => {
     if (transitionTimer.current) clearTimeout(transitionTimer.current);
@@ -285,15 +298,35 @@ export default function Workspace() {
     }
     setDeskHeight(presets[slot]);
   };
+  // The keypad drags by its body (keys excluded) and stays inside the
+  // workspace. The offset sits on top of the centred base position and is
+  // kept for the rest of the visit, so it reopens where it was left.
+  const placeRemote = useCallback((x: number, y: number) => {
+    const el = remote.current;
+    const bounds = el?.parentElement?.getBoundingClientRect();
+    if (!el || !bounds) return;
+    const rect = el.getBoundingClientRect();
+    const shiftX = x - offset.current.x;
+    const shiftY = y - offset.current.y;
+    const margin = 8;
+    if (rect.left + shiftX < bounds.left + margin)
+      x += bounds.left + margin - (rect.left + shiftX);
+    else if (rect.right + shiftX > bounds.right - margin)
+      x -= rect.right + shiftX - (bounds.right - margin);
+    if (rect.top + shiftY < bounds.top + margin)
+      y += bounds.top + margin - (rect.top + shiftY);
+    else if (rect.bottom + shiftY > bounds.bottom - margin)
+      y -= rect.bottom + shiftY - (bounds.bottom - margin);
+    offset.current = { x, y };
+    el.style.setProperty("--remote-dx", `${Math.round(x)}px`);
+    el.style.setProperty("--remote-dy", `${Math.round(y)}px`);
+  }, []);
   const closeRemote = useCallback(() => {
     setRemoteOpen(false);
     deskButton.current?.focus();
   }, []);
   const remoteKeys = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      closeRemote();
-    } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+    if (event.key === "ArrowUp" || event.key === "ArrowDown") {
       event.preventDefault();
       if (event.repeat) return;
       setDeskHeight(
@@ -320,15 +353,21 @@ export default function Workspace() {
       return;
     }
     remote.current?.focus();
-    const outside = (event: PointerEvent) => {
-      const node = event.target as Node;
-      if (remote.current?.contains(node) || deskButton.current?.contains(node))
-        return;
-      setRemoteOpen(false);
+    // Clicks on the scene leave it open (orbiting must not dismiss it); only
+    // the X, Escape, or the toolbar button close it. Escape is listened for
+    // on the document so it works after focus has moved to the scene. Keep
+    // the keypad on screen when the window changes size.
+    const key = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") closeRemote();
     };
-    document.addEventListener("pointerdown", outside);
-    return () => document.removeEventListener("pointerdown", outside);
-  }, [remoteOpen]);
+    const keep = () => placeRemote(offset.current.x, offset.current.y);
+    document.addEventListener("keydown", key);
+    window.addEventListener("resize", keep);
+    return () => {
+      document.removeEventListener("keydown", key);
+      window.removeEventListener("resize", keep);
+    };
+  }, [remoteOpen, placeRemote, closeRemote]);
   const readout =
     savedSlot === null
       ? liveHeight.toFixed(1).padStart(5, " ")
@@ -389,6 +428,7 @@ export default function Workspace() {
             reducedMotion={reducedMotion}
             onEnter={enterMonitor}
             onMusic={showMusic}
+            onDeskControl={openRemote}
             onReady={onReady}
             onError={onError}
             onIntroComplete={finishIntro}
@@ -445,13 +485,45 @@ export default function Workspace() {
         <div
           id="desk-remote"
           ref={remote}
-          className={`desk-remote${remoteOpen ? " open" : ""}`}
+          className={`desk-remote${remoteOpen ? " open" : ""}${dragging ? " dragging" : ""}`}
           role="dialog"
           aria-label="Desk height controller"
           tabIndex={-1}
           inert={!remoteOpen}
           onKeyDown={remoteKeys}
+          onPointerDown={(event) => {
+            if ((event.target as HTMLElement).closest("button")) return;
+            if (event.pointerType === "mouse" && event.button !== 0) return;
+            event.currentTarget.setPointerCapture(event.pointerId);
+            drag.current = {
+              id: event.pointerId,
+              x: event.clientX,
+              y: event.clientY,
+              fromX: offset.current.x,
+              fromY: offset.current.y,
+            };
+            setDragging(true);
+          }}
+          onPointerMove={(event) => {
+            const start = drag.current;
+            if (!start || event.pointerId !== start.id) return;
+            placeRemote(
+              start.fromX + event.clientX - start.x,
+              start.fromY + event.clientY - start.y,
+            );
+          }}
+          onPointerUp={(event) => {
+            if (drag.current?.id !== event.pointerId) return;
+            drag.current = null;
+            setDragging(false);
+          }}
+          onPointerCancel={(event) => {
+            if (drag.current?.id !== event.pointerId) return;
+            drag.current = null;
+            setDragging(false);
+          }}
         >
+          <span className="remote-grip" aria-hidden="true" />
           <div
             className="remote-screen"
             role="status"

@@ -973,6 +973,7 @@ function DeskReadout({
 export const Desk = memo(function Desk({
   height,
   onHeight,
+  onDeskControl,
   reducedMotion,
   onEnter,
   onMusic,
@@ -981,6 +982,7 @@ export const Desk = memo(function Desk({
 }: {
   height: number;
   onHeight: (cm: number, moving: boolean) => void;
+  onDeskControl: () => void;
   reducedMotion: boolean;
   onEnter: () => void;
   onMusic: () => void;
@@ -1176,13 +1178,37 @@ export const Desk = memo(function Desk({
           color="#d5d8d9"
           metalness={0.4}
         />
-        <Box
-          size={[0.26, 0.045, 0.12]}
-          position={[1.45, 1.54, 0.52]}
-          color="#25292b"
-          radius={0.012}
-        />
-        <DeskReadout initial={Math.round(height)} register={registerReadout} />
+        {/* The height controller under the front-right edge opens the keypad. */}
+        <group
+          name="Desk height controller"
+          onClick={(event) => {
+            event.stopPropagation();
+            onDeskControl();
+          }}
+          onPointerOver={(event) => {
+            event.stopPropagation();
+            document.body.style.cursor = "pointer";
+          }}
+          onPointerOut={() => {
+            document.body.style.cursor = "auto";
+          }}
+        >
+          {/* A larger, invisible hit target: the box itself is only 4.5 cm tall. */}
+          <mesh position={[1.45, 1.535, 0.5]}>
+            <boxGeometry args={[0.36, 0.13, 0.2]} />
+            <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+          </mesh>
+          <Box
+            size={[0.26, 0.045, 0.12]}
+            position={[1.45, 1.54, 0.52]}
+            color="#25292b"
+            radius={0.012}
+          />
+          <DeskReadout
+            initial={Math.round(height)}
+            register={registerReadout}
+          />
+        </group>
         <Box
           size={[1.7, 0.012, 0.65]}
           position={[0.15, 1.688, 0.13]}
