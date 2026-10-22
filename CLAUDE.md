@@ -14,7 +14,7 @@ Next.js 16 differs from older versions (see `AGENTS.md`). Read the relevant guid
 pnpm install
 pnpm dev          # http://127.0.0.1:3000 (binds 127.0.0.1, not localhost)
 pnpm typecheck    # tsc --noEmit
-pnpm build        # must pass; prerenders /, /portfolio, /writing/[slug]
+pnpm build        # must pass; prerenders / and /writing/[slug]
 pnpm dlx prettier@3.6.2 --write src   # source follows Prettier 3.6.2 defaults; not a dependency, no config
 ```
 
@@ -23,10 +23,9 @@ CI (`.github/workflows/ci.yml`) runs typecheck, the Prettier check, and the buil
 
 ## Architecture
 
-**Three routes, one content source.**
-- `/` → `src/components/Workspace.tsx` (client): 3D scene + HTML desktop.
-- `/portfolio` → server-rendered, works without JS or WebGL. Linked from the `noscript` fallback and the preloader.
-- `/writing/[slug]` → static article pages (`dynamicParams = false`).
+**Two routes, one content source.**
+- `/` → `src/components/Workspace.tsx` (client): 3D scene + HTML desktop. The `noscript` fallback is plain text; there is no readable fallback route (the former `/portfolio` page was removed deliberately and must not come back).
+- `/writing/[slug]` → static article pages (`dynamicParams = false`), opened from the desktop's Notes and linking back to `/`.
 
 All copy lives in `src/lib/content.ts` (profile, projects, experience, skills, `folders`) and `src/lib/writing.json` (articles as a `{tag, children}` node tree rendered by `ArticleBody.tsx` through a tag allowlist). Every surface reads from these two files; edit content there, not in components.
 

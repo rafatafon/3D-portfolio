@@ -11,7 +11,6 @@ import {
 } from "react";
 import {
   ArrowRight,
-  ArrowUpRight,
   ArrowUpDown,
   ChevronDown,
   ChevronUp,
@@ -703,9 +702,6 @@ export default function Workspace() {
         <p role="status">
           Getting the desk ready<span className="loading-dots">…</span>
         </p>
-        <a href="/portfolio" tabIndex={mode === "loading" ? 0 : -1}>
-          Open simple portfolio <ArrowUpRight size={12} />
-        </a>
       </div>
       {opening && (
         <button className="skip-intro" onClick={finishIntro}>

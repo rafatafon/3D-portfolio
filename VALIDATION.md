@@ -42,7 +42,7 @@ Checked in Chromium through Playwright, using isolated browser contexts so sessi
 - Empty search feedback and Escape dismissal work.
 - Standard mobile checks produced no page runtime errors.
 - With WebGL context creation disabled, the scene failure notice appears and the HTML desktop is usable.
-- With JavaScript disabled, the noscript link opens `/portfolio`, where all five projects are server rendered.
+- With JavaScript disabled, the home page shows a short notice that the workspace needs JavaScript; there is no readable fallback page.
 
 Screenshots from the checks are in `.playwright-mcp/` (ignored local artifacts). This is browser emulation, not verification on a physical phone or Safari.
 
@@ -141,3 +141,9 @@ Screenshots from the checks are in `.playwright-mcp/` (ignored local artifacts).
 - The keypad now opens bottom-centre on desktop and tablet, 44px above the footer line that holds the drag hint (`bottom: calc(var(--edge-y) + 44px)`), horizontally centered on the viewport so it no longer shifts when the side panel collapses. Phones keep the previous spot over the desk area. Dragging still works from there and the position is kept for the visit.
 - The small controller under the desk's front-right edge (the dark box with the light-blue readout) is clickable in the 3D scene: it shows a pointer cursor and opens the keypad, through an invisible hit box slightly larger than the part. Only the room mode reacts; clicks during the intro or inside the desktop do nothing.
 - Checked headless in Chrome at 1440 × 900: hovering the controller turns the cursor into a pointer, clicking it opens the keypad bottom-centre (centered on x = 720, 80px above the bottom edge), the toolbar button still opens it, and at 390 × 844 it still opens centered over the desk. No page or console errors.
+
+## Readable portfolio page removed — 2026-10-22
+
+- `src/app/portfolio/` is deleted, so `/portfolio` returns the 404 page. Every link to it is gone: the desktop's bottom-right "Simple view", the preloader's "Open simple portfolio", and the no-JavaScript fallback (now a plain notice). The article pages' "All notes" links point back to `/` as "Back to the workspace".
+- CSS only the page used was removed (`.desktop-readable`, `.preloader > a`, the readable intro/project/job/article rules); the `.readable-portfolio` nav, header, h1, h2, and footer rules stay because the article pages share them.
+- `pnpm typecheck`, the Prettier check, and `pnpm build` pass; the build prerenders `/`, `/_not-found`, `/icon.svg`, and the four `/writing/[slug]` pages. On the dev server `/portfolio` answers 404, `/` and an article page answer 200, and no source file references `/portfolio`.

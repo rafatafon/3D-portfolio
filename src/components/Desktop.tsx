@@ -633,9 +633,6 @@ export default function Desktop({
             <span className="dock-tooltip">Résumé</span>
           </a>
         </nav>
-        <a className="desktop-readable" href="/portfolio">
-          Simple view <ArrowUpRight size={13} />
-        </a>
       </div>
     </section>
   );
