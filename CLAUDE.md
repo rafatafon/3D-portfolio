@@ -11,22 +11,21 @@ Next.js 16 differs from older versions (see `AGENTS.md`). Read the relevant guid
 ## Commands
 
 ```sh
-npm install
-npm run dev          # http://127.0.0.1:3000 (binds 127.0.0.1, not localhost)
-npm run typecheck    # tsc --noEmit
-npm run build        # must pass; prerenders /, /portfolio, /writing/[slug]
-npx prettier@3.6.2 --write src   # source follows Prettier 3.6.2 defaults; not a dependency, no config
+pnpm install
+pnpm dev          # http://127.0.0.1:3000 (binds 127.0.0.1, not localhost)
+pnpm typecheck    # tsc --noEmit
+pnpm build        # must pass; prerenders / and /writing/[slug]
+pnpm dlx prettier@3.6.2 --write src   # source follows Prettier 3.6.2 defaults; not a dependency, no config
 ```
 
-There is no test runner or lint script. Verification is `typecheck` + `build`, then a browser pass over the flows in `VALIDATION.md`.
+The package manager is pnpm, pinned under `packageManager` in `package.json`; `pnpm-lock.yaml` is the only lockfile, so do not add a `package-lock.json`. There is no test runner or lint script. Verification is `typecheck` + `build`, then a browser pass over the flows in `VALIDATION.md`.
 CI (`.github/workflows/ci.yml`) runs typecheck, the Prettier check, and the build on pull requests and pushes to `main`.
 
 ## Architecture
 
-**Three routes, one content source.**
-- `/` → `src/components/Workspace.tsx` (client): 3D scene + HTML desktop.
-- `/portfolio` → server-rendered, works without JS or WebGL. Linked from the `noscript` fallback and the workspace UI.
-- `/writing/[slug]` → static article pages (`dynamicParams = false`).
+**Two routes, one content source.**
+- `/` → `src/components/Workspace.tsx` (client): 3D scene + HTML desktop. The `noscript` fallback is plain text; there is no readable fallback route (the former `/portfolio` page was removed deliberately and must not come back).
+- `/writing/[slug]` → static article pages (`dynamicParams = false`), opened from the desktop's Notes and linking back to `/`.
 
 All copy lives in `src/lib/content.ts` (profile, projects, experience, skills, `folders`) and `src/lib/writing.json` (articles as a `{tag, children}` node tree rendered by `ArticleBody.tsx` through a tag allowlist). Every surface reads from these two files; edit content there, not in components.
 
@@ -38,7 +37,8 @@ All copy lives in `src/lib/content.ts` (profile, projects, experience, skills, `
 - `Canvas` runs `frameloop="demand"`. After any imperative camera or scene change outside `useFrame`, call `invalidate()` or nothing redraws.
 - `StudioScene` is loaded with `dynamic(..., { ssr: false })`. Shader compile → `onReady`; a thrown error, WebGL context loss, or a 12 s stall → `failed`, after which the HTML desktop still works with no scene. Preserve this fallback path.
 - `DeskObjects.tsx` is original procedural geometry with canvas-painted textures (`textureFromCanvas`). No GLB, HDRI, or external 3D assets: this is a deliberate design and licensing constraint (`DESIGN.md`).
-- The canvas fills the viewport so orbiting and zooming never crop the model. An invisible `.scene-frame` box (positioned per breakpoint in `globals.css`) marks where the desk is framed; `CameraRig` measures it and offsets the projection with `setViewOffset`. To reframe the desk, move `.scene-frame` in CSS, not the camera.
+- The standing desk's height is a number in cm (`src/lib/desk.ts`). `Desk` tweens toward it inside `useFrame`, moving the top group and scaling the upper legs imperatively, and calls `invalidate()` on every moving frame; it reports the live height through `onHeight`, which drives the keypad readout in `Workspace`, the desktop camera eye, and the contact-shadow re-bake (`settledHeight` key). `CameraRig` reads the height through a ref: it must never be an effect dependency there, or every height change would snap the camera to the home view.
+- The canvas fills the viewport so orbiting and zooming never crop the model. An invisible `.scene-frame` box (positioned per breakpoint in `globals.css`) marks where the desk is framed; `CameraRig` measures it and offsets the projection with `setViewOffset`. To reframe the desk, move `.scene-frame` in CSS, not the camera. The `panel-hidden` class on `.workspace` (the side-panel toggle) transitions `.scene-frame` to full width, and `CameraRig` re-applies the offset every frame from `transitionrun` until `transitionend` (1.5 s safety stop).
 
 **Desktop** (`Desktop.tsx`): windows, Dock, sidebar, and search are all keyed by `FolderId`. Adding a section means updating `FolderId` + `folders` in `content.ts`, the branch in `PortfolioContent.tsx`, and `DockIcon` / `navIcons` in `Desktop.tsx`.
 

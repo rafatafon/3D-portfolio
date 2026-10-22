@@ -18,6 +18,7 @@ import {
 import * as THREE from "three";
 import { Desk, SaylChair } from "./DeskObjects";
 import { getAmbience } from "@/lib/ambience";
+import { deskOffset } from "@/lib/desk";
 
 // React Three Fiber 9 still constructs a THREE.Clock, which three r183+ reports
 // as deprecated on every load. Nothing here reads that clock, so route three's
@@ -41,7 +42,10 @@ export type SceneMode =
   | "leaving";
 type SceneProps = {
   mode: SceneMode;
-  standing: boolean;
+  height: number;
+  settledHeight: number;
+  onHeight: (cm: number, moving: boolean) => void;
+  onDeskControl: () => void;
   ambience: number;
   reset: number;
   reducedMotion: boolean;
@@ -55,17 +59,24 @@ type SceneProps = {
 function CameraRig({
   mode,
   reset,
-  standing,
+  height,
   reducedMotion,
   onIntroComplete,
   frame,
 }: Pick<
   SceneProps,
-  "mode" | "reset" | "standing" | "reducedMotion" | "onIntroComplete"
+  "mode" | "reset" | "height" | "reducedMotion" | "onIntroComplete"
 > & { frame: RefObject<HTMLDivElement | null> }) {
   const controls = useRef<CameraControls>(null);
   const started = useRef<number | null>(null);
   const completed = useRef(false);
+  // The desk height only matters for the eye level when entering the desktop.
+  // Read it through a ref so changing the height in the room never re-runs
+  // the preset below and snaps the camera back to the home view.
+  const heightRef = useRef(height);
+  heightRef.current = height;
+  const reframe = useRef<(() => void) | null>(null);
+  const tracking = useRef(false);
   const { size, invalidate, camera, gl } = useThree();
   const narrow = size.width < 650;
   const home: [number, number, number] = narrow
@@ -97,14 +108,55 @@ function CameraRig({
       invalidate();
     };
     apply();
+    reframe.current = apply;
     const observer = new ResizeObserver(apply);
     observer.observe(target);
     observer.observe(canvas);
+    // When `.scene-frame` transitions (the collapsible side panel), follow it
+    // every rendered frame: a ResizeObserver misses pure moves and does not
+    // tick in step with the transition. The useFrame below re-applies the
+    // offset and keeps the demand loop alive only while properties are running.
+    const running = new Set<string>();
+    let safety: ReturnType<typeof setTimeout> | undefined;
+    const stop = () => {
+      running.clear();
+      clearTimeout(safety);
+      tracking.current = false;
+      apply();
+    };
+    const begin = (event: TransitionEvent) => {
+      if (event.target !== target) return;
+      running.add(event.propertyName);
+      tracking.current = true;
+      clearTimeout(safety);
+      safety = setTimeout(stop, 1500);
+      invalidate();
+    };
+    const end = (event: TransitionEvent) => {
+      if (event.target !== target) return;
+      running.delete(event.propertyName);
+      if (running.size === 0) stop();
+    };
+    target.addEventListener("transitionrun", begin);
+    target.addEventListener("transitionend", end);
+    target.addEventListener("transitioncancel", end);
     return () => {
       observer.disconnect();
+      target.removeEventListener("transitionrun", begin);
+      target.removeEventListener("transitionend", end);
+      target.removeEventListener("transitioncancel", end);
+      clearTimeout(safety);
+      tracking.current = false;
+      reframe.current = null;
       camera.clearViewOffset();
     };
   }, [camera, gl, invalidate, size, frame]);
+
+  useFrame(() => {
+    // Runs inside R3F's frame, right before rendering, so the desk moves in the
+    // same frame as the CSS transition; apply() invalidates the next frame.
+    if (tracking.current) reframe.current?.();
+  });
 
   useEffect(() => {
     const current = controls.current;
@@ -139,7 +191,7 @@ function CameraRig({
         : [5.3, 2.8, 4.2];
       glideTo(start, [0, 1.25, 0.1], false);
     } else if (mode === "entering" || mode === "desktop") {
-      const eye = 2.34 + (standing ? 0.48 : 0);
+      const eye = 2.34 + deskOffset(heightRef.current);
       glideTo([0.08, eye, 1.45], [0.08, eye, -0.78], !reducedMotion);
     } else {
       glideTo(
@@ -151,7 +203,7 @@ function CameraRig({
     // Immediate camera moves do not emit a transition-start event. Render them
     // explicitly when reduced motion or a skipped intro uses demand rendering.
     invalidate();
-  }, [mode, reset, standing, reducedMotion, narrow, invalidate]);
+  }, [mode, reset, reducedMotion, narrow, invalidate]);
 
   useFrame(() => {
     if (mode !== "intro" || !controls.current || completed.current) return;
@@ -312,7 +364,10 @@ export default function StudioScene(props: SceneProps) {
           <Desk
             waking={props.mode === "intro"}
             sleeping={props.mode === "loading"}
-            standing={props.standing}
+            height={props.height}
+            onHeight={props.onHeight}
+            onDeskControl={props.onDeskControl}
+            reducedMotion={props.reducedMotion}
             onEnter={props.onEnter}
             onMusic={props.onMusic}
           />
@@ -325,7 +380,7 @@ export default function StudioScene(props: SceneProps) {
             far={4}
             resolution={512}
             frames={1}
-            key={String(props.standing)}
+            key={String(props.settledHeight)}
           />
           <CameraRig {...props} frame={frame} />
           <Ready onReady={props.onReady} onError={props.onError} />

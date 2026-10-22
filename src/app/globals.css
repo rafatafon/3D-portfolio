@@ -74,6 +74,8 @@ a svg {
   border: 0;
 }
 .workspace {
+  --edge: 4.4%;
+  --edge-y: 36px;
   height: 100svh;
   min-height: 640px;
   position: relative;
@@ -110,9 +112,9 @@ a svg {
 }
 .room-header {
   position: absolute;
-  top: 36px;
-  left: 4.4%;
-  right: 4.4%;
+  top: var(--edge-y);
+  left: var(--edge);
+  right: var(--edge);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -135,37 +137,18 @@ a svg {
   font-size: 37px;
   line-height: 1;
 }
-.room-header nav {
-  display: flex;
-  gap: 32px;
-}
-.room-header nav button {
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 0;
-  border-bottom: 1px solid transparent;
-}
-.room-header nav button:hover {
-  border-color: #82877a;
-}
 .room-introduction {
   position: absolute;
-  left: 6.3%;
-  top: 27%;
+  left: var(--edge);
+  top: 0;
+  bottom: 0;
   width: 350px;
   z-index: 2;
-}
-.welcome-label {
   display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 10px;
-  letter-spacing: 0.1px;
-  color: #6c7468;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
 }
-.welcome-label > span,
 .location-dot {
   height: 5px;
   width: 5px;
@@ -178,16 +161,10 @@ a svg {
   font-weight: 500;
   letter-spacing: -3.6px;
   line-height: 1.04;
-  margin: 26px 0 22px;
+  margin: 0 0 30px;
 }
 .room-introduction h2 > span {
   color: #83917a;
-}
-.room-introduction p {
-  font-size: 15px;
-  line-height: 1.65;
-  color: #737a6f;
-  margin: 0 0 32px;
 }
 .enter-desktop {
   background: #303d35;
@@ -210,38 +187,23 @@ a svg {
   background: #4a5c4b;
   transform: translateY(-2px);
 }
-.simple-view {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 10px;
-  margin-top: 18px;
-  color: #7b8175;
-  width: fit-content;
-}
-.simple-view:hover {
-  color: var(--ink);
-}
 .scene-hint {
-  position: absolute;
-  bottom: 106px;
-  left: 40%;
-  width: 45%;
   display: flex;
   gap: 9px;
   justify-content: center;
   align-items: center;
   color: #72786d;
   font-size: 10px;
+  white-space: nowrap;
 }
 .room-footer {
   position: absolute;
-  bottom: 31px;
-  left: 4.4%;
-  right: 4.4%;
-  display: flex;
+  bottom: var(--edge-y);
+  left: var(--edge);
+  right: var(--edge);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 20px;
 }
 .place-and-time {
@@ -295,6 +257,7 @@ a svg {
   font-size: 10px;
   min-width: 220px;
   text-align: right;
+  justify-self: end;
   color: #818779;
 }
 .scene-loading {
@@ -1283,15 +1246,6 @@ a svg {
 .return-studio:hover {
   background: #202e2e55;
 }
-.desktop-readable {
-  position: absolute;
-  right: 25px;
-  font-size: 10px;
-  display: flex;
-  gap: 7px;
-  align-items: center;
-  color: #efe6ce;
-}
 .spotlight-backdrop {
   position: absolute;
   inset: 34px 0 0;
@@ -1405,87 +1359,11 @@ a svg {
   line-height: 0.95;
   margin: 30px 0;
 }
-.readable-portfolio h1 span {
-  color: #95a784;
-}
-.readable-intro {
-  max-width: 550px;
-  font-size: 19px;
-  line-height: 1.7;
-  color: #7f8b72;
-  margin: 35px 0;
-}
-.readable-portfolio header > a {
-  display: inline-block;
-  border-bottom: 1px solid #9caa8d;
-  padding-bottom: 8px;
-  font-size: 14px;
-}
-.readable-portfolio section {
-  max-width: 850px;
-  margin: 0 auto 90px;
-}
 .readable-portfolio h2 {
   font-size: 35px;
   font-weight: 500;
   letter-spacing: -1.5px;
   margin: 0 0 35px;
-}
-.readable-project {
-  padding: 26px 0;
-  border-top: 1px solid #d7dfcb;
-}
-.readable-project small,
-.readable-project div > span {
-  font-size: 11px;
-  color: #96a38a;
-}
-.readable-project h3 {
-  font-weight: 500;
-  font-size: 25px;
-  letter-spacing: -0.7px;
-  margin: 12px 0;
-}
-.readable-project p {
-  max-width: 650px;
-  color: #859278;
-  font-size: 14px;
-  line-height: 1.8;
-}
-.readable-job {
-  display: flex;
-  gap: 35px;
-  border-top: 1px solid #d7dfcb;
-  padding: 25px 0;
-}
-.readable-job > span {
-  min-width: 130px;
-  font-size: 12px;
-  color: #95a38a;
-  padding-top: 4px;
-}
-.readable-job h3 {
-  margin: 0 0 8px;
-  font-size: 20px;
-  font-weight: 500;
-}
-.readable-job strong {
-  font-weight: 500;
-  font-size: 12px;
-  color: #7d8d6e;
-}
-.readable-job p {
-  font-size: 14px;
-  line-height: 1.8;
-  color: #859278;
-}
-.readable-article {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 23px 0;
-  border-top: 1px solid #d7dfcb;
-  font-size: 15px;
 }
 .readable-portfolio footer {
   border-top: 1px solid #d7dfcb;
@@ -1497,60 +1375,34 @@ a svg {
   font-size: clamp(15px, 3vw, 25px);
   letter-spacing: -0.5px;
 }
-.readable-portfolio footer > div {
-  display: flex;
-  gap: 30px;
-  font-size: 12px;
-  margin-top: 30px;
-  color: #8b9b7d;
-}
 
 .windows-layer {
   z-index: 10;
 }
 @media (min-width: 1600px) {
-  .room-introduction {
-    top: 30%;
-  }
   .finder-window {
     left: 22%;
     top: 11%;
     width: 860px;
     height: 640px;
   }
-  .scene-hint {
-    bottom: 130px;
-  }
 }
 @media (max-width: 1100px) {
   .room-introduction {
-    left: 5%;
     width: 280px;
-    top: 29%;
   }
   .room-introduction h2 {
-    font-size: 54px;
-    letter-spacing: -3px;
-  }
-  .welcome-label {
-    font-size: 9px;
-  }
-  .room-introduction p {
-    font-size: 13px;
+    font-size: 43px;
+    letter-spacing: -2.4px;
   }
   .made-with-care {
     display: none;
-  }
-  .room-footer {
-    justify-content: space-between;
   }
   .place-and-time {
     min-width: 0;
   }
   .scene-hint {
-    left: 44%;
     font-size: 9px;
-    width: 49%;
   }
   .finder-window {
     left: 7%;
@@ -1581,17 +1433,9 @@ a svg {
   .workspace {
     min-height: 580px;
   }
-  .room-introduction {
-    top: 25%;
-  }
   .room-introduction h2 {
-    font-size: 54px;
-  }
-  .room-introduction p {
-    margin-bottom: 23px;
-  }
-  .room-introduction h2 {
-    margin: 20px 0;
+    font-size: 43px;
+    margin: 0 0 24px;
   }
   .desktop-files {
     gap: 10px;
@@ -1608,21 +1452,15 @@ a svg {
     height: 75vh;
     top: 5%;
   }
-  .scene-hint {
-    bottom: 90px;
-  }
-  .room-footer {
-    bottom: 22px;
+  .workspace {
+    --edge-y: 24px;
   }
 }
 @media (max-width: 720px) {
   .workspace {
+    --edge: 24px;
+    --edge-y: 24px;
     min-height: 650px;
-  }
-  .room-header {
-    top: 25px;
-    left: 25px;
-    right: 25px;
   }
   .identity {
     gap: 11px;
@@ -1634,42 +1472,21 @@ a svg {
   .wordmark {
     font-size: 32px;
   }
-  .room-header nav {
-    gap: 15px;
-  }
-  .room-header nav button {
-    font-size: 10px;
-    gap: 5px;
-  }
-  .room-header nav button:first-child {
-    display: none;
-  }
   .room-introduction {
     top: 119px;
-    left: 27px;
-    right: 27px;
+    bottom: auto;
+    right: var(--edge);
     width: auto;
-  }
-  .welcome-label {
-    font-size: 8px;
-    gap: 6px;
+    display: block;
   }
   .room-introduction h2 {
-    font-size: 39px;
-    letter-spacing: -2.5px;
-    margin: 20px 0 10px;
+    font-size: 31px;
+    letter-spacing: -2px;
+    margin: 0;
     line-height: 1.02;
   }
   .room-introduction h2 br {
     display: block;
-  }
-  .room-introduction p {
-    font-size: 11px;
-    line-height: 1.6;
-    margin: 0;
-  }
-  .room-introduction p br {
-    display: none;
   }
   .enter-desktop {
     position: fixed;
@@ -1684,28 +1501,9 @@ a svg {
   .enter-desktop:hover {
     transform: translateX(-50%);
   }
-  .simple-view {
-    position: fixed;
-    bottom: 82px;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
-    font-size: 9px;
-  }
-  .scene-hint {
-    bottom: 192px;
-    left: 0;
-    width: 100%;
-    font-size: 8px;
-    gap: 6px;
-  }
-  .scene-hint span {
-    max-width: 220px;
-  }
   .room-footer {
-    bottom: 22px;
-    left: 25px;
-    right: 25px;
+    display: flex;
+    justify-content: space-between;
     gap: 10px;
   }
   .place-and-time {
@@ -1918,11 +1716,6 @@ a svg {
     font-size: 8px;
     background: #23352f80;
   }
-  .desktop-readable {
-    right: 14px;
-    bottom: 72px;
-    font-size: 9px;
-  }
   .dock-divider {
     margin: 0 4px;
     height: 33px;
@@ -1939,37 +1732,16 @@ a svg {
   .readable-portfolio h1 {
     letter-spacing: -4px;
   }
-  .readable-intro {
-    font-size: 16px;
-  }
-  .readable-job {
-    flex-direction: column;
-    gap: 12px;
-  }
   .readable-portfolio h2 {
     font-size: 30px;
-  }
-  .readable-project h3 {
-    font-size: 22px;
-  }
-  .readable-article {
-    font-size: 13px;
   }
 }
 @media (max-width: 390px) {
   .room-introduction h2 {
-    font-size: 39px;
+    font-size: 31px;
   }
-  .room-header {
-    left: 20px;
-    right: 20px;
-  }
-  .room-introduction {
-    left: 22px;
-  }
-  .room-footer {
-    left: 20px;
-    right: 20px;
+  .workspace {
+    --edge: 20px;
   }
   .project-art {
     display: none;
@@ -2029,9 +1801,6 @@ a svg {
   color: var(--scene-ink);
 }
 .identity small,
-.welcome-label,
-.room-introduction p,
-.simple-view,
 .scene-hint,
 .place-and-time,
 .made-with-care,
@@ -2039,12 +1808,11 @@ a svg {
   color: var(--scene-muted);
 }
 .room-introduction {
-  top: 26%;
   width: 330px;
 }
 .room-introduction h2 {
-  font-size: clamp(48px, 4.5vw, 70px);
-  letter-spacing: -3.8px;
+  font-size: clamp(40px, 3.6vw, 56px);
+  letter-spacing: -3px;
 }
 .enter-desktop {
   background: var(--scene-ink);
@@ -2055,18 +1823,25 @@ a svg {
   background: var(--scene-ink);
   filter: brightness(1.15);
 }
-.simple-view:hover {
-  color: var(--scene-ink);
-}
 .room-interface input,
 .ambient-control {
   pointer-events: auto;
 }
-.ambient-control {
+/* Left-bottom dock: the workspace toolbar above the mood slider, one gutter
+   above the footer. On phones the toolbar renders in the footer instead. */
+.room-dock {
   position: absolute;
-  left: 6.3%;
-  bottom: 122px;
+  left: var(--edge);
+  bottom: calc(var(--edge-y) * 2 + 16px);
   width: 228px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+}
+.ambient-control {
+  width: 100%;
   color: var(--scene-ink);
 }
 .ambient-heading {
@@ -2143,11 +1918,6 @@ a svg {
 .scene-controls .music-glyph {
   font-size: 20px;
   display: block;
-}
-.scene-hint {
-  bottom: 112px;
-  left: 43%;
-  width: 45%;
 }
 .transition-shade {
   background: #090a0b;
@@ -2231,15 +2001,6 @@ a svg {
   color: #737c75;
   margin: 24px 0 0;
   letter-spacing: 0.2px;
-}
-.preloader > a {
-  position: absolute;
-  bottom: 35px;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  font-size: 10px;
-  color: #6b756e;
 }
 .skip-intro {
   position: absolute;
@@ -2660,9 +2421,6 @@ a svg {
   font-weight: 400;
 }
 .return-studio,
-.desktop-readable {
-  color: #f1f3f7;
-}
 .return-studio {
   background: #ffffff20;
   border: 1px solid #ffffff26;
@@ -2735,10 +2493,7 @@ a svg {
     width: 280px;
   }
   .room-introduction h2 {
-    font-size: 54px;
-  }
-  .ambient-control {
-    left: 5%;
+    font-size: 43px;
   }
   .toolbar-tools > span {
     gap: 12px;
@@ -2754,19 +2509,14 @@ a svg {
   }
   .room-introduction {
     top: 108px;
-    left: 27px;
+    bottom: auto;
     width: auto;
+    display: block;
   }
   .room-introduction h2 {
-    font-size: 43px;
-    letter-spacing: -2.5px;
-    margin: 17px 0 10px;
-  }
-  .room-introduction p {
-    font-size: 11px;
-  }
-  .room-header {
-    top: 25px;
+    font-size: 34px;
+    letter-spacing: -2px;
+    margin: 0;
   }
   .scene-frame {
     left: 0;
@@ -2782,11 +2532,12 @@ a svg {
   .scene-hint {
     display: none;
   }
-  .ambient-control {
+  .room-dock {
     left: 50%;
     transform: translateX(-50%);
     bottom: 78px;
     width: 210px;
+    gap: 0;
   }
   .ambient-heading {
     font-size: 10px;
@@ -2801,13 +2552,6 @@ a svg {
   .enter-desktop {
     bottom: 190px;
     padding: 13px 18px;
-  }
-  .simple-view {
-    bottom: 162px;
-    font-size: 9px;
-  }
-  .room-footer {
-    bottom: 22px;
   }
   .scene-controls {
     padding: 3px 5px;
@@ -2828,9 +2572,6 @@ a svg {
   .intro-caption {
     bottom: 130px;
     white-space: nowrap;
-  }
-  .preloader > a {
-    bottom: 90px;
   }
   .music-note {
     bottom: 240px;
@@ -2933,9 +2674,6 @@ a svg {
   }
   .return-studio {
     bottom: 73px;
-  }
-  .desktop-readable {
-    bottom: 79px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -3144,5 +2882,413 @@ a svg {
   }
   .readable-note .article-prose {
     font-size: 16px;
+  }
+}
+
+/* Collapsible side panel. `.panel-hidden` on `.workspace` slides the identity,
+   title and mood slider out to the left while `.scene-frame` widens to the full
+   viewport, so the desk glides to the centre (CameraRig follows the frame every
+   frame). All moves share one duration and ease-out curve. */
+.workspace {
+  --panel-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --panel-time: 0.62s;
+}
+.scene-frame {
+  transition:
+    left var(--panel-time) var(--panel-ease),
+    width var(--panel-time) var(--panel-ease),
+    top var(--panel-time) var(--panel-ease),
+    height var(--panel-time) var(--panel-ease);
+}
+.panel-hidden .scene-frame {
+  left: 0;
+  width: 100%;
+}
+.room-header .identity,
+.room-introduction,
+.room-dock {
+  transition:
+    transform var(--panel-time) var(--panel-ease) var(--panel-delay, 0s),
+    opacity calc(var(--panel-time) * 0.7) var(--panel-ease)
+      var(--panel-delay, 0s),
+    visibility 0s linear 0s;
+}
+.room-header {
+  transition: visibility 0s linear 0s;
+}
+.room-header .identity {
+  --panel-delay: 0.035s;
+}
+.room-dock {
+  --panel-delay: 0.07s;
+}
+.panel-hidden .room-header,
+.panel-hidden .room-introduction,
+.panel-hidden .room-dock {
+  visibility: hidden;
+}
+.panel-hidden .room-header {
+  transition: visibility 0s linear 0.7s;
+}
+.panel-hidden .room-header .identity,
+.panel-hidden .room-introduction,
+.panel-hidden .room-dock {
+  opacity: 0;
+  transform: translateX(calc(-100% - 7vw));
+  transition:
+    transform var(--panel-time) var(--panel-ease) var(--panel-delay, 0s),
+    opacity calc(var(--panel-time) * 0.7) var(--panel-ease)
+      var(--panel-delay, 0s),
+    visibility 0s linear 0.7s;
+}
+.room-introduction h2 > .intro-line {
+  color: inherit;
+}
+.panel-toggle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: var(--scene-ink);
+  background: color-mix(in srgb, var(--room) 78%, transparent);
+  border: 1px solid color-mix(in srgb, var(--scene-ink) 18%, transparent);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 2px 10px #5a5e4505;
+  transform: translate3d(var(--toggle-x, 20px), var(--toggle-y, 30vh), 0);
+  transition:
+    transform var(--panel-time) var(--panel-ease),
+    background 0.2s;
+}
+.panel-toggle:hover {
+  background: color-mix(
+    in srgb,
+    var(--scene-ink) 10%,
+    color-mix(in srgb, var(--room) 78%, transparent)
+  );
+}
+.panel-hidden .panel-toggle {
+  /* Dock on the shared gutter; --dock-x is measured by Workspace. */
+  transform: translate3d(var(--dock-x, 20px), var(--toggle-y, 30vh), 0);
+}
+@media (max-width: 720px) {
+  .panel-hidden .scene-frame {
+    top: 14%;
+    height: 53%;
+  }
+  .panel-toggle {
+    width: 34px;
+    height: 34px;
+  }
+  /* The panel collapses upward on phones. */
+  .panel-toggle svg {
+    transform: rotate(90deg);
+  }
+  .panel-hidden .panel-toggle {
+    transform: translate3d(var(--dock-x, 24px), var(--edge-y, 24px), 0);
+  }
+  /* Transforming the section would make it the containing block of the fixed
+     Explore button, so only the heading moves and the button stays put. */
+  .intro-heading {
+    transition:
+      transform var(--panel-time) var(--panel-ease),
+      opacity calc(var(--panel-time) * 0.7) var(--panel-ease),
+      visibility 0s linear 0s;
+  }
+  .panel-hidden .room-introduction {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+  .panel-hidden .intro-heading {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(calc(-100% - 110px));
+    transition:
+      transform var(--panel-time) var(--panel-ease),
+      opacity calc(var(--panel-time) * 0.7) var(--panel-ease),
+      visibility 0s linear 0.7s;
+  }
+  .panel-hidden .room-header .identity {
+    transform: translateY(calc(-100% - 30px));
+  }
+  .panel-hidden .room-dock {
+    transform: translate(-50%, 56px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Durations are already near zero; drop the stagger and the visibility
+     delay too so the panel swaps in a single frame. */
+  .scene-frame,
+  .room-header,
+  .room-header .identity,
+  .room-introduction,
+  .intro-heading,
+  .room-dock,
+  .panel-toggle {
+    transition-delay: 0s !important;
+  }
+}
+
+/* Desk height keypad: a dark controller with an LED readout, bottom-centre
+   above the footer's drag hint (phones keep it over the desk area). The base
+   translate lives in --remote-base so the dragged offset can be added. */
+.desk-remote {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--edge-y) + 44px);
+  --remote-base: translate(-50%, 0);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #2c2e33, #16171a);
+  border: 1px solid #0009;
+  box-shadow:
+    0 22px 55px #0006,
+    inset 0 1px 0 #ffffff14;
+  color: #f1f3f5;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  opacity: 0;
+  visibility: hidden;
+  /* --remote-dx/dy hold the dragged offset (set by Workspace) on top of the
+     centred base position, so the base can still follow the side panel. */
+  transform: var(--remote-base)
+    translate(var(--remote-dx, 0px), var(--remote-dy, 0px)) scale(0.92);
+  transition:
+    opacity 0.28s var(--panel-ease),
+    transform 0.28s var(--panel-ease),
+    visibility 0s linear 0.28s;
+}
+.desk-remote.open {
+  opacity: 1;
+  visibility: visible;
+  transform: var(--remote-base)
+    translate(var(--remote-dx, 0px), var(--remote-dy, 0px)) scale(1);
+  transition:
+    opacity 0.28s var(--panel-ease),
+    transform 0.28s var(--panel-ease),
+    visibility 0s;
+}
+.desk-remote.dragging {
+  cursor: grabbing;
+  transition: none;
+}
+.desk-remote:focus {
+  outline: none;
+}
+.remote-grip {
+  flex: none;
+  width: 6px;
+  height: 22px;
+  margin-right: -3px;
+  border-radius: 2px;
+  background-image: radial-gradient(#6a6e77 1px, transparent 1.3px);
+  background-size: 3px 4px;
+}
+.desk-remote:focus-visible {
+  outline: 2px solid #9fe8ff88;
+  outline-offset: 3px;
+}
+.remote-screen {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 9px 11px 8px;
+  border-radius: 8px;
+  background: #050607;
+  box-shadow:
+    inset 0 2px 7px #000d,
+    0 0 0 1px #ffffff0a;
+}
+.remote-unit {
+  font-size: 9px;
+  letter-spacing: 0.6px;
+  color: #8fb2c0;
+}
+.remote-keys {
+  display: flex;
+  gap: 6px;
+}
+.remote-key {
+  width: 37px;
+  height: 37px;
+  border-radius: 9px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #393b41, #212327);
+  border: 1px solid #000b;
+  box-shadow:
+    0 2px 0 #0a0b0d,
+    inset 0 1px 0 #ffffff1f;
+  color: #eef0f2;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition:
+    transform 0.08s,
+    box-shadow 0.08s,
+    background 0.15s,
+    color 0.15s;
+}
+.remote-key:hover {
+  background: linear-gradient(180deg, #43464d, #26282d);
+}
+.remote-key:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 0 0 #0a0b0d,
+    inset 0 1px 0 #ffffff1f;
+}
+.remote-key.armed,
+.remote-key.saved {
+  color: #a8ecff;
+  box-shadow:
+    0 2px 0 #0a0b0d,
+    inset 0 1px 0 #ffffff1f,
+    0 0 0 1px #a8ecff66,
+    0 0 14px #7fdcff55;
+}
+.remote-key:focus-visible {
+  outline: 2px solid #9fe8ff;
+  outline-offset: 2px;
+}
+.remote-close {
+  cursor: pointer;
+  position: absolute;
+  top: -11px;
+  right: -11px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #2b2d32;
+  border: 1px solid #000a;
+  box-shadow: 0 4px 12px #0006;
+  color: #c9cdd3;
+}
+.remote-close:hover {
+  color: #fff;
+}
+
+/* Seven-segment digits: 14 × 24 cells with bars positioned by class. */
+.seg {
+  display: inline-flex;
+  gap: 7px;
+  transform: skewX(-5deg);
+}
+.seg-digit {
+  position: relative;
+  width: 14px;
+  height: 24px;
+}
+.seg-digit > i,
+.seg-digit > b {
+  position: absolute;
+  display: block;
+  background: #1a2227;
+  border-radius: 1.5px;
+}
+.seg-digit > i.on,
+.seg-digit > b.on {
+  background: #e2f8ff;
+  box-shadow: 0 0 6px #7fdcffaa;
+}
+.seg-a,
+.seg-d,
+.seg-g {
+  left: 2px;
+  width: 10px;
+  height: 2.5px;
+}
+.seg-a {
+  top: 0;
+}
+.seg-g {
+  top: 10.75px;
+}
+.seg-d {
+  bottom: 0;
+}
+.seg-b,
+.seg-c,
+.seg-e,
+.seg-f {
+  width: 2.5px;
+  height: 9.5px;
+}
+.seg-f {
+  left: 0;
+  top: 1.5px;
+}
+.seg-b {
+  right: 0;
+  top: 1.5px;
+}
+.seg-e {
+  left: 0;
+  bottom: 1.5px;
+}
+.seg-c {
+  right: 0;
+  bottom: 1.5px;
+}
+.seg-dot {
+  right: -5px;
+  bottom: 0;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+}
+@media (max-width: 720px) {
+  /* Narrow screens stack the display above the keys so the keypad stays
+     inside the 24px gutters. */
+  .desk-remote {
+    left: 50%;
+    top: 51%;
+    bottom: auto;
+    --remote-base: translate(-50%, -50%);
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px 14px;
+  }
+  .remote-screen {
+    align-self: stretch;
+    justify-content: center;
+  }
+  .remote-grip {
+    width: 22px;
+    height: 6px;
+    margin: 0 0 -4px;
+    background-size: 4px 3px;
+  }
+  .remote-key {
+    width: 34px;
+    height: 34px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .desk-remote {
+    transition-delay: 0s !important;
   }
 }

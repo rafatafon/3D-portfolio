@@ -11,8 +11,8 @@ export default function Home() {
         <div className="noscript">
           <h2>Welcome to my workspace.</h2>
           <p>
-            Explore my projects, experience, and contact information in the{" "}
-            <a href="/portfolio">readable portfolio</a>.
+            This workspace needs JavaScript. Enable it to explore the desk and
+            the desktop.
           </p>
         </div>
       </noscript>

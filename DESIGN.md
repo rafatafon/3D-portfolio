@@ -6,7 +6,7 @@ A personal desk suspended visually in a seamless neutral studio backdrop. No wal
 
 - Palette: daylight #f5f5f3, warm amber #caa477, after hours #17191e, oak #b08257, Space Black #25282c, Owala teal #3a7c8e.
 - The ambient slider interpolates the backdrop, key light, fill light, and ambient intensity. Foreground colors maintain readable contrast through intermediate settings.
-- System sans-serif for the workspace; Apple system font stack in the desktop. Large, quiet introduction on the left and the interactive desk on the right. On phones the desk sits between the introduction and entry controls.
+- System sans-serif for the workspace; Apple system font stack in the desktop. Quiet introduction centered vertically on the left, with the workspace toolbar and mood slider docked beneath it; identity, introduction, dock, and footer share one left gutter and the same breathing room top and bottom. The interactive desk sits on the right, and a toggle beside the title collapses the identity, introduction, and dock to the left so the desk glides to the center. The footer carries the location and time, the drag hint in the middle, and the sign-off. On phones the desk sits between the introduction and entry controls.
 - Refined original procedural models: white standing-desk legs, oak top, Space Black laptop with notch and ports, curved ultrawide display, gray/white Sayl suspension chair with chrome base, black headphones on a silver stand, teal Owala FreeSip bottle, off-white ceramic coffee mug.
 - Materials combine soft lighting with metal reflections, fabric/plastic roughness, wood grain, and contact shadows. No external HDRI or 3D asset service is required.
 
@@ -18,7 +18,7 @@ A personal desk suspended visually in a seamless neutral studio backdrop. No wal
 
 Skip is available throughout. Reduced motion bypasses the camera animation. Session storage remembers a completed/skipped intro; a returning visit waits only for readiness. A stalled or failed renderer exposes the HTML desktop, with a server-rendered portfolio available without JavaScript.
 
-The camera can be dragged, the desk height changed, and the mood adjusted continuously. Clicking the monitor transitions to the desktop. Clicking the headphones currently shows a listening-corner note; Spotify playback is deferred until the playlist and playback behavior are provided.
+The camera can be dragged, the desk height set from a dark keypad controller (LED readout, hold-to-move arrows, savable presets), and the mood adjusted continuously. Clicking the monitor transitions to the desktop. Clicking the headphones currently shows a listening-corner note; Spotify playback is deferred until the playlist and playback behavior are provided.
 
 ## Desktop and content
 

@@ -25,7 +25,7 @@ Checked in Chromium through Playwright, using isolated browser contexts so sessi
 - Default ambient value is 0 (white); slider dragging and arrow keys work.
 - Warm and dark preset buttons work and the selected value survives desktop entry/exit.
 - Primary and secondary text contrast checked against the backdrop at all 101 integer slider values: minimum ratio 4.50036:1.
-- Standing desk raises and lowers.
+- Desk height keypad (toolbar arrows button): hold an arrow to run the motor, tap for 1 cm, presets travel, S then a number saves a preset; the desk moves at motor speed and the on-desk display counts along.
 - Both the 3D AirPods and the keyboard-accessible music button open the listening note.
 - The 3D monitor and HTML entry button open the desktop.
 - Desktop inherits dark appearance from dark ambience; its display setting toggles light/dark.
@@ -42,7 +42,7 @@ Checked in Chromium through Playwright, using isolated browser contexts so sessi
 - Empty search feedback and Escape dismissal work.
 - Standard mobile checks produced no page runtime errors.
 - With WebGL context creation disabled, the scene failure notice appears and the HTML desktop is usable.
-- With JavaScript disabled, the noscript link opens `/portfolio`, where all five projects are server rendered.
+- With JavaScript disabled, the home page shows a short notice that the workspace needs JavaScript; there is no readable fallback page.
 
 Screenshots from the checks are in `.playwright-mcp/` (ignored local artifacts). This is browser emulation, not verification on a physical phone or Safari.
 
@@ -84,3 +84,67 @@ Screenshots from the checks are in `.playwright-mcp/` (ignored local artifacts).
 - Clearances in scene units, from the geometry: mug to bottle 0.14; mug body to mouse 0.22 and handle tip to mouse 0.2; mug off the desk mat by 0.19; mug to the headphone-stand base 0.15; bottle to the flat desk top's right and front edges 0.045 and 0.05. Nothing touches.
 - Checked headless in Chrome (Playwright core driving the installed browser) at 1440 × 900 from the home view, maximum zoom, orbited right, desk level, and overhead, and at 390 × 844: both objects render with no page errors.
 - Known trade-off: from the home camera the bottle's lid overlaps part of the headphones' left ear cup in projection, because the front-right corner lies on the camera's line to the stand. The headphones stay clickable on the right cup, headband, and stand; moving the bottle to x ≈ 1.3 would clear the overlap.
+
+## Package manager switch to pnpm — 2026-10-22
+
+- The project now installs with pnpm; the version is pinned under `packageManager` in `package.json` and `pnpm-lock.yaml` replaces `package-lock.json`. The lockfile was produced with `pnpm import`, so every resolved version is unchanged.
+- `pnpm install --frozen-lockfile` completes with no blocked build scripts, `pnpm typecheck` and `pnpm dlx prettier@3.6.2 --check src` pass, and `pnpm build` prerenders `/`, `/portfolio`, `/_not-found`, `/icon.svg`, and the four `/writing/[slug]` pages.
+- `pnpm dev` serves `/`, `/portfolio`, and an article page with HTTP 200 and no console warnings.
+- CI (`.github/workflows/ci.yml`) installs pnpm through `pnpm/action-setup`, caches the pnpm store, and runs the same three checks with `--frozen-lockfile`.
+
+## Simplified room interface — 2026-10-22
+
+- Removed from the room overlay: the top-right "Selected work" and "Say hello" buttons, the small "Welcome to my workspace" label, the "Things I build. The space I build them in." paragraph, and the "Just here for the portfolio?" link under the Explore button. `/portfolio` stays reachable from the preloader's "Open simple portfolio" link and the noscript fallback. Their CSS rules were removed from every layer and breakpoint.
+- The title now reads "Welcome to my / workspace." and is one size step smaller: `clamp(40px, 3.6vw, 56px)` with -3px tracking on desktop, 43px at ≤ 1100px wide and on short (≤ 740px tall) screens, and 34px with -2px tracking on phones (≤ 720px). The page title and Open Graph title are "Fredy Maldonado — Welcome to my workspace".
+- `pnpm dlx prettier@3.6.2 --write src`, `pnpm typecheck`, and `pnpm build` pass; `/`, `/portfolio`, `/_not-found`, `/icon.svg`, and the four `/writing/[slug]` pages prerender.
+- Checked headless in Chrome at 1440 × 900 (52px), 1100 × 800 (43px), 900 × 700 (43px), and 390 × 844 (34px): the title sits on exactly two lines without overflowing its column, the Explore button sits 30px under it (24px on short screens), the header shows only the identity, and the phone's fixed Explore button keeps clear space above the mood slider. No page or console errors.
+
+## Collapsible side panel — 2026-10-22
+
+- A round toggle sits just right of the title's first line ("Welcome to my"); Workspace measures the line with layout offsets (which ignore transforms) and seats it through `--toggle-x/y`. It is one persistent button with `aria-expanded`, `aria-controls` (identity, title, dock), and an `aria-label`/`title` that flips between "Hide the side panel" and "Show the side panel".
+- Collapse: `.panel-hidden` on `.workspace` slides the identity, the introduction (title and Explore button), and the mood slider left past the viewport edge with a fade, in 0.62s on `cubic-bezier(0.22, 1, 0.36, 1)` with a 35/70ms stagger (done by 0.69s). `.scene-frame` goes from `left: 19%; width: 81%` to full width on the same curve, so the desk glides to the center; the scene hint stays centered in the footer, and the toggle travels to the shared left gutter on the title's row. Hidden groups become `visibility: hidden` at the end and are `inert`. Expanding reverses it on the same ease-out curve.
+- Camera tracking: `CameraRig` listens for `transitionrun` on `.scene-frame`, re-applies the view offset inside R3F's frame (before render, so the desk moves in the same frame as the CSS) and keeps invalidating only while a frame transition runs. It stops on `transitionend`/`transitioncancel` (or after 1.5s) with one final apply, so the demand loop goes idle again.
+- Phones (≤ 720px): the identity and title slide up and out, the mood slider slides down and fades, the Explore button and footer stay put (only the title wrapper is transformed, never the section that contains the fixed button), and the toggle docks at the top-left where the fm. mark was, its icon turned to point up/down. `.scene-frame` grows from `top: 27%; height: 48%` to `top: 14%; height: 53%`; larger frames push the desk past the 390px width.
+- Desktop entry while collapsed: the frame stays full width in every mode, so the zoom into the monitor ends centered and leaving returns to the collapsed room without a jump. Returning from the desktop now focuses the room after it renders (the overlay is inert until then): the Explore button, or the toggle when the panel is collapsed on desktop/tablet.
+- Reduced motion: transitions, stagger, and the visibility delay all drop to zero, so the panel swaps in a single frame and the camera offset ends correct.
+- Not persisted: every load starts expanded.
+- `pnpm dlx prettier@3.6.2 --write src`, `pnpm typecheck`, and `pnpm build` pass.
+- Checked headless in Chrome at 1440 × 900, 900 × 700, 390 × 844 (touch), and 1440 × 900 with reduced motion: frames at 120ms and 300ms show the groups partly out and the desk partway; collapsed, the frame is the full viewport and the desk sits centered with the toggle docked; the re-expanded 1440 frame is pixel-identical to the first capture. Entering through the monitor and leaving with "Back to studio" keeps `panel-hidden`. Keyboard: Enter on the focused toggle keeps focus on it and flips `aria-expanded`. No page or console errors.
+- Resizing the window re-measures the title and re-seats the toggle instantly (the transition is suspended for that update), so only a toggle click animates the button.
+
+## Overlay layout pass — 2026-10-22
+
+- One left gutter: `--edge` (4.4%, 24px on phones, 20px under 390px) and `--edge-y` (36px, 24px on phones and short screens) on `.workspace` position the identity header, the introduction, the new `.room-dock`, and the footer, so their left edges line up and the top and bottom margins match.
+- The introduction is a full-height flex column centered vertically, so the title and Explore button sit at mid-height on desktop and tablet; phones keep the block at the top. The collapse animation is unchanged because the centering uses layout, not a transform.
+- The workspace toolbar (reset view, raise desk, listening corner) moved out of the footer into `.room-dock`, above the mood slider, one gutter above the footer. The dock slides out with the panel. On phones (`compact`, ≤ 720px) the toolbar renders in the footer as before, because the slider is centered at the bottom under the fixed Explore button.
+- The drag hint ("Drag to look around…") now lives in the footer's middle column (`grid-template-columns: 1fr auto 1fr`), centered between the location/time and "Make yourself at home." (which is hidden ≤ 1100px); it stays centered when the panel collapses. Phones keep the hint hidden and a flex footer.
+- The docked toggle lands on the gutter through `--dock-x`, measured with the title. On phones it docks at the top-left corner on the same gutter.
+- `pnpm typecheck`, the Prettier check, and `pnpm build` pass. Headless Chrome at 1440 × 900, 1100 × 800, 900 × 700, and 390 × 844 (touch): collapse, expand, desktop entry, and return all work with no page or console errors; the docked toggle sits at x = 63 on 1440 (the 4.4% gutter), and the phone footer keeps the toolbar at the right.
+
+## Desk height controller — 2026-10-22
+
+- The toolbar's desk button (`aria-haspopup="dialog"`) opens a dark keypad at the bottom centre of the page, above the footer's drag hint (phones keep it centered over the desk area): a CSS seven-segment LED readout in cm, up and down keys, presets 1–3, and S. It scales in over 0.28s, drags by its body (keys excluded) and stays inside the page, and closes only on the X, Escape, or the toolbar button; focus moves into the dialog on open and back to the toolbar button on close, Tab cycles inside it, and ArrowUp/ArrowDown nudge 1 cm.
+- Motion: holding an arrow sets the target to the range limit (70–120 cm) and the desk travels at 12.7 cm/s (about 3 s from sitting at 74 cm to standing at 112 cm); releasing stops at the current height, and a press under 220 ms nudges 1 cm instead. Presets travel on their own. The tween runs inside `Desk`'s `useFrame`, moving the desk-top group and scaling the upper leg segments imperatively, and requests the next frame with `invalidate()` only while moving. Under reduced motion the desk snaps on the next frame.
+- The keypad readout updates every 0.5 cm during travel and shows the exact height at rest; the small display on the desk's front edge mirrors whole centimeters. The desktop camera eye uses the target height; contact shadows re-bake when the desk settles.
+- Presets default to 74 / 95 / 112 cm. Press S (it lights up), then a number, to store the current whole-cm height there; the readout shows `S-n` for 0.9s and the three values are kept in `localStorage` (`fm-desk-presets-v1`, validated on load). Tapping a preset while not arming travels to it.
+- Checked headless in Chrome at 1440 × 900 and 390 × 844 (touch): a 1.2s hold raises from 74 to about 93 cm, a tap lowers 1 cm, preset 3 reaches 112.0, S then 2 stores `[74,112,112]`, preset 1 returns to 74.0, Escape closes with focus on "Desk height". No page or console errors. `pnpm typecheck`, the Prettier check, and `pnpm build` pass.
+- Phones stack the display above the keys so the keypad fits inside the 24px gutters.
+
+## Draggable keypad and steady camera — 2026-10-22
+
+- The keypad drags from anywhere on its dark body or LED display (keys and the X excluded): pointer capture on the dialog, the offset applied through `--remote-dx/dy` on top of the centred base position, clamped to keep the whole panel at least 8px inside the workspace, re-clamped on window resize, and kept for the rest of the visit so it reopens where it was left. A dotted grip marks the drag area; the cursor shows grab/grabbing. Clicks and drags on the scene no longer close it, so orbiting with the keypad open works; the X, Escape (listened for on the document, so it works after focus has moved to the scene), and the toolbar button close it.
+- Changing the desk height no longer moves the camera. `CameraRig` reads the height through a ref for the desktop eye level instead of listing it as an effect dependency, so arrows and presets only move the desk and the view stays at whatever angle and zoom the visitor has, including from behind the desk.
+- Review fixes: a hold is cancelled at the live height (no tap nudge) when the keypad closes for any reason, when the arrow button loses focus, or when the window loses focus, so a keyboard hold interrupted by Escape or a Tab away cannot run the desk to the limit; the remembered drag position is re-clamped when the keypad opens, measuring the unscaled box (the open transition scales it) so a panel dragged to an edge and reopened in a smaller viewport lands fully inside. Checked headless: a 0.7s Space hold followed by Escape stops at about 84 cm and stays there; a hold followed by blur stops likewise; dragged to the right edge at 1440 × 900, closed, reopened at 900 × 700 it sits at x = 460-892, inside the 8px margin.
+- Checked headless in Chrome at 1440 × 900: after orbiting the camera, preset 3 raises the desk with the view unchanged; dragging the keypad by its display moves it by the drag distance; a drag far past the edge stops at the margin; clicking the scene leaves it open; Escape closes it with focus on "Desk height"; reopening from the toolbar restores the dragged position. 390 × 844 (touch): open, drag, and close work inside the gutters. No page or console errors.
+
+## Keypad placement and the desk's own controller — 2026-10-22
+
+- The keypad now opens bottom-centre on desktop and tablet, 44px above the footer line that holds the drag hint (`bottom: calc(var(--edge-y) + 44px)`), horizontally centered on the viewport so it no longer shifts when the side panel collapses. Phones keep the previous spot over the desk area. Dragging still works from there and the position is kept for the visit.
+- The small controller under the desk's front-right edge (the dark box with the light-blue readout) is clickable in the 3D scene: it shows a pointer cursor and opens the keypad, through an invisible hit box slightly larger than the part. Only the room mode reacts; clicks during the intro or inside the desktop do nothing.
+- Checked headless in Chrome at 1440 × 900: hovering the controller turns the cursor into a pointer, clicking it opens the keypad bottom-centre (centered on x = 720, 80px above the bottom edge), the toolbar button still opens it, and at 390 × 844 it still opens centered over the desk. No page or console errors.
+
+## Readable portfolio page removed — 2026-10-22
+
+- `src/app/portfolio/` is deleted, so `/portfolio` returns the 404 page. Every link to it is gone: the desktop's bottom-right "Simple view", the preloader's "Open simple portfolio", and the no-JavaScript fallback (now a plain notice). The article pages' "All notes" links point back to `/` as "Back to the workspace".
+- CSS only the page used was removed (`.desktop-readable`, `.preloader > a`, the readable intro/project/job/article rules); the `.readable-portfolio` nav, header, h1, h2, and footer rules stay because the article pages share them.
+- `pnpm typecheck`, the Prettier check, and `pnpm build` pass; the build prerenders `/`, `/_not-found`, `/icon.svg`, and the four `/writing/[slug]` pages. On the dev server `/portfolio` answers 404, `/` and an article page answer 200, and no source file references `/portfolio`.

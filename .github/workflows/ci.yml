@@ -23,16 +23,19 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Reads the pnpm version from the packageManager field in package.json.
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v7
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
 
-      - run: npm run typecheck
+      - run: pnpm typecheck
 
       - name: Prettier check
-        run: npx --yes prettier@3.6.2 --check src
+        run: pnpm dlx prettier@3.6.2 --check src
 
-      - run: npm run build
+      - run: pnpm build

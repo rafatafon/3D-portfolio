@@ -29,7 +29,7 @@ export default async function WritingPage({ params }: Props) {
         <Link className="wordmark" href="/">
           fm.
         </Link>
-        <Link href="/portfolio#writing">← All notes</Link>
+        <Link href="/">← Back to the workspace</Link>
       </nav>
       <article>
         <header className="note-header">
@@ -43,7 +43,7 @@ export default async function WritingPage({ params }: Props) {
         <ArticleBody body={article.body} />
       </article>
       <footer>
-        <Link href="/portfolio#writing">← Back to all notes</Link>
+        <Link href="/">← Back to the workspace</Link>
       </footer>
     </main>
   );
