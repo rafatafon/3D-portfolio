@@ -297,33 +297,50 @@ export default function Workspace() {
     }
     setDeskHeight(presets[slot]);
   };
+  // Cancel a hold at the live height, without the tap nudge. Used when the
+  // keypad closes or focus leaves mid-hold: the key-up can never arrive
+  // then, and the desk must not keep running to the limit.
+  const stopHold = useCallback(() => {
+    if (!hold.current) return;
+    hold.current = null;
+    setDeskHeight(clampHeight(Math.round(liveRef.current)));
+  }, []);
   // The keypad drags by its body (keys excluded) and stays inside the
   // workspace. The offset sits on top of the centred base position and is
-  // kept for the rest of the visit, so it reopens where it was left.
+  // kept for the rest of the visit, so it reopens where it was left (and is
+  // re-clamped on opening, in case the viewport shrank meanwhile).
   const placeRemote = useCallback((x: number, y: number) => {
     const el = remote.current;
     const bounds = el?.parentElement?.getBoundingClientRect();
     if (!el || !bounds) return;
     const rect = el.getBoundingClientRect();
-    const shiftX = x - offset.current.x;
-    const shiftY = y - offset.current.y;
+    // The open/close transition scales the panel about its centre, so
+    // measure the unscaled box to clamp exactly even while it is opening.
+    const transform = getComputedStyle(el).transform;
+    const scale =
+      transform && transform !== "none" ? new DOMMatrix(transform).a || 1 : 1;
+    const halfWidth = rect.width / scale / 2;
+    const halfHeight = rect.height / scale / 2;
+    const centerX = (rect.left + rect.right) / 2 + (x - offset.current.x);
+    const centerY = (rect.top + rect.bottom) / 2 + (y - offset.current.y);
     const margin = 8;
-    if (rect.left + shiftX < bounds.left + margin)
-      x += bounds.left + margin - (rect.left + shiftX);
-    else if (rect.right + shiftX > bounds.right - margin)
-      x -= rect.right + shiftX - (bounds.right - margin);
-    if (rect.top + shiftY < bounds.top + margin)
-      y += bounds.top + margin - (rect.top + shiftY);
-    else if (rect.bottom + shiftY > bounds.bottom - margin)
-      y -= rect.bottom + shiftY - (bounds.bottom - margin);
+    if (centerX - halfWidth < bounds.left + margin)
+      x += bounds.left + margin - (centerX - halfWidth);
+    else if (centerX + halfWidth > bounds.right - margin)
+      x -= centerX + halfWidth - (bounds.right - margin);
+    if (centerY - halfHeight < bounds.top + margin)
+      y += bounds.top + margin - (centerY - halfHeight);
+    else if (centerY + halfHeight > bounds.bottom - margin)
+      y -= centerY + halfHeight - (bounds.bottom - margin);
     offset.current = { x, y };
     el.style.setProperty("--remote-dx", `${Math.round(x)}px`);
     el.style.setProperty("--remote-dy", `${Math.round(y)}px`);
   }, []);
   const closeRemote = useCallback(() => {
+    stopHold();
     setRemoteOpen(false);
     deskButton.current?.focus();
-  }, []);
+  }, [stopHold]);
   const remoteKeys = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "ArrowUp" || event.key === "ArrowDown") {
       event.preventDefault();
@@ -349,24 +366,31 @@ export default function Workspace() {
   useEffect(() => {
     if (!remoteOpen) {
       setArming(false);
+      stopHold();
       return;
     }
+    // Re-clamp the remembered position: the viewport may have changed while
+    // the keypad was closed.
+    placeRemote(offset.current.x, offset.current.y);
     remote.current?.focus();
     // Clicks on the scene leave it open (orbiting must not dismiss it); only
     // the X, Escape, or the toolbar button close it. Escape is listened for
     // on the document so it works after focus has moved to the scene. Keep
-    // the keypad on screen when the window changes size.
+    // the keypad on screen when the window changes size, and stop a running
+    // hold if the window loses focus.
     const key = (event: globalThis.KeyboardEvent) => {
       if (event.key === "Escape") closeRemote();
     };
     const keep = () => placeRemote(offset.current.x, offset.current.y);
     document.addEventListener("keydown", key);
     window.addEventListener("resize", keep);
+    window.addEventListener("blur", stopHold);
     return () => {
       document.removeEventListener("keydown", key);
       window.removeEventListener("resize", keep);
+      window.removeEventListener("blur", stopHold);
     };
-  }, [remoteOpen, placeRemote, closeRemote]);
+  }, [remoteOpen, placeRemote, closeRemote, stopHold]);
   const readout =
     savedSlot === null
       ? liveHeight.toFixed(1).padStart(5, " ")
@@ -564,6 +588,7 @@ export default function Workspace() {
                   if (event.key === "Enter" || event.key === " ")
                     endHold(direction);
                 }}
+                onBlur={stopHold}
                 onContextMenu={(event) => event.preventDefault()}
               >
                 {direction > 0 ? (
