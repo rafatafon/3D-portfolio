@@ -6,3 +6,5 @@ out/
 .env*
 .playwright-mcp/
 test-results/
+# Claude
+.claude/
