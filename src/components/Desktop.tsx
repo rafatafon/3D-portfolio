@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useLayoutEffect,
+} from "react";
 import {
   ArrowUpRight,
   BriefcaseBusiness,
@@ -440,9 +446,8 @@ export default function Desktop({
     startY: number;
     x: number;
     y: number;
-    // Windows on phones, the About panel, and files clamp against the
-    // measured layout (offset ranges for x and y).
-    bounds?: Bounds;
+    // Every drag clamps against the measured layout (offset ranges).
+    bounds: Bounds;
     // Files only count as dragged once past FILE_DRAG_SLOP.
     moved: boolean;
   } | null>(null);
@@ -593,35 +598,10 @@ export default function Desktop({
       startY: event.clientY,
       x: item.x,
       y: item.y,
-      bounds: isPhone()
-        ? phoneDragBounds(event.currentTarget, item)
-        : wideDragBounds(event.currentTarget, item),
+      bounds: windowDragBounds(event.currentTarget, item),
       moved: true,
     };
     focusWindow(item.id);
-  }
-  // Larger screens: a window may hang off either side alike, but at least
-  // `keep` pixels of it stay inside, its title bar stays under the menubar,
-  // and it stays above the Dock; measured from the live layout, like phones,
-  // instead of fixed viewport percentages that assumed the old left-anchored
-  // position (which walled off the left side once windows opened centred).
-  function wideDragBounds(toolbar: HTMLElement, item: OpenWindow): Bounds {
-    const win = toolbar.closest<HTMLElement>(".finder-window")!;
-    const rect = win.getBoundingClientRect();
-    const area = desktopArea(0);
-    const baseLeft = rect.left - item.x;
-    const baseTop = rect.top - item.y;
-    const keep = Math.min(160, rect.width);
-    const minY = area.top + 4 - baseTop;
-    return {
-      minX: area.left + keep - rect.width - baseLeft,
-      maxX: area.right - keep - baseLeft,
-      minY,
-      maxY: Math.max(
-        minY,
-        area.bottom - 8 - toolbar.getBoundingClientRect().height - baseTop,
-      ),
-    };
   }
   // The free desktop in viewport space: under the menubar, above the Dock,
   // inside the side edges, inset by `margin`.
@@ -642,17 +622,21 @@ export default function Desktop({
           : box.bottom) - margin,
     };
   }
-  // Moved files and a dragged About panel keep pixel offsets from their
-  // default spots, which move with the viewport: when the desktop resizes
-  // (or the phone layout kicks in) pull them back inside, or a file could be
-  // left off-screen with nothing to grab.
-  useEffect(() => {
+  // Moved files, a dragged About panel, and dragged windows keep pixel
+  // offsets from spots that move with the viewport: when the desktop resizes
+  // (or the phone layout kicks in) pull them back inside, or something could
+  // be left off-screen with nothing to grab. Subscribed once, with a
+  // synchronous cleanup so the observer is gone before the desktop leaves
+  // the DOM; the latest state is read through a ref.
+  const latest = useRef({ fileOffsets, aboutOffset, windows });
+  latest.current = { fileOffsets, aboutOffset, windows };
+  const reclampRef = useRef<() => void>(() => {});
+  useLayoutEffect(() => {
     const desktop = desktopRef.current;
     if (!desktop) return;
     const reclamp = () => {
-      // A ResizeObserver can still report the element shrinking to nothing
-      // while the desktop unmounts, after React has cleared the ref.
-      if (drag.current || !desktop.isConnected || !desktopRef.current) return;
+      if (drag.current || !desktopRef.current) return;
+      const { fileOffsets, aboutOffset, windows } = latest.current;
       const moved = Object.entries(fileOffsets) as [FileId, Offset][];
       if (moved.length) {
         const area = desktopArea(4);
@@ -680,40 +664,23 @@ export default function Desktop({
         if (clamped.x !== aboutOffset.x || clamped.y !== aboutOffset.y)
           setAboutOffset(clamped);
       }
-      // Windows too: a window dragged on a wide screen keeps its offset when
-      // the viewport narrows (and the phone layout moves its base to the
-      // top-left), which could leave it entirely off-screen. Phones keep the
-      // whole window inside; larger screens keep the drag's overhang limits
-      // so a window deliberately pushed past an edge does not snap back.
       let changed = false;
-      const phone = isPhone();
-      const area = phone ? desktopArea(8) : null;
       const next = windows.map((item) => {
         if (item.minimized || item.maximized) return item;
-        let { x, y } = item;
-        if (area) {
-          const element = desktop.querySelector<HTMLElement>(
-            `[data-window="${item.id}"]`,
-          );
-          if (!element) return item;
-          ({ x, y } = clampedOffset(element, { x, y }, area));
-        } else {
-          const element = desktop.querySelector<HTMLElement>(
-            `[data-window="${item.id}"]`,
-          );
-          const toolbar =
-            element?.querySelector<HTMLElement>(".window-toolbar");
-          if (!element || !toolbar) return item;
-          const limits = wideDragBounds(toolbar, item);
-          x = Math.max(limits.minX, Math.min(limits.maxX, x));
-          y = Math.max(limits.minY, Math.min(limits.maxY, y));
-        }
+        const toolbar = desktop.querySelector<HTMLElement>(
+          `[data-window="${item.id}"] .window-toolbar`,
+        );
+        if (!toolbar) return item;
+        const limits = windowDragBounds(toolbar, item);
+        const x = Math.max(limits.minX, Math.min(limits.maxX, item.x));
+        const y = Math.max(limits.minY, Math.min(limits.maxY, item.y));
         if (x === item.x && y === item.y) return item;
         changed = true;
         return { ...item, x, y };
       });
       if (changed) setWindows(next);
     };
+    reclampRef.current = reclamp;
     const observer = new ResizeObserver(reclamp);
     observer.observe(desktop);
     window.addEventListener("resize", reclamp);
@@ -721,7 +688,16 @@ export default function Desktop({
       observer.disconnect();
       window.removeEventListener("resize", reclamp);
     };
-  });
+  }, []);
+  // A window restored from the Dock may carry an offset from a wider layout:
+  // clamp it as soon as it is back on screen.
+  const visibleWindows = windows
+    .filter((item) => !item.minimized && !item.maximized)
+    .map((item) => item.id)
+    .join(",");
+  useEffect(() => {
+    reclampRef.current();
+  }, [visibleWindows]);
   // The About panel drags by its top (traffic lights, illustration, title),
   // never from the close button.
   function startAboutDrag(event: React.PointerEvent<HTMLElement>) {
@@ -766,30 +742,28 @@ export default function Desktop({
       suppressClick.current = false;
     }, 0);
   }
-  // Phones keep the whole window in view: an 8px margin on both sides, the
-  // title bar under the menubar, and the bottom edge 8px above the Dock.
-  // Measured once per drag, in the same (viewport) space.
-  function phoneDragBounds(toolbar: HTMLElement, item: OpenWindow) {
+  // Drag limits for a window, measured from the live layout. Phones keep the
+  // whole window inside an 8px margin; larger screens let it hang off either
+  // side alike as long as 160px of it stays inside. The title bar stays 4px
+  // under the menubar, and the window (phones) or its title bar (larger
+  // screens) stays 8px above the Dock.
+  function windowDragBounds(toolbar: HTMLElement, item: OpenWindow): Bounds {
+    const phone = isPhone();
     const win = toolbar.closest<HTMLElement>(".finder-window")!;
-    const layer = win.parentElement!.getBoundingClientRect();
     const rect = win.getBoundingClientRect();
+    const area = desktopArea(0);
     const baseLeft = rect.left - item.x;
     const baseTop = rect.top - item.y;
-    const dock = desktopRef.current?.querySelector<HTMLElement>(
-      ".desktop-bottom .dock",
-    );
-    const floor = Math.min(
-      dock?.getBoundingClientRect().top ?? layer.bottom,
-      layer.bottom,
-    );
-    const margin = 8;
-    const minX = layer.left + margin - baseLeft;
-    const minY = layer.top + 4 - baseTop;
+    const side = phone ? 8 : 0;
+    const keep = phone ? rect.width : Math.min(160, rect.width);
+    const tail = phone ? rect.height : toolbar.getBoundingClientRect().height;
+    const minX = area.left + side + keep - rect.width - baseLeft;
+    const minY = area.top + 4 - baseTop;
     return {
       minX,
-      maxX: Math.max(minX, layer.right - margin - rect.width - baseLeft),
+      maxX: Math.max(minX, area.right - side - keep - baseLeft),
       minY,
-      maxY: Math.max(minY, floor - margin - rect.height - baseTop),
+      maxY: Math.max(minY, area.bottom - 8 - tail - baseTop),
     };
   }
   function moveDrag(event: React.PointerEvent<HTMLElement>) {
@@ -805,12 +779,7 @@ export default function Desktop({
       current.moved = true;
       if (target.kind === "file") setDragging(`file-${target.id}`);
     }
-    const {
-      minX = -window.innerWidth * 0.13,
-      maxX = window.innerWidth * 0.4,
-      minY = -window.innerHeight * 0.09,
-      maxY = window.innerHeight * 0.56,
-    } = bounds ?? {};
+    const { minX, maxX, minY, maxY } = bounds;
     const nextX = Math.max(minX, Math.min(maxX, x + event.clientX - startX));
     const nextY = Math.max(minY, Math.min(maxY, y + event.clientY - startY));
     if (target.kind === "about") setAboutOffset({ x: nextX, y: nextY });

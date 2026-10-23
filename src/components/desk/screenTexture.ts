@@ -506,10 +506,11 @@ function appIcon(
   noShadow(ctx);
   ctx.save();
   ctx.clip();
-  draw(x, y);
-  // The top highlight (`inset 0 1px 0`), transparent on light tiles.
+  // The top highlight (`inset 0 1px 0`) sits under the tile's content, like
+  // the CSS box-shadow; transparent on light tiles.
   ctx.fillStyle = c.tileSheen;
   ctx.fillRect(x, y + 1, w, 1);
+  draw(x, y);
   ctx.restore();
   ctx.strokeStyle = c.tileRim;
   ctx.lineWidth = 1;

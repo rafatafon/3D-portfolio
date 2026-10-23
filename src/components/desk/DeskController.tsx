@@ -221,8 +221,10 @@ export function useGlow(
 // and the peak opacity of the cyan halo that makes the window glow.
 const LED_LIFT = 0.6;
 const HALO_OPACITY = 0.55;
-const haloWidth = ledWidth * 1.45;
-const haloHeight = ledHeight * 2.1;
+// Kept inside the body and clear of the first key: the glow belongs to
+// the window alone.
+const haloWidth = ledWidth * 1.1;
+const haloHeight = ledHeight * 1.6;
 
 function paintHalo(ctx: CanvasRenderingContext2D) {
   // A soft cyan disc; the wider plane stretches it into an ellipse.
@@ -309,7 +311,7 @@ export function DeskController({
       {/* Additive halo over the window, shown only while it glows. */}
       <mesh
         ref={halo}
-        position={[ledX + 0.004, centre[1], face + 0.0009]}
+        position={[ledX, centre[1], face + 0.0009]}
         visible={false}
         renderOrder={1}
       >

@@ -47,7 +47,9 @@ const NUDGE_CONTROLLER = 1200;
 const NUDGE_TOUCH_ROUND = 8500;
 // The pulses play once per page load: returning from the desktop to the room
 // does not replay them, a reload does.
-let nudged = false;
+// Which arrival pulses have played this page load, per object, so one
+// playing early never starves the other.
+const nudged = { monitor: false, controller: false };
 const black = "#25282c";
 
 // The monitor only responds while its screen faces the camera, so a visitor
@@ -192,10 +194,8 @@ function BentPanel({
   screen = false,
   waking = false,
   sleeping = false,
-  glow = 0,
-  pulseAt = 0,
+  glowRef,
   rim = BEZEL_GLOW,
-  reducedMotion = false,
 }: {
   width: number;
   height: number;
@@ -205,14 +205,11 @@ function BentPanel({
   screen?: boolean;
   waking?: boolean;
   sleeping?: boolean;
-  // 0–1 hover target for the affordance lift: the screen brightens, the
-  // bezel picks up a cool rim.
-  glow?: number;
-  // Start time (performance.now() ms) of the arrival pulse; 0 for none.
-  pulseAt?: number;
+  // The monitor's eased 0–1 affordance lift, shared by the bezel and the
+  // screen so both ease once, in phase (Desk owns the easing).
+  glowRef?: { current: number };
   // Peak emissive intensity of the bezel's rim.
   rim?: number;
-  reducedMotion?: boolean;
 }) {
   const screenMaterial = useRef<THREE.MeshBasicMaterial>(null);
   const screenGain = useMemo(() => ({ value: 1 }), []);
@@ -238,7 +235,8 @@ function BentPanel({
   useEffect(() => {
     wakeStarted.current = performance.now();
   }, [waking]);
-  useGlow(glow, pulseAt, reducedMotion, (lift) => {
+  useFrame(() => {
+    const lift = glowRef?.current ?? 0;
     if (bezelMaterial.current)
       bezelMaterial.current.emissiveIntensity = rim * lift;
     screenGain.value = 1 + (SCREEN_KNEE - 1) * lift;
@@ -382,6 +380,8 @@ export const Desk = memo(function Desk({
   screenDark,
   locale,
   attentive,
+  monitorUsed,
+  controllerUsed,
 }: {
   height: number;
   onHeight: (cm: number, moving: boolean) => void;
@@ -394,6 +394,10 @@ export const Desk = memo(function Desk({
   locale: Locale;
   // True while the visitor is in the room and can use the desk.
   attentive: boolean;
+  // Whether the features behind the two objects were already used through
+  // the HTML (the Explore button, the toolbar's keypad button).
+  monitorUsed: boolean;
+  controllerUsed: boolean;
 }) {
   // Affordance for the two clickable objects: a quiet lift while the pointer
   // is over them, and once per page load, on arrival, one soft pulse each (the
@@ -406,8 +410,19 @@ export const Desk = memo(function Desk({
   const [controllerHover, setControllerHover] = useState(false);
   const [controllerPulse, setControllerPulse] = useState(0);
   const used = useRef({ monitor: false, controller: false });
+  const usedOutside = useRef({
+    monitor: monitorUsed,
+    controller: controllerUsed,
+  });
+  usedOutside.current = { monitor: monitorUsed, controller: controllerUsed };
+  // The monitor's lift eases here once and is shared by its two panels.
+  const monitorLift = useRef(0);
+  useGlow(monitorHover ? 1 : 0, monitorPulse, reducedMotion, (value) => {
+    monitorLift.current = value;
+  });
   useEffect(() => {
-    if (!attentive || reducedMotion || nudged) return;
+    if (!attentive || reducedMotion) return;
+    if (nudged.monitor && nudged.controller) return;
     const timers: number[] = [];
     const pulse = (
       key: "monitor" | "controller",
@@ -418,22 +433,32 @@ export const Desk = memo(function Desk({
         window.setTimeout(() => {
           // Counted only once a pulse actually starts, so leaving the room
           // early (or a development double-mount) does not use it up.
-          nudged = true;
-          if (!used.current[key]) set(performance.now());
+          nudged[key] = true;
+          if (!used.current[key] && !usedOutside.current[key])
+            set(performance.now());
         }, at),
       );
     };
-    const round = (at: number) => {
-      pulse("monitor", setMonitorPulse, at);
-      pulse("controller", setControllerPulse, at + NUDGE_CONTROLLER);
+    // A pulse that already played is not repeated; a controller pulse left
+    // on its own takes the monitor's slot instead of waiting behind it.
+    const monitorAt = nudged.monitor ? null : NUDGE_MONITOR;
+    const controllerAt = nudged.controller
+      ? null
+      : monitorAt === null
+        ? NUDGE_MONITOR
+        : NUDGE_MONITOR + NUDGE_CONTROLLER;
+    const round = (offset: number) => {
+      if (monitorAt !== null)
+        pulse("monitor", setMonitorPulse, monitorAt + offset);
+      if (controllerAt !== null)
+        pulse("controller", setControllerPulse, controllerAt + offset);
     };
-    round(NUDGE_MONITOR);
-    if (window.matchMedia("(hover: none)").matches) round(NUDGE_TOUCH_ROUND);
-    return () => {
-      timers.forEach(clearTimeout);
-      setMonitorPulse(0);
-      setControllerPulse(0);
-    };
+    round(0);
+    if (window.matchMedia("(hover: none)").matches)
+      round(NUDGE_TOUCH_ROUND - NUDGE_MONITOR);
+    // Only the timers are cancelled: a pulse already running finishes its
+    // envelope on its own rather than snapping to rest.
+    return () => timers.forEach(clearTimeout);
   }, [attentive, reducedMotion]);
   const sourceWallpaper = useTexture("/images/pro-wallpaper-portrait.jpg");
   const wallpaper = useMemo(() => {
@@ -670,10 +695,8 @@ export const Desk = memo(function Desk({
             height={0.95}
             depth={0.06}
             position={[0, 2.34, 0]}
-            glow={monitorHover ? 1 : 0}
-            pulseAt={monitorPulse}
+            glowRef={monitorLift}
             rim={screenDark ? BEZEL_GLOW_DARK : BEZEL_GLOW}
-            reducedMotion={reducedMotion}
           />
           <BentPanel
             width={2.105}
@@ -683,9 +706,7 @@ export const Desk = memo(function Desk({
             screen
             waking={waking}
             sleeping={sleeping}
-            glow={monitorHover ? 1 : 0}
-            pulseAt={monitorPulse}
-            reducedMotion={reducedMotion}
+            glowRef={monitorLift}
           />
           <Label
             text="LG"

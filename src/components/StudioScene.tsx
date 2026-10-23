@@ -87,6 +87,8 @@ type SceneProps = {
   onIntroComplete: () => void;
   screenDark: boolean;
   locale: Locale;
+  monitorUsed: boolean;
+  controllerUsed: boolean;
 };
 
 function CameraRig({
@@ -481,6 +483,8 @@ export default function StudioScene(props: SceneProps) {
             screenDark={props.screenDark}
             locale={props.locale}
             attentive={props.mode === "room"}
+            monitorUsed={props.monitorUsed}
+            controllerUsed={props.controllerUsed}
           />
           <SaylChair />
           <ContactShadows
