@@ -25,21 +25,23 @@ import {
   Languages,
 } from "lucide-react";
 import { folders, profile, type FolderId } from "@/lib/content";
-import { useLocale, type Localized } from "@/lib/i18n";
+import { useLocale, type Locale, type Localized } from "@/lib/i18n";
 import LanguageToggle from "./LanguageToggle";
 import PortfolioContent from "./PortfolioContent";
 
-// Desktop chrome copy. Folder names come from `folders` in content.ts.
-const strings = {
+// Desktop chrome copy. Folder names come from `folders` in content.ts. The
+// monitor's painted screen (desk/screenTexture.ts) reads the same strings.
+export const strings = {
   desktop: {
     en: "Interactive portfolio desktop",
     es: "Escritorio interactivo del portafolio",
   },
   menu: { en: "Desktop menu", es: "Menú del escritorio" },
-  aboutFredy: { en: "About Fredy", es: "Sobre Fredy" },
+  aboutWorkspace: {
+    en: "About this workspace",
+    es: "Acerca de este espacio",
+  },
   finder: { en: "Finder", es: "Finder" },
-  file: { en: "File", es: "Archivo" },
-  go: { en: "Go", es: "Ir" },
   contact: { en: "Contact", es: "Contacto" },
   searchFiles: {
     en: "Search portfolio files",
@@ -101,6 +103,38 @@ const strings = {
     es: "No se encontraron archivos. Prueba con “proyectos” o “sobre mí”.",
   },
   dock: { en: "Application dock", es: "Dock de aplicaciones" },
+  // The Apple menu's "About this workspace" panel. The title reuses
+  // `workspace`; versions are the majors in package.json.
+  aboutSubtitle: { en: "Portfolio · 2026", es: "Portafolio · 2026" },
+  aboutSpecs: {
+    en: [
+      ["Framework", "Next.js 16 · React 19"],
+      ["Language", "TypeScript 5"],
+      ["3D", "three.js · React Three Fiber · drei"],
+      ["Styling", "Plain CSS"],
+      ["Tooling", "pnpm · Vercel"],
+      ["Models", "Fable 5.1 · GPT-6 Astra"],
+    ],
+    es: [
+      ["Framework", "Next.js 16 · React 19"],
+      ["Lenguaje", "TypeScript 5"],
+      ["3D", "three.js · React Three Fiber · drei"],
+      ["Estilos", "CSS puro"],
+      ["Herramientas", "pnpm · Vercel"],
+      ["Modelos", "Fable 5.1 · GPT-6 Astra"],
+    ],
+  },
+  moreInfo: { en: "More Info…", es: "Más información…" },
+  moreInfoLabel: {
+    en: "More info: the project's source on GitHub (opens in a new tab)",
+    es: "Más información: el código del proyecto en GitHub (abre en una pestaña nueva)",
+  },
+  madeInHonduras: {
+    en: "Made with care in Honduras.",
+    es: "Hecho con cariño en Honduras.",
+  },
+  copyright: { en: "© 2026 Fredy Maldonado.", es: "© 2026 Fredy Maldonado." },
+  closeAbout: { en: "Close", es: "Cerrar" },
 } satisfies Record<string, Localized<unknown>>;
 
 // The Finder window lists every desktop item; it is a window but not a
@@ -147,13 +181,64 @@ export function FileIcon({
   );
 }
 
+// Shared with the painted monitor screen (desk/screenTexture.ts).
+export const appleMarkPath =
+  "M14.5.6c.2 2-1.5 4.1-3.6 4.2-.4-1.9 1.6-4 3.6-4.2ZM18.9 17.4c-.5 1.3-.8 1.9-1.5 3-1 1.5-2.4 3.3-4.1 3.3-1.5 0-1.9-1-4-1s-2.5 1-4 1c-1.7 0-3-1.6-4-3.2C-1.4 16 .1 9.2 3.3 7.3c2.2-1.3 4.4-.8 5.8-.2 1.1.5 1.5.5 2.5 0 1.6-.7 4.2-1.3 6.3.8-4.4 2.4-3.7 8.2 1 9.5Z";
+export const finderIcon = {
+  face: "M10 1h28a9 9 0 0 1 9 9v28a9 9 0 0 1-9 9H10a9 9 0 0 1-9-9V10a9 9 0 0 1 9-9Z",
+  light: "M27 1h11a9 9 0 0 1 9 9v28a9 9 0 0 1-9 9H25c-2-8-1-14 0-19h-7l9-27Z",
+  smile: "M12 32c8 6 17 6 25-1M14 15v5M34 15v5",
+};
+
 function AppleMark() {
   return (
     <svg viewBox="0 0 20 24" width="14" height="17" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M14.5.6c.2 2-1.5 4.1-3.6 4.2-.4-1.9 1.6-4 3.6-4.2ZM18.9 17.4c-.5 1.3-.8 1.9-1.5 3-1 1.5-2.4 3.3-4.1 3.3-1.5 0-1.9-1-4-1s-2.5 1-4 1c-1.7 0-3-1.6-4-3.2C-1.4 16 .1 9.2 3.3 7.3c2.2-1.3 4.4-.8 5.8-.2 1.1.5 1.5.5 2.5 0 1.6-.7 4.2-1.3 6.3.8-4.4 2.4-3.7 8.2 1 9.5Z"
+      <path fill="currentColor" d={appleMarkPath} />
+    </svg>
+  );
+}
+
+const repoUrl = "https://github.com/rafatafon/3D-portfolio";
+
+// A small laptop for the About panel: dark lid, blue screen, light base.
+function LaptopIllustration() {
+  return (
+    <svg
+      className="about-laptop"
+      viewBox="0 0 120 76"
+      width="120"
+      height="76"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="about-screen" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#6cb2f3" />
+          <stop offset="1" stopColor="#3f88dc" />
+        </linearGradient>
+        <linearGradient id="about-base" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#e4e5e9" />
+          <stop offset="1" stopColor="#9c9ea5" />
+        </linearGradient>
+      </defs>
+      <rect x="15" y="3" width="90" height="62" rx="4" fill="#161618" />
+      <rect
+        x="18"
+        y="6"
+        width="84"
+        height="56"
+        rx="1.5"
+        fill="url(#about-screen)"
       />
+      <rect x="55" y="6" width="10" height="2.4" rx="1" fill="#161618" />
+      <path
+        d="M3 65h114v2.6c0 1.9-1.6 3.4-3.5 3.4H6.5C4.6 71 3 69.5 3 67.6Z"
+        fill="url(#about-base)"
+      />
+      <path
+        d="M52 65h16c0 1.3-1 2-2.2 2h-11.6c-1.2 0-2.2-.7-2.2-2Z"
+        fill="#8d8f96"
+      />
+      <rect x="3" y="65" width="114" height="0.8" fill="#f7f7f9" />
     </svg>
   );
 }
@@ -163,16 +248,10 @@ function DockIcon({ id }: { id: WindowId }) {
     return (
       <span className="app-icon finder-app" aria-hidden="true">
         <svg viewBox="0 0 48 48">
+          <path fill="#6dcaff" d={finderIcon.face} />
+          <path fill="#d5efff" d={finderIcon.light} />
           <path
-            fill="#6dcaff"
-            d="M10 1h28a9 9 0 0 1 9 9v28a9 9 0 0 1-9 9H10a9 9 0 0 1-9-9V10a9 9 0 0 1 9-9Z"
-          />
-          <path
-            fill="#d5efff"
-            d="M27 1h11a9 9 0 0 1 9 9v28a9 9 0 0 1-9 9H25c-2-8-1-14 0-19h-7l9-27Z"
-          />
-          <path
-            d="M12 32c8 6 17 6 25-1M14 15v5M34 15v5"
+            d={finderIcon.smile}
             fill="none"
             stroke="#17395c"
             strokeWidth="2"
@@ -217,24 +296,24 @@ function DockIcon({ id }: { id: WindowId }) {
   );
 }
 
+// toLocaleTimeString keeps the date fields it is given, so the menubar
+// reads "Thu, Oct 22, 3:45 PM" / "jue, 22 oct, 3:45 p. m.".
+export function formatLocalTime(locale: Locale, date = false) {
+  return new Date().toLocaleTimeString(locale === "es" ? "es-HN" : "en-US", {
+    timeZone: "America/Tegucigalpa",
+    ...(date
+      ? ({ weekday: "short", month: "short", day: "numeric" } as const)
+      : {}),
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 export function LocalTime({ date = false }: { date?: boolean }) {
   const { locale } = useLocale();
   const [time, setTime] = useState("");
   useEffect(() => {
-    const tag = locale === "es" ? "es-HN" : "en-US";
-    // toLocaleTimeString keeps the date fields it is given, so the menubar
-    // reads "Thu, Oct 22, 3:45 PM" / "jue, 22 oct, 3:45 p. m.".
-    const tick = () =>
-      setTime(
-        new Date().toLocaleTimeString(tag, {
-          timeZone: "America/Tegucigalpa",
-          ...(date
-            ? ({ weekday: "short", month: "short", day: "numeric" } as const)
-            : {}),
-          hour: "numeric",
-          minute: "2-digit",
-        }),
-      );
+    const tick = () => setTime(formatLocalTime(locale, date));
     tick();
     const interval = setInterval(tick, 30000);
     return () => clearInterval(interval);
@@ -250,6 +329,39 @@ type OpenWindow = {
   y: number;
   order: number;
 };
+// Desktop files: the five folders plus the résumé link.
+type FileId = FolderId | "resume";
+type Offset = { x: number; y: number };
+// Offset ranges for one drag, in the same (viewport) space as the pointer.
+type Bounds = { minX: number; maxX: number; minY: number; maxY: number };
+type DragTarget =
+  | { kind: "window"; id: WindowId }
+  | { kind: "about" }
+  | { kind: "file"; id: FileId };
+// A press on a desktop file becomes a drag only past this distance, so a tap
+// or click still opens it.
+const FILE_DRAG_SLOP = 6;
+
+// Offset ranges that keep an element (currently at `offset`) inside `area`.
+// The current offset always stays inside the range, so a drag never jumps.
+function boundsWithin(
+  element: HTMLElement,
+  offset: Offset,
+  area: { left: number; top: number; right: number; bottom: number },
+): Bounds {
+  const rect = element.getBoundingClientRect();
+  const baseLeft = rect.left - offset.x;
+  const baseTop = rect.top - offset.y;
+  const minX = Math.min(offset.x, area.left - baseLeft);
+  const minY = Math.min(offset.y, area.top - baseTop);
+  return {
+    minX,
+    maxX: Math.max(minX, offset.x, area.right - rect.width - baseLeft),
+    minY,
+    maxY: Math.max(minY, offset.y, area.bottom - rect.height - baseTop),
+  };
+}
+
 // Matches the phone media query in globals.css.
 const PHONE_QUERY = "(max-width: 720px)";
 const isPhone = () => window.matchMedia(PHONE_QUERY).matches;
@@ -292,18 +404,34 @@ export default function Desktop({
   const [dark, setDark] = useState(!daylight);
   const [controlCenter, setControlCenter] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const order = useRef(1);
+  const appleRef = useRef<HTMLButtonElement>(null);
+  const aboutRef = useRef<HTMLDivElement>(null);
   const desktopRef = useRef<HTMLElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  // One drag mechanism for windows, the About panel, and desktop files.
   const drag = useRef<{
-    id: WindowId;
+    target: DragTarget;
     startX: number;
     startY: number;
     x: number;
     y: number;
-    // Phones clamp against the measured layout (offset ranges for x and y).
-    bounds?: { minX: number; maxX: number; minY: number; maxY: number };
+    // Windows on phones, the About panel, and files clamp against the
+    // measured layout (offset ranges for x and y).
+    bounds?: Bounds;
+    // Files only count as dragged once past FILE_DRAG_SLOP.
+    moved: boolean;
   } | null>(null);
+  // "about" or "file-<id>" while that element is being dragged.
+  const [dragging, setDragging] = useState<string | null>(null);
+  const [aboutOffset, setAboutOffset] = useState<Offset>({ x: 0, y: 0 });
+  // Files the visitor moved, as offsets from their default slot.
+  const [fileOffsets, setFileOffsets] = useState<
+    Partial<Record<FileId, Offset>>
+  >({});
+  // Set when a file drag ends, so the click that follows does not open it.
+  const suppressClick = useRef(false);
   const active = [...windows]
     .filter((w) => !w.minimized)
     .sort((a, b) => b.order - a.order)[0]?.id;
@@ -346,6 +474,39 @@ export default function Desktop({
     setQuery("");
   }, []);
 
+  // Closing from the keyboard or the panel's own controls hands focus back to
+  // the Apple mark; an outside click leaves focus where the pointer put it.
+  const closeAbout = useCallback((restoreFocus = true) => {
+    setAboutOpen(false);
+    if (restoreFocus) appleRef.current?.focus({ preventScroll: true });
+  }, []);
+  function toggleAbout() {
+    if (aboutOpen) {
+      closeAbout();
+      return;
+    }
+    setControlCenter(false);
+    setSearchOpen(false);
+    // Reopening always starts centred.
+    setAboutOffset({ x: 0, y: 0 });
+    setAboutOpen(true);
+  }
+  useEffect(() => {
+    if (!aboutOpen) return;
+    aboutRef.current?.focus({ preventScroll: true });
+    const handlePointer = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (
+        aboutRef.current?.contains(target) ||
+        appleRef.current?.contains(target)
+      )
+        return;
+      closeAbout(false);
+    };
+    document.addEventListener("pointerdown", handlePointer);
+    return () => document.removeEventListener("pointerdown", handlePointer);
+  }, [aboutOpen, closeAbout]);
+
   function closeWindow(id: WindowId) {
     setWindows((previous) => previous.filter((w) => w.id !== id));
   }
@@ -367,10 +528,12 @@ export default function Desktop({
     const handleKey = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
+        setAboutOpen(false);
         setSearchOpen((value) => !value);
       }
       if (event.key === "Escape") {
-        if (controlCenter) setControlCenter(false);
+        if (aboutOpen) closeAbout();
+        else if (controlCenter) setControlCenter(false);
         else if (searchOpen) setSearchOpen(false);
         else if (active)
           setWindows((previous) => previous.filter((w) => w.id !== active));
@@ -395,14 +558,14 @@ export default function Desktop({
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [active, searchOpen, controlCenter]);
+  }, [active, searchOpen, controlCenter, aboutOpen, closeAbout]);
 
   function startDrag(event: React.PointerEvent<HTMLElement>, item: OpenWindow) {
     if (item.maximized || (event.target as HTMLElement).closest("button"))
       return;
     event.currentTarget.setPointerCapture(event.pointerId);
     drag.current = {
-      id: item.id,
+      target: { kind: "window", id: item.id },
       startX: event.clientX,
       startY: event.clientY,
       x: item.x,
@@ -410,8 +573,72 @@ export default function Desktop({
       bounds: isPhone()
         ? phoneDragBounds(event.currentTarget, item)
         : undefined,
+      moved: true,
     };
     focusWindow(item.id);
+  }
+  // The free desktop in viewport space: under the menubar, above the Dock,
+  // inside the side edges, inset by `margin`.
+  function desktopArea(margin: number) {
+    const desktop = desktopRef.current!;
+    const box = desktop.getBoundingClientRect();
+    const menubar = desktop.querySelector<HTMLElement>(".menubar");
+    const dock = desktop
+      .querySelector<HTMLElement>(".desktop-bottom .dock")
+      ?.getBoundingClientRect();
+    return {
+      left: box.left + margin,
+      top: (menubar?.getBoundingClientRect().bottom ?? box.top) + margin,
+      right: box.right - margin,
+      bottom:
+        (dock && dock.height > 0
+          ? Math.min(dock.top, box.bottom)
+          : box.bottom) - margin,
+    };
+  }
+  // The About panel drags by its top (traffic lights, illustration, title),
+  // never from the close button.
+  function startAboutDrag(event: React.PointerEvent<HTMLElement>) {
+    if (event.button !== 0 || (event.target as HTMLElement).closest("button"))
+      return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    drag.current = {
+      target: { kind: "about" },
+      startX: event.clientX,
+      startY: event.clientY,
+      x: aboutOffset.x,
+      y: aboutOffset.y,
+      bounds: boundsWithin(aboutRef.current!, aboutOffset, desktopArea(8)),
+      moved: true,
+    };
+    setDragging("about");
+  }
+  function startFileDrag(event: React.PointerEvent<HTMLElement>, id: FileId) {
+    if (event.button !== 0) return;
+    suppressClick.current = false;
+    const offset = fileOffsets[id] ?? { x: 0, y: 0 };
+    event.currentTarget.setPointerCapture(event.pointerId);
+    drag.current = {
+      target: { kind: "file", id },
+      startX: event.clientX,
+      startY: event.clientY,
+      x: offset.x,
+      y: offset.y,
+      bounds: boundsWithin(event.currentTarget, offset, desktopArea(4)),
+      moved: false,
+    };
+  }
+  function endDrag() {
+    const current = drag.current;
+    drag.current = null;
+    setDragging(null);
+    if (current?.target.kind !== "file" || !current.moved) return;
+    // A mouse click follows pointerup in the same task; a touch drag never
+    // produces one. Either way the flag must not outlive this gesture.
+    suppressClick.current = true;
+    setTimeout(() => {
+      suppressClick.current = false;
+    }, 0);
   }
   // Phones keep the whole window in view: an 8px margin on both sides, the
   // title bar under the menubar, and the bottom edge 8px above the Dock.
@@ -440,8 +667,18 @@ export default function Desktop({
     };
   }
   function moveDrag(event: React.PointerEvent<HTMLElement>) {
-    if (!drag.current) return;
-    const { id, startX, startY, x, y, bounds } = drag.current;
+    const current = drag.current;
+    if (!current) return;
+    const { target, startX, startY, x, y, bounds } = current;
+    if (!current.moved) {
+      if (
+        Math.hypot(event.clientX - startX, event.clientY - startY) <
+        FILE_DRAG_SLOP
+      )
+        return;
+      current.moved = true;
+      if (target.kind === "file") setDragging(`file-${target.id}`);
+    }
     const {
       minX = -window.innerWidth * 0.13,
       maxX = window.innerWidth * 0.4,
@@ -450,9 +687,38 @@ export default function Desktop({
     } = bounds ?? {};
     const nextX = Math.max(minX, Math.min(maxX, x + event.clientX - startX));
     const nextY = Math.max(minY, Math.min(maxY, y + event.clientY - startY));
-    setWindows((previous) =>
-      previous.map((w) => (w.id === id ? { ...w, x: nextX, y: nextY } : w)),
-    );
+    if (target.kind === "about") setAboutOffset({ x: nextX, y: nextY });
+    else if (target.kind === "file")
+      setFileOffsets((previous) => ({
+        ...previous,
+        [target.id]: { x: nextX, y: nextY },
+      }));
+    else
+      setWindows((previous) =>
+        previous.map((w) =>
+          w.id === target.id ? { ...w, x: nextX, y: nextY } : w,
+        ),
+      );
+  }
+  // Pointer handlers and placement shared by every desktop file.
+  function fileProps(id: FileId) {
+    const offset = fileOffsets[id];
+    return {
+      className: `desktop-file${id === "resume" ? " desktop-file-resume" : ""}${offset ? " desktop-file-moved" : ""}${dragging === `file-${id}` ? " dragging" : ""}`,
+      style: offset
+        ? ({
+            "--file-x": `${offset.x}px`,
+            "--file-y": `${offset.y}px`,
+          } as React.CSSProperties)
+        : undefined,
+      draggable: false,
+      onDragStart: (event: React.DragEvent) => event.preventDefault(),
+      onPointerDown: (event: React.PointerEvent<HTMLElement>) =>
+        startFileDrag(event, id),
+      onPointerMove: moveDrag,
+      onPointerUp: endDrag,
+      onPointerCancel: endDrag,
+    };
   }
 
   return (
@@ -466,19 +732,18 @@ export default function Desktop({
       <nav className="menubar" aria-label={t(strings.menu)}>
         <div className="menu-left">
           <button
+            ref={appleRef}
             className="desktop-brand"
-            onClick={() => openFolder("about")}
-            aria-label={t(strings.aboutFredy)}
+            onClick={toggleAbout}
+            aria-label={t(strings.aboutWorkspace)}
+            aria-haspopup="dialog"
+            aria-expanded={aboutOpen}
           >
             <AppleMark />
           </button>
           <button className="finder-menu" onClick={() => openFolder("finder")}>
             {t(strings.finder)}
           </button>
-          <button onClick={() => openFolder("projects")}>
-            {t(strings.file)}
-          </button>
-          <button onClick={() => openFolder("writing")}>{t(strings.go)}</button>
           <button onClick={() => openFolder("contact")}>
             {t(strings.contact)}
           </button>
@@ -486,7 +751,10 @@ export default function Desktop({
         <div className="menu-right">
           <button
             aria-label={t(strings.searchFiles)}
-            onClick={() => setSearchOpen((v) => !v)}
+            onClick={() => {
+              setAboutOpen(false);
+              setSearchOpen((v) => !v);
+            }}
           >
             <Search size={14} />
           </button>
@@ -497,7 +765,10 @@ export default function Desktop({
           <button
             aria-label={t(strings.displaySettings)}
             aria-expanded={controlCenter}
-            onClick={() => setControlCenter((v) => !v)}
+            onClick={() => {
+              setAboutOpen(false);
+              setControlCenter((v) => !v);
+            }}
           >
             <SlidersHorizontal size={15} />
           </button>
@@ -505,6 +776,68 @@ export default function Desktop({
         </div>
       </nav>
 
+      {aboutOpen && (
+        <div className="about-layer">
+          <div
+            ref={aboutRef}
+            className={`about-workspace${dragging === "about" ? " dragging" : ""}`}
+            role="dialog"
+            aria-labelledby="about-workspace-title"
+            tabIndex={-1}
+            style={
+              {
+                "--about-x": `${aboutOffset.x}px`,
+                "--about-y": `${aboutOffset.y}px`,
+              } as React.CSSProperties
+            }
+          >
+            <div
+              className="about-handle"
+              onPointerDown={startAboutDrag}
+              onPointerMove={moveDrag}
+              onPointerUp={endDrag}
+              onPointerCancel={endDrag}
+            >
+              <div className="about-lights">
+                <button
+                  className="close-light"
+                  aria-label={t(strings.closeAbout)}
+                  onClick={() => closeAbout()}
+                >
+                  <X size={8} strokeWidth={3} />
+                </button>
+                <span aria-hidden="true" />
+                <span aria-hidden="true" />
+              </div>
+              <LaptopIllustration />
+              <h2 id="about-workspace-title">{t(strings.workspace)}</h2>
+              <p className="about-subtitle">{t(strings.aboutSubtitle)}</p>
+            </div>
+            <dl className="about-specs">
+              {t(strings.aboutSpecs).map(([label, value]) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </div>
+              ))}
+            </dl>
+            <a
+              className="about-more"
+              href={repoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={t(strings.moreInfoLabel)}
+            >
+              {t(strings.moreInfo)}
+            </a>
+            <p className="about-fineprint">
+              {t(strings.madeInHonduras)}
+              <br />
+              {t(strings.copyright)}
+            </p>
+          </div>
+        </div>
+      )}
       {controlCenter && (
         <div
           className="control-center"
@@ -529,11 +862,21 @@ export default function Desktop({
           </button>
         </div>
       )}
-      <div className="desktop-files" aria-label={t(strings.portfolioFiles)}>
+      <div
+        className="desktop-files"
+        aria-label={t(strings.portfolioFiles)}
+        onClickCapture={(event) => {
+          // A completed drag neither opens the folder nor follows the link.
+          if (!suppressClick.current) return;
+          suppressClick.current = false;
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+      >
         {folders.map((folder) => (
           <button
-            className="desktop-file"
             key={folder.id}
+            {...fileProps(folder.id)}
             onClick={() => openFolder(folder.id)}
             aria-label={t(strings.open)(t(folder.name))}
           >
@@ -542,7 +885,7 @@ export default function Desktop({
           </button>
         ))}
         <a
-          className="desktop-file desktop-file-resume"
+          {...fileProps("resume")}
           href={profile.cv}
           target="_blank"
           rel="noopener noreferrer"
@@ -581,12 +924,8 @@ export default function Desktop({
                 className="window-toolbar"
                 onPointerDown={(event) => startDrag(event, item)}
                 onPointerMove={moveDrag}
-                onPointerUp={() => {
-                  drag.current = null;
-                }}
-                onPointerCancel={() => {
-                  drag.current = null;
-                }}
+                onPointerUp={endDrag}
+                onPointerCancel={endDrag}
                 onDoubleClick={(event) => {
                   if (!(event.target as HTMLElement).closest("button"))
                     toggleMaximize(item.id);
@@ -719,7 +1058,7 @@ export default function Desktop({
               </div>
               <footer className="window-status">
                 <Folder size={11} />
-                <span>Fredy Maldonado</span>
+                <span>{profile.name}</span>
                 <ChevronRight size={10} />
                 <span>{windowName(item.id)}</span>
                 <span className="window-status-end">

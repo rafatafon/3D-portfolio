@@ -22,7 +22,8 @@ import {
 import { useLocale, type Localized } from "@/lib/i18n";
 
 // The windows' own interface copy; the portfolio facts live in content.ts.
-const copy = {
+// The monitor's painted screen (desk/screenTexture.ts) reads it too.
+export const copy = {
   aboutEyebrow: { en: "A little introduction", es: "Una breve presentación" },
   locationNote: {
     en: "Honduras · Open to remote collaborations",
