@@ -3758,11 +3758,16 @@ a svg {
   color: var(--finder-muted);
 }
 .about-specs {
+  /* Labels right-aligned against the gap, values left, and the pair sized to
+     its content so the whole block sits centred in the card rather than
+     hugging its left edge. */
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: max-content minmax(0, max-content);
   column-gap: 9px;
   row-gap: 4px;
-  margin: 0 0 18px;
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto 18px;
   text-align: left;
   line-height: 1.35;
 }
@@ -3776,6 +3781,7 @@ a svg {
 .about-specs dd {
   margin: 0;
   color: var(--finder-muted);
+  overflow-wrap: anywhere;
 }
 .about-more {
   display: inline-block;
