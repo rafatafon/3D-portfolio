@@ -3011,6 +3011,7 @@ a svg {
   .intro-heading,
   .enter-desktop,
   .room-dock,
+  .language-toggle-room,
   .panel-toggle {
     transition-delay: 0s !important;
   }
@@ -3580,6 +3581,21 @@ a svg {
   top: calc(var(--edge-y) + 3px);
   right: var(--edge);
   z-index: 4;
+  /* Leaves with the side panel, up and out of the top edge on every size,
+     on the panel's easing, and comes back with it. */
+  transition:
+    transform var(--panel-time) var(--panel-ease),
+    opacity calc(var(--panel-time) * 0.7) var(--panel-ease),
+    visibility 0s linear 0s;
+}
+.panel-hidden .language-toggle-room {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(calc(-100% - 30px));
+  transition:
+    transform var(--panel-time) var(--panel-ease),
+    opacity calc(var(--panel-time) * 0.7) var(--panel-ease),
+    visibility 0s linear 0.7s;
 }
 @media (max-width: 720px) {
   .language-toggle-room {

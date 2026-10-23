@@ -753,7 +753,7 @@ export default function Workspace() {
           )}
           <span className="made-with-care">{t(room.welcome)}</span>
         </footer>
-        <LanguageToggle className="language-toggle-room" />
+        <LanguageToggle className="language-toggle-room" inert={panelHidden} />
       </div>
       <div className="transition-shade" aria-hidden="true" />
       <div

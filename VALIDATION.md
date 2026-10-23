@@ -200,3 +200,8 @@ Screenshots from the checks are in `.playwright-mcp/` (ignored local artifacts).
 ## Skip intro removed — 2026-10-22
 
 - The "Skip intro" button is gone, with its strings and styles; the intro always plays through once per session. Reduced motion, a failed renderer, and the session flag still collapse it as before. Checked headless in Chrome at 1440 × 900: no `.skip-intro` element during loading or intro, the room arrives on its own after the glide, and no page or console errors; `pnpm typecheck`, the Prettier check, and `pnpm build` pass.
+
+## Language toggle follows the panel — 2026-10-22
+
+- The room's EN/ES toggle now collapses with the side panel on every size: it slides up and out of the top edge and fades on the panel's easing and timing (`--panel-time` / `--panel-ease`, visibility delayed until the fade ends), returns the same way, and is `inert` while hidden. Reduced motion drops the delays like the other panel items.
+- Checked headless in Chrome at 1440 × 900 and 390 × 844 (touch): 150 ms after collapsing, the toggle is at opacity 0.12 and already above its resting position; at rest it is `visibility: hidden`, opacity 0, off the top edge, and inert; 150 ms after expanding it is at opacity 0.84–0.88 on its way back, and it settles visible at its original position. No page or console errors; `pnpm typecheck`, the Prettier check, and `pnpm build` pass.

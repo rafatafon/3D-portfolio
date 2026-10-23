@@ -12,8 +12,11 @@ const names = { en: "English", es: "Español" } as const;
 // crossfade" in globals.css.
 export default function LanguageToggle({
   className = "",
+  inert = false,
 }: {
   className?: string;
+  // The room's toggle hides with the side panel; keep it out of reach then.
+  inert?: boolean;
 }) {
   const { target, setLocale } = useLocale();
   return (
@@ -21,6 +24,7 @@ export default function LanguageToggle({
       className={`language-toggle ${className}`.trim()}
       role="group"
       aria-label={target === "es" ? "Idioma" : "Language"}
+      inert={inert}
       style={{ "--lang-index": locales.indexOf(target) } as CSSProperties}
     >
       <span className="language-toggle-thumb" aria-hidden="true" />
