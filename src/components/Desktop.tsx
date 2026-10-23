@@ -243,17 +243,19 @@ function LaptopIllustration() {
   );
 }
 
+// Icon colours live in CSS (`--ic-*` custom properties) so the Dark
+// appearance can ease them; see "Dark icon style" in globals.css.
 function DockIcon({ id }: { id: WindowId }) {
   if (id === "finder")
     return (
       <span className="app-icon finder-app" aria-hidden="true">
         <svg viewBox="0 0 48 48">
-          <path fill="#6dcaff" d={finderIcon.face} />
-          <path fill="#d5efff" d={finderIcon.light} />
+          <path className="finder-face" d={finderIcon.face} />
+          <path className="finder-light" d={finderIcon.light} />
           <path
+            className="finder-smile"
             d={finderIcon.smile}
             fill="none"
-            stroke="#17395c"
             strokeWidth="2"
             strokeLinecap="round"
           />
@@ -283,7 +285,7 @@ function DockIcon({ id }: { id: WindowId }) {
   if (id === "experience")
     return (
       <span className="app-icon files-app" aria-hidden="true">
-        <Folder size={33} fill="#95d2ff" strokeWidth={0.8} />
+        <Folder size={33} strokeWidth={0.8} />
       </span>
     );
   return (
