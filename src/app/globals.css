@@ -3028,6 +3028,25 @@ a svg {
   .panel-toggle {
     transition-delay: 0s !important;
   }
+  /* The fixed Explore button leaves with the dock, down and out, and comes
+     back with it. */
+  .enter-desktop {
+    transition:
+      background 0.2s,
+      transform var(--panel-time) var(--panel-ease),
+      opacity calc(var(--panel-time) * 0.7) var(--panel-ease),
+      visibility 0s linear 0s;
+  }
+  .panel-hidden .enter-desktop {
+    visibility: hidden;
+    opacity: 0;
+    transform: translate(-50%, 56px);
+    transition:
+      background 0.2s,
+      transform var(--panel-time) var(--panel-ease),
+      opacity calc(var(--panel-time) * 0.7) var(--panel-ease),
+      visibility 0s linear 0.7s;
+  }
 }
 
 /* Desk height keypad: a dark controller with an LED readout, bottom-centre
@@ -3037,6 +3056,7 @@ a svg {
   position: absolute;
   left: 50%;
   bottom: calc(var(--edge-y) + 44px);
+  .enter-desktop,
   --remote-base: translate(-50%, 0);
   z-index: 4;
   display: flex;

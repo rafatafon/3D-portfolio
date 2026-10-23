@@ -253,11 +253,11 @@ export default function Workspace() {
 
   useEffect(() => {
     // Focus once the room is rendered: the overlay is inert until then. A
-    // collapsed desktop panel hides the Explore button, so use the toggle.
+    // collapsed panel hides the Explore button, so use the toggle.
     if (mode !== "room" || !returnFocus.current) return;
     returnFocus.current = false;
-    (panelHidden && !compact ? panelToggle : entryButton).current?.focus();
-  }, [mode, panelHidden, compact]);
+    (panelHidden ? panelToggle : entryButton).current?.focus();
+  }, [mode, panelHidden]);
 
   const onHeight = useCallback((cm: number, moving: boolean) => {
     liveRef.current = cm;
@@ -471,7 +471,7 @@ export default function Workspace() {
             ref={entryButton}
             className="enter-desktop"
             onClick={() => enter()}
-            inert={panelHidden && !compact}
+            inert={panelHidden}
           >
             <Monitor size={17} />
             <span>Explore my desktop</span>
