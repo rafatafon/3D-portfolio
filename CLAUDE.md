@@ -25,7 +25,8 @@ CI (`.github/workflows/ci.yml`) runs typecheck, the Prettier check, and the buil
 
 **Two routes, one content source.**
 - `/` → `src/components/Workspace.tsx` (client): 3D scene + HTML desktop. The `noscript` fallback is plain text; there is no readable fallback route (the former `/portfolio` page was removed deliberately and must not come back).
-- `/writing/[slug]` → static article pages (`dynamicParams = false`), opened from the desktop's Notes and linking back to `/`.
+- `/writing/[slug]` → static article pages (`dynamicParams = false`), opened from the desktop's Notes (each note also links to its page) and linking back to `/`.
+- Search and sharing: `src/lib/seo.ts` holds the canonical origin, site titles, essay excerpts, and the schema.org JSON-LD builders; `src/app/robots.ts` and `sitemap.ts` serve `robots.txt` and `sitemap.xml` (home plus every essay, so new articles appear automatically); `src/app/opengraph-image.tsx` generates the share card at build time; `JsonLd.tsx` injects structured data. Page metadata uses the root layout's title template (`%s — Fredy Maldonado`) and each page sets its own canonical. Keep `siteUrl` in step with the domain.
 
 All copy lives in `src/lib/content.ts` (profile, projects, experience, skills, `folders`) and `src/lib/writing.json` (articles as a `{tag, children}` node tree rendered by `ArticleBody.tsx` through a tag allowlist). Every surface reads from these two files; edit content there, not in components.
 

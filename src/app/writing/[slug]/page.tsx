@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { Metadata } from "next";
+import type { Metadata, ResolvingMetadata } from "next";
 import { writing } from "@/lib/writing";
+import { articleJsonLd, excerpt, siteName, xHandle } from "@/lib/seo";
 import ArticleBody from "@/components/ArticleBody";
+import JsonLd from "@/components/JsonLd";
 
 type Props = { params: Promise<{ slug: string }> };
 export const dynamicParams = false;
@@ -11,11 +13,40 @@ export function generateStaticParams() {
   return writing.map(({ slug }) => ({ slug }));
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+// The share image comes from the root layout's opengraph-image.tsx; a
+// segment's own openGraph object replaces the parent's, so the images are
+// carried over explicitly.
+export async function generateMetadata(
+  { params }: Props,
+  parent: ResolvingMetadata,
+): Promise<Metadata> {
   const { slug } = await params;
   const article = writing.find((item) => item.slug === slug);
+  if (!article) return { title: "Note not found" };
+  const description = excerpt(article);
+  const url = `/writing/${article.slug}`;
+  const images = (await parent).openGraph?.images ?? [];
   return {
-    title: article ? `${article.name} — Fredy Maldonado` : "Note not found",
+    title: article.name,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "article",
+      url,
+      siteName,
+      locale: "en_US",
+      title: article.name,
+      description,
+      publishedTime: article.isoDate,
+      authors: ["Fredy Maldonado"],
+      images,
+    },
+    twitter: {
+      card: "summary_large_image",
+      creator: xHandle,
+      title: article.name,
+      description,
+    },
   };
 }
 
@@ -25,6 +56,7 @@ export default async function WritingPage({ params }: Props) {
   if (!article) notFound();
   return (
     <main className="readable-portfolio readable-note">
+      <JsonLd data={articleJsonLd(article)} />
       <nav>
         <Link className="wordmark" href="/">
           fm.
