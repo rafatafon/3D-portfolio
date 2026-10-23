@@ -71,6 +71,8 @@ The hardware is original procedural geometry, not manufacturer CAD or copied por
 
 Production is deployed on Vercel from `main` and served at https://fredymaldonado.com; `www.fredymaldonado.com` redirects to it. The domain moved from the previous Framer site on 2026-10-23, and the four essays' old `/blog/<slug>` URLs redirect permanently to their `/writing/<slug>` pages. Vercel Web Analytics (page views and visitors, no cookies) is mounted in the root layout and reports only from Vercel deployments.
 
+The repository is public. `main` is protected by a ruleset (no deletion or force-push, and the CI check must pass before a merge), secret scanning with push protection is on, Dependabot sends grouped minor and patch updates, and vulnerabilities can be reported privately (see `SECURITY.md`).
+
 For search engines the site serves `robots.txt` and `sitemap.xml` (the home page and the four essays), every page carries a canonical URL, Open Graph and X card tags, and a generated share image, the home page describes its owner with schema.org `Person` and `WebSite` data, and each essay page is a `BlogPosting`. Each note in the desktop links to its own `/writing/<slug>` page, so crawlers can reach the essays from the home page.
 
 ## License

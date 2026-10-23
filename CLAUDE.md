@@ -19,7 +19,7 @@ pnpm dlx prettier@3.6.2 --write src   # source follows Prettier 3.6.2 defaults; 
 ```
 
 The package manager is pnpm, pinned under `packageManager` in `package.json`; `pnpm-lock.yaml` is the only lockfile, so do not add a `package-lock.json`. There is no test runner or lint script. Verification is `typecheck` + `build`, then a browser pass over the flows in `VALIDATION.md`.
-CI (`.github/workflows/ci.yml`) runs typecheck, the Prettier check, and the build on pull requests and pushes to `main`.
+CI (`.github/workflows/ci.yml`) runs typecheck, the Prettier check, and the build on pull requests and pushes to `main`. The repository is public and `main` is protected by a ruleset: no force-push or deletion, and the CI check must pass before a merge, so every change goes through a pull request. Dependabot sends grouped minor and patch updates (majors are upgraded deliberately) and keeps the SHA-pinned actions current.
 
 ## Architecture
 
