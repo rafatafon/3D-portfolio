@@ -37,7 +37,8 @@ pnpm start
 ## Main files
 
 - `src/lib/content.ts`: profile, social links, projects, verified experience, and the résumé path (`public/Fredy-Maldonado-CV.pdf`).
-- `next.config.ts`: permanent redirects from the previous site's `/blog/<slug>` URLs to the `/writing/<slug>` pages.
+- `next.config.ts`: permanent redirects from the previous site's `/blog/<slug>` URLs to the `/writing/<slug>` pages, and the security headers.
+- `src/lib/seo.ts`, `src/app/robots.ts`, `src/app/sitemap.ts`, `src/app/opengraph-image.tsx`, `src/components/JsonLd.tsx`: what search engines and link previews read (canonical URL, titles and snippets, `robots.txt`, `sitemap.xml`, the share card, schema.org data).
 - `src/lib/transitions.ts`: timings and easing for entering and leaving the desktop.
 - `src/lib/i18n.tsx`, `src/lib/strings.ts`, `src/components/LanguageToggle.tsx`: locale provider and hook, room/keypad strings in both languages, and the EN/ES toggle.
 - `src/lib/writing.json`: four complete imported articles, with publication dates and source URLs.
@@ -69,6 +70,8 @@ The hardware is original procedural geometry, not manufacturer CAD or copied por
 ## Deployment
 
 Production is deployed on Vercel from `main` and served at https://fredymaldonado.com; `www.fredymaldonado.com` redirects to it. The domain moved from the previous Framer site on 2026-10-23, and the four essays' old `/blog/<slug>` URLs redirect permanently to their `/writing/<slug>` pages. Vercel Web Analytics (page views and visitors, no cookies) is mounted in the root layout and reports only from Vercel deployments.
+
+For search engines the site serves `robots.txt` and `sitemap.xml` (the home page and the four essays), every page carries a canonical URL, Open Graph and X card tags, and a generated share image, the home page describes its owner with schema.org `Person` and `WebSite` data, and each essay page is a `BlogPosting`. Each note in the desktop links to its own `/writing/<slug>` page, so crawlers can reach the essays from the home page.
 
 ## License
 

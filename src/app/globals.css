@@ -2785,6 +2785,26 @@ a svg {
   font-size: 12px;
   margin: 14px 0 0;
 }
+/* The essay's own page: a crawlable, shareable address for each note. */
+.note-header .note-permalink {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--finder-muted, #686862);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease;
+}
+.note-header .note-permalink:hover,
+.note-header .note-permalink:focus-visible {
+  color: var(--finder-ink, #292824);
+  border-color: currentColor;
+  outline: none;
+}
 .article-prose {
   color: var(--finder-ink, #292824);
   line-height: 1.85;

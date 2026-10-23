@@ -1,5 +1,7 @@
 import Workspace from "@/components/Workspace";
+import JsonLd from "@/components/JsonLd";
 import { LocaleProvider } from "@/lib/i18n";
+import { personJsonLd, websiteJsonLd } from "@/lib/seo";
 
 export default function Home() {
   return (
@@ -7,6 +9,8 @@ export default function Home() {
       <h1 className="sr-only">
         Fredy Maldonado — Software engineer based in Honduras
       </h1>
+      <JsonLd data={personJsonLd} />
+      <JsonLd data={websiteJsonLd} />
       <LocaleProvider>
         <Workspace />
       </LocaleProvider>

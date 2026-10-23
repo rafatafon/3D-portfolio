@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { ArrowLeft, ChevronRight, FileText } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, ChevronRight, FileText } from "lucide-react";
 import { writing } from "@/lib/writing";
 import ArticleBody from "./ArticleBody";
 import { useLocale, type Locale, type Localized } from "@/lib/i18n";
@@ -18,6 +18,7 @@ const copy = {
   backToAll: { en: "Back to all notes", es: "Volver a todas las notas" },
   minRead: { en: "min read", es: "min de lectura" },
   byline: { en: "By Fredy Maldonado", es: "Por Fredy Maldonado" },
+  openPage: { en: "Open as a page", es: "Abrir como página" },
 } satisfies Record<string, Localized>;
 
 // Shown above an opened essay in Spanish mode only.
@@ -78,6 +79,9 @@ export default function Notes() {
               {article.name}
             </h2>
             <p className="note-byline">{t(copy.byline)}</p>
+            <a className="note-permalink" href={`/writing/${article.slug}`}>
+              {t(copy.openPage)} <ArrowUpRight size={14} aria-hidden="true" />
+            </a>
           </header>
           <div lang="en">
             <ArticleBody body={article.body} />

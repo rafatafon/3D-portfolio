@@ -1,17 +1,37 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
+import { profile } from "@/lib/content";
+import {
+  shareDescription,
+  siteDescription,
+  siteName,
+  siteTitle,
+  siteUrl,
+  xHandle,
+} from "@/lib/seo";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://fredymaldonado.com"),
-  title: "Fredy Maldonado — Welcome to my workspace",
-  description:
-    "Step inside my workspace. I'm Fredy Maldonado, a software engineer based in Honduras, building thoughtful web applications, AI systems, and automation.",
+  metadataBase: new URL(siteUrl),
+  title: { default: siteTitle, template: "%s — Fredy Maldonado" },
+  description: siteDescription,
+  applicationName: siteName,
+  authors: [{ name: profile.name, url: siteUrl }],
+  creator: profile.name,
+  alternates: { canonical: "/" },
   openGraph: {
-    title: "Fredy Maldonado — Welcome to my workspace",
-    description:
-      "Software, ideas, and a space for good work. Explore my interactive workspace.",
     type: "website",
+    url: "/",
+    siteName,
+    locale: "en_US",
+    title: siteTitle,
+    description: shareDescription,
+  },
+  twitter: {
+    card: "summary_large_image",
+    creator: xHandle,
+    title: siteTitle,
+    description: shareDescription,
   },
 };
 
