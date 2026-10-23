@@ -231,7 +231,8 @@ export default function Desktop({
           w.id === id ? { ...w, minimized: false, order: nextOrder } : w,
         );
       // Phones cascade mostly downward: the window is ~91% of the width, so
-      // 5px steps keep the whole stack on screen while 18px shows each title.
+      // 4px steps keep the whole stack inside the 8px margins while 18px
+      // shows each title.
       const step = previous.length % 5;
       const phone = isPhone();
       return [
@@ -240,7 +241,7 @@ export default function Desktop({
           id,
           minimized: false,
           maximized: false,
-          x: step * (phone ? 5 : 24),
+          x: step * (phone ? 4 : 24),
           y: step * (phone ? 18 : 24),
           order: nextOrder,
         },
@@ -317,10 +318,9 @@ export default function Desktop({
     };
     focusWindow(item.id);
   }
-  // On phones the window may overhang a quarter of its width to the right (to
-  // the left only until the traffic lights would leave the screen); the title
-  // bar stays under the menubar and the bottom edge above the Dock and "Back to
-  // studio". Measured once per drag, in the same (viewport) space.
+  // Phones keep the whole window in view: an 8px margin on both sides, the
+  // title bar under the menubar, and the bottom edge above the Dock and "Back
+  // to studio". Measured once per drag, in the same (viewport) space.
   function phoneDragBounds(toolbar: HTMLElement, item: OpenWindow) {
     const win = toolbar.closest<HTMLElement>(".finder-window")!;
     const layer = win.parentElement!.getBoundingClientRect();
@@ -336,17 +336,14 @@ export default function Desktop({
       ),
       layer.bottom,
     );
-    const overhang = rect.width * 0.25;
-    const lights = toolbar.querySelector(".traffic-lights");
-    const leftOverhang = lights
-      ? Math.min(overhang, lights.getBoundingClientRect().left - rect.left - 4)
-      : overhang;
+    const margin = 8;
+    const minX = layer.left + margin - baseLeft;
     const minY = layer.top + 4 - baseTop;
     return {
-      minX: layer.left - leftOverhang - baseLeft,
-      maxX: layer.right - rect.width + overhang - baseLeft,
+      minX,
+      maxX: Math.max(minX, layer.right - margin - rect.width - baseLeft),
       minY,
-      maxY: Math.max(minY, floor - 8 - rect.height - baseTop),
+      maxY: Math.max(minY, floor - margin - rect.height - baseTop),
     };
   }
   function moveDrag(event: React.PointerEvent<HTMLElement>) {

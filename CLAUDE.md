@@ -43,7 +43,7 @@ All copy lives in `src/lib/content.ts` (profile, projects, experience, skills, `
 
 **Desktop** (`Desktop.tsx`): windows, Dock, sidebar, and search are all keyed by `FolderId`. Adding a section means updating `FolderId` + `folders` in `content.ts`, the branch in `PortfolioContent.tsx`, and `DockIcon` / `navIcons` in `Desktop.tsx`.
 
-**Styling** is one plain-CSS file, `src/app/globals.css` (no Tailwind, no CSS modules). It grew in layers: later sections ("Seamless workspace…", "Tahoe-inspired desktop…") redefine selectors from earlier sections, so grep for every occurrence of a selector before editing it.
+**Styling** is one plain-CSS file, `src/app/globals.css` (no Tailwind, no CSS modules). On phones (≤ 720px) `.workspace` is exactly `100svh` tall (540px floor) so the room never scrolls behind browser toolbars, and nothing in the room is `position: fixed`: the Explore button is absolute inside `.room-introduction`, which spans to the bottom edge there. A `max-height: 760px` tier tightens the room for short viewports. It grew in layers: later sections ("Seamless workspace…", "Tahoe-inspired desktop…") redefine selectors from earlier sections, so grep for every occurrence of a selector before editing it.
 
 ## Content constraints
 
