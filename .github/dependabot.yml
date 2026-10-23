@@ -1,0 +1,15 @@
+version: 2
+updates:
+  # One grouped pull request a week for npm dependencies (pnpm lockfile).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      dependencies:
+        patterns: ["*"]
+  # Keeps the SHA-pinned actions in ci.yml current.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

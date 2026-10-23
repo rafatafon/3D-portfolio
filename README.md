@@ -54,6 +54,7 @@ pnpm start
 - `src/app/writing/[slug]/page.tsx`: static, shareable article pages that also work without JavaScript.
 - `DESIGN.md`: current visual direction and scope.
 - `VALIDATION.md`: verified checks and remaining limitations.
+- `LICENSE`: MIT, for the code.
 
 ## Content and assets
 
@@ -67,4 +68,8 @@ The hardware is original procedural geometry, not manufacturer CAD or copied por
 
 ## Deployment
 
-Production is the Vercel project `3d-portfolio`, built from `main` and served at https://fredymaldonado.com; `www.fredymaldonado.com` redirects to it with a 308. DNS stays at GoDaddy (an A record on `@` and a CNAME on `www` pointing at Vercel). The domain moved from the previous Framer site on 2026-10-23, and the four essays' old `/blog/<slug>` URLs redirect permanently to their `/writing/<slug>` pages. Vercel Web Analytics (page views and visitors, no cookies) is mounted in the root layout and reports only from Vercel deployments.
+Production is deployed on Vercel from `main` and served at https://fredymaldonado.com; `www.fredymaldonado.com` redirects to it. The domain moved from the previous Framer site on 2026-10-23, and the four essays' old `/blog/<slug>` URLs redirect permanently to their `/writing/<slug>` pages. Vercel Web Analytics (page views and visitors, no cookies) is mounted in the root layout and reports only from Vercel deployments.
+
+## License
+
+The code is released under the MIT License (see `LICENSE`). The content is not: the essays in `src/lib/writing.json`, the profile and project copy in `src/lib/content.ts`, the portrait, the wallpaper, and the résumé remain © Fredy Maldonado, all rights reserved.

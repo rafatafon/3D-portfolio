@@ -65,7 +65,7 @@ Screenshots from the checks are in `.playwright-mcp/` (ignored local artifacts).
 - Music is not integrated; the placeholder listening note was removed on 2026-10-22 until a player is scoped.
 - The résumé PDF is served locally from `public/Fredy-Maldonado-CV.pdf` (replaced on 2026-10-22). Articles are local too.
 - React Three Fiber 9 still constructs the deprecated `THREE.Clock`. `StudioScene.tsx` routes three's console output through `THREE.setConsoleFunction` and drops only that one warning; everything else three logs still reaches the console. There are no application runtime errors in the normal tested flows.
-- No deployment, Git repository initialization, commit, push, or domain modification was performed.
+- The site is deployed from `main` on Vercel at https://fredymaldonado.com (see "Domain and blog redirects" below); nothing else outside the repository is configured.
 
 ## Camera freedom — 2026-10-18, second pass
 
@@ -270,6 +270,13 @@ Screenshots from the checks are in `.playwright-mcp/` (ignored local artifacts).
 
 ## Domain and blog redirects — 2026-10-23
 
-- `fredymaldonado.com` moved from the Framer site to the Vercel project `3d-portfolio`: both the apex and `www` are attached and verified, `www` redirects to the apex (308), GoDaddy's A record on `@` points at Vercel's `216.198.79.1` and the `www` CNAME at the project's `vercel-dns-017.com` host; Vercel reports both configured and issued the certificate at once (the apex answered 200 over HTTPS, `www` 308 to the apex, from GoDaddy's nameservers and a public resolver alike).
+- `fredymaldonado.com` moved from the Framer site to Vercel on 2026-10-23: both the apex and `www` are attached and verified, `www` redirects to the apex (308), the certificate was issued at once, and the apex answered 200 over HTTPS from the registrar's nameservers and a public resolver alike.
 - `next.config.ts` now redirects the old site's `/blog/<slug>` URLs permanently (308) to `/writing/<slug>`, the renamed essay (parentheses dropped from its slug) to its new slug, and `/blog` to `/`. Checked on the dev server: each of the four old article URLs (the renamed one both raw and percent-encoded) lands on its article page, and `/blog` on the workspace.
 - Vercel Web Analytics: `@vercel/analytics` 2.0.1, `<Analytics />` from `@vercel/analytics/next` rendered once in the root layout after the page content. On the dev server the page carries the analytics script in debug mode and nothing else changes; data appears in the project's Analytics tab from the next production deployment. `pnpm typecheck` and `pnpm build` pass.
+
+## Public-repository cleanup — 2026-10-23
+
+- Audited before making the repository public (three read-only passes: secrets and the whole git history, personal and infrastructure details in docs, content and assets, and the app and repository posture). No secrets, credentials, or local artifacts anywhere in the tree or in any commit; no dependency vulnerabilities (`pnpm audit`); the article renderer, storage reads, links, and redirects were verified safe. The owner chose to keep the résumé as it is and the commit author address, which is already the site's contact address.
+- Changes: MIT `LICENSE` for the code (the content stays all rights reserved, stated in README); the infrastructure details that the deployment notes carried (registrar, record values, project slug) were trimmed to the domain itself; stale "the site is local" lines updated; `public/images/fredy-portrait.png` re-encoded without its embedded editor metadata (same 640 × 640 RGB pixels, 271 → 262 KB); the unreferenced `black-wallpaper.png` removed; `.vercel/` and `.impeccable/` ignored; `SECURITY.md` points at private vulnerability reporting; `.github/dependabot.yml` groups npm updates weekly and tracks the actions; the CI actions are pinned to commit SHAs.
+- `next.config.ts` sends `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, and a `Permissions-Policy` that denies camera, microphone, geolocation, payment, USB, and topics, on every route; checked with `curl -I` on `/` and an article page. No Content-Security-Policy yet: it needs a preview-deployment test of the 3D scene first.
+- GitHub settings applied through the API: Dependabot alerts and security updates on, Actions default workflow permissions read-only. Secret scanning with push protection, private vulnerability reporting, fork-PR approval, and the ruleset protecting `main` (no deletion or force-push, CI check required) are only available once the repository is public; apply them right after the flip.

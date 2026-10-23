@@ -28,7 +28,7 @@ The supplied 1200 × 2596 black wallpaper is stored unchanged at `public/images/
 
 Content originated from fredymaldonado.com. Public LinkedIn review on 2026-10-18 verified that the AI Text Summarizer and Resume Keyword Matcher are dated May–June 2025, and their years were corrected. A subsequent review through the authenticated LinkedIn profile verified About and all five employment entries, including the Próspera role and exact month-level dates.
 
-Models are original code geometry, not manufacturer CAD or Henry Heffernan's assets. They are recognizable interpretations rather than exact product scans. The site remains local; no production publication has occurred.
+Models are original code geometry, not manufacturer CAD or Henry Heffernan's assets. They are recognizable interpretations rather than exact product scans. The site is live at https://fredymaldonado.com.
 
 ## Annotation refinement — October 18
 

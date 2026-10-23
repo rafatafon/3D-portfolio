@@ -6,5 +6,7 @@ out/
 .env*
 .playwright-mcp/
 test-results/
+.vercel/
+.impeccable/
 # Claude
 .claude/
