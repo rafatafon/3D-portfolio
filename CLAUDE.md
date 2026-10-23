@@ -13,7 +13,7 @@ Next.js 16 differs from older versions (see `AGENTS.md`). Read the relevant guid
 ```sh
 pnpm install
 pnpm dev          # http://127.0.0.1:3000 (binds 127.0.0.1, not localhost)
-pnpm typecheck    # tsc --noEmit
+pnpm typecheck    # next typegen && tsc --noEmit (next-env.d.ts is generated, not tracked)
 pnpm build        # must pass; prerenders / and /writing/[slug]
 pnpm dlx prettier@3.6.2 --write src   # source follows Prettier 3.6.2 defaults; not a dependency, no config
 ```
