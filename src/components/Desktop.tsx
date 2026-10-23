@@ -362,6 +362,27 @@ function boundsWithin(
   };
 }
 
+// Pull an element (currently at `offset`) back inside `area` after the
+// layout changed under it, for example when the viewport narrows or a tablet
+// rotates. Unlike boundsWithin, the current offset gets no say here.
+function clampedOffset(
+  element: HTMLElement,
+  offset: Offset,
+  area: { left: number; top: number; right: number; bottom: number },
+): Offset {
+  const rect = element.getBoundingClientRect();
+  const baseLeft = rect.left - offset.x;
+  const baseTop = rect.top - offset.y;
+  const minX = area.left - baseLeft;
+  const minY = area.top - baseTop;
+  const maxX = Math.max(minX, area.right - rect.width - baseLeft);
+  const maxY = Math.max(minY, area.bottom - rect.height - baseTop);
+  return {
+    x: Math.min(Math.max(offset.x, minX), maxX),
+    y: Math.min(Math.max(offset.y, minY), maxY),
+  };
+}
+
 // Matches the phone media query in globals.css.
 const PHONE_QUERY = "(max-width: 720px)";
 const isPhone = () => window.matchMedia(PHONE_QUERY).matches;
@@ -596,6 +617,51 @@ export default function Desktop({
           : box.bottom) - margin,
     };
   }
+  // Moved files and a dragged About panel keep pixel offsets from their
+  // default spots, which move with the viewport: when the desktop resizes
+  // (or the phone layout kicks in) pull them back inside, or a file could be
+  // left off-screen with nothing to grab.
+  useEffect(() => {
+    const desktop = desktopRef.current;
+    if (!desktop) return;
+    const reclamp = () => {
+      if (drag.current) return;
+      const moved = Object.entries(fileOffsets) as [FileId, Offset][];
+      if (moved.length) {
+        const area = desktopArea(4);
+        const next = { ...fileOffsets };
+        let changed = false;
+        for (const [id, offset] of moved) {
+          const element = desktop.querySelector<HTMLElement>(
+            `[data-file="${id}"]`,
+          );
+          if (!element) continue;
+          const clamped = clampedOffset(element, offset, area);
+          if (clamped.x !== offset.x || clamped.y !== offset.y) {
+            next[id] = clamped;
+            changed = true;
+          }
+        }
+        if (changed) setFileOffsets(next);
+      }
+      if (aboutRef.current) {
+        const clamped = clampedOffset(
+          aboutRef.current,
+          aboutOffset,
+          desktopArea(8),
+        );
+        if (clamped.x !== aboutOffset.x || clamped.y !== aboutOffset.y)
+          setAboutOffset(clamped);
+      }
+    };
+    const observer = new ResizeObserver(reclamp);
+    observer.observe(desktop);
+    window.addEventListener("resize", reclamp);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", reclamp);
+    };
+  });
   // The About panel drags by its top (traffic lights, illustration, title),
   // never from the close button.
   function startAboutDrag(event: React.PointerEvent<HTMLElement>) {
@@ -711,6 +777,7 @@ export default function Desktop({
             "--file-y": `${offset.y}px`,
           } as React.CSSProperties)
         : undefined,
+      "data-file": id,
       draggable: false,
       onDragStart: (event: React.DragEvent) => event.preventDefault(),
       onPointerDown: (event: React.PointerEvent<HTMLElement>) =>
