@@ -1056,26 +1056,6 @@ a svg {
   padding: 11px 13px;
   font-size: 11px;
 }
-.notes-illustration {
-  border-left: 1px solid #bdaa91;
-  padding: 18px 25px 15px;
-  background: repeating-linear-gradient(
-    #f5f0e5 0px,
-    #f5f0e5 26px,
-    #ded8c8 27px
-  );
-  font-family: Georgia, serif;
-  color: #7e7c66;
-  font-style: italic;
-  font-size: 28px;
-  margin-bottom: 25px;
-  line-height: 27px;
-}
-.notes-illustration span {
-  display: block;
-  font-size: 16px;
-  margin-top: 8px;
-}
 .writing-list {
   margin-top: 25px;
 }

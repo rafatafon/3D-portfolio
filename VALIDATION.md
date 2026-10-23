@@ -171,3 +171,7 @@ Screenshots from the checks are in `.playwright-mcp/` (ignored local artifacts).
 - On phones (≤ 720px) collapsing the side panel also removes the fixed "Explore my desktop" button: it fades and slides down 56px with the mood slider on the panel's easing and timing (`--panel-time` / `--panel-ease`, visibility delayed until the fade ends) and comes back the same way. It is `inert` whenever the panel is hidden, on every size, and returning from the desktop with the panel collapsed now focuses the toggle on phones too.
 - Checked headless in Chrome at 390 × 844 (touch): 150 ms after the toggle the button is at opacity 0.05 and 48px down, still visible; at rest it is `visibility: hidden`, opacity 0, 56px down, and inert; after toggling back it is visible, opacity 1, back at y = 611 and interactive. 1440 × 900 behaves as before (the button leaves with the panel). The toolbar lists "Reset camera view" and "Desk height" only; no `.music-note` is rendered. No page or console errors; `pnpm typecheck`, the Prettier check, and `pnpm build` pass.
 
+## Writing banner removed — 2026-10-22
+
+- The ruled-paper "Notes to self / and anyone curious." banner above the Writing list is gone, with its `.notes-illustration` styles; the list starts at the "Thoughts & notes" heading. Checked headless in Chrome at 1440 × 900: the Writing window renders the heading, subtitle, and four notes with no banner and no console errors. `pnpm typecheck`, the Prettier check, and `pnpm build` pass.
+
