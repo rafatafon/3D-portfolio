@@ -81,7 +81,6 @@ type SceneProps = {
   reset: number;
   reducedMotion: boolean;
   onEnter: () => void;
-  onMusic: () => void;
   onReady: () => void;
   onError: () => void;
   onIntroComplete: () => void;
@@ -473,7 +472,6 @@ export default function StudioScene(props: SceneProps) {
             onDeskControl={props.onDeskControl}
             reducedMotion={props.reducedMotion}
             onEnter={props.onEnter}
-            onMusic={props.onMusic}
           />
           <SaylChair />
           <ContactShadows

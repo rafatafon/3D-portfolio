@@ -48,7 +48,7 @@ All copy lives in `src/lib/content.ts` (profile, projects, experience, skills, `
 ## Content constraints
 
 - Profile and experience were verified against LinkedIn, and articles imported from fredymaldonado.com, on 2026-10-18. Do not invent or "improve" biographical facts, dates, or article text.
-- Spotify is intentionally not integrated; the listening note is a placeholder. The résumé is `public/Fredy-Maldonado-CV.pdf`, linked through `profile.cv`; replace the file to update it.
+- Music is deliberately out of scope for now: the headphones are decorative (the listening note and toolbar button were removed on 2026-10-22) until a player is scoped. The résumé is `public/Fredy-Maldonado-CV.pdf`, linked through `profile.cv`; replace the file to update it.
 - `public/images/pro-wallpaper-portrait.jpg` is stored portrait and rotated to landscape at display time, in both CSS and the screen textures.
 
 ## Reference docs

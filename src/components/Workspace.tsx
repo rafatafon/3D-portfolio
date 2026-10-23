@@ -93,7 +93,6 @@ export default function Workspace() {
   const [reset, setReset] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [initialFolder, setInitialFolder] = useState<FolderId>("about");
-  const [musicNote, setMusicNote] = useState(false);
   const [panelHidden, setPanelHidden] = useState(false);
   const [compact, setCompact] = useState(false);
   const transitionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -225,7 +224,6 @@ export default function Workspace() {
     (folder: FolderId = "about") => {
       if (mode !== "room") return;
       setInitialFolder(folder);
-      setMusicNote(false);
       setRemoteOpen(false);
       document.body.style.cursor = "auto";
       if (reducedMotion || failed || !ready) {
@@ -238,7 +236,6 @@ export default function Workspace() {
     [mode, reducedMotion, failed, ready],
   );
   const enterMonitor = useCallback(() => enter(), [enter]);
-  const showMusic = useCallback(() => setMusicNote(true), []);
   // Clicking the controller on the 3D desk opens the keypad too.
   const openRemote = useCallback(() => {
     if (mode === "room") setRemoteOpen(true);
@@ -419,13 +416,6 @@ export default function Workspace() {
       >
         <ArrowUpDown size={15} />
       </button>
-      <button
-        onClick={showMusic}
-        aria-label="About my listening corner"
-        title="My listening corner"
-      >
-        <span className="music-glyph">♫</span>
-      </button>
     </div>
   );
   const opening = mode === "loading" || mode === "intro";
@@ -451,7 +441,6 @@ export default function Workspace() {
             reset={reset}
             reducedMotion={reducedMotion}
             onEnter={enterMonitor}
-            onMusic={showMusic}
             onDeskControl={openRemote}
             onReady={onReady}
             onError={onError}
@@ -698,21 +687,6 @@ export default function Workspace() {
           )}
           <span className="made-with-care">Make yourself at home.</span>
         </footer>
-        {musicNote && (
-          <div className="music-note" role="status">
-            <button
-              onClick={() => setMusicNote(false)}
-              aria-label="Close listening note"
-            >
-              <X size={15} />
-            </button>
-            <span>On my desk, in my ears.</span>
-            <p>
-              My listening corner.
-              <br />A playlist is on its way.
-            </p>
-          </div>
-        )}
       </div>
       <div className="transition-shade" aria-hidden="true" />
       <div

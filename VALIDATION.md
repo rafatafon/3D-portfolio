@@ -26,7 +26,7 @@ Checked in Chromium through Playwright, using isolated browser contexts so sessi
 - Warm and dark preset buttons work and the selected value survives desktop entry/exit.
 - Primary and secondary text contrast checked against the backdrop at all 101 integer slider values: minimum ratio 4.50036:1.
 - Desk height keypad (toolbar arrows button): hold an arrow to run the motor, tap for 1 cm, presets travel, S then a number saves a preset; the desk moves at motor speed and the on-desk display counts along.
-- Both the 3D AirPods and the keyboard-accessible music button open the listening note.
+- The AirPods are decorative: the listening note and the toolbar's music button were removed on 2026-10-22, pending a scoped player.
 - The 3D monitor and HTML entry button open the desktop.
 - Desktop inherits dark appearance from dark ambience; its display setting toggles light/dark.
 - About opens initially; Projects opens through the Dock with five projects.
@@ -62,7 +62,7 @@ Screenshots from the checks are in `.playwright-mcp/` (ignored local artifacts).
 ## Remaining limitations
 
 - The hardware models are original procedural interpretations, not exact manufacturer models.
-- Spotify is intentionally not integrated; the listening note is a placeholder until the playlist and playback behavior are specified.
+- Music is not integrated; the placeholder listening note was removed on 2026-10-22 until a player is scoped.
 - The résumé PDF is served locally from `public/Fredy-Maldonado-CV.pdf` (replaced on 2026-10-22). Articles are local too.
 - React Three Fiber 9 still constructs the deprecated `THREE.Clock`. `StudioScene.tsx` routes three's console output through `THREE.setConsoleFunction` and drops only that one warning; everything else three logs still reaches the console. There are no application runtime errors in the normal tested flows.
 - No deployment, Git repository initialization, commit, push, or domain modification was performed.
@@ -164,3 +164,7 @@ Screenshots from the checks are in `.playwright-mcp/` (ignored local artifacts).
 - Checked headless in Chrome (touch contexts, drags sent as CDP touch events on the title text), 390 × 844: windows at [8,42,366,563], [13,60,…], [18,78,…], [23,96,…], [28,114,386,635]; a (−20, +60) drag moved Contact exactly (−20, +60); dragged far down-right it stopped at [122,204,480,725] (89px overhang, bottom 8px above "Back to studio" at 733), far up-left at [−9,34,349,555]; tapping About's exposed edge made it active and topmost; a swipe on its content scrolled it 0 → 484px with the page unmoved; maximized [8,42,382,738], a drag while maximized changed nothing, restore returned to [8,42,366,563]; minimize, restore from the Dock (focus on "About me window"), and close (focus on "Contact window") work. 360 × 780 gives the same layout (328px wide windows, bottom clamp 661). 375 × 667 keeps the 740px workspace minimum, so the page scrolls; drags never scroll the page, windows (454px tall) fit the viewport, and the clamps follow the scrolled layout. No page or console errors.
 - Desktop and tablet are unchanged: at 1440 × 900 and 900 × 700 the same script (mouse) gives identical window rects, drag results, and maximize rects with this change and with it stashed.
 - `pnpm dlx prettier@3.6.2 --check src`, `pnpm typecheck`, and `pnpm build` pass.
+
+## Music feature removed; phone Explore button follows the panel — 2026-10-22
+
+- The listening-corner feature is gone pending a scoped music player: the toolbar's "My listening corner" button, the `music-note` popover, and the AirPods click handler and pointer cursor (`onMusic` no longer exists on `StudioScene`, `Desk`, or `AirPods`). The headphones stay as decoration. The toolbar now holds reset and desk height only, and its `:last-child` width override went with the glyph button.

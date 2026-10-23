@@ -18,7 +18,7 @@ A personal desk suspended visually in a seamless neutral studio backdrop. No wal
 
 Skip is available throughout. Reduced motion bypasses the camera animation. Session storage remembers a completed/skipped intro; a returning visit waits only for readiness. A stalled or failed renderer exposes the HTML desktop, with a server-rendered portfolio available without JavaScript.
 
-The camera can be dragged, the desk height set from a dark keypad controller (LED readout, hold-to-move arrows, savable presets), and the mood adjusted continuously. Clicking the monitor transitions to the desktop. Clicking the headphones currently shows a listening-corner note; Spotify playback is deferred until the playlist and playback behavior are provided.
+The camera can be dragged, the desk height set from a dark keypad controller (LED readout, hold-to-move arrows, savable presets), and the mood adjusted continuously. Clicking the monitor transitions to the desktop. The headphones are decorative; a music player is deferred until the tracks and playback behaviour are specified.
 
 ## Desktop and content
 

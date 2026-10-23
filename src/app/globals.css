@@ -1953,14 +1953,6 @@ a svg {
 .scene-controls button[aria-pressed="true"] {
   background: color-mix(in srgb, var(--scene-ink) 10%, transparent);
 }
-.scene-controls button:last-child {
-  padding: 0;
-  width: 35px;
-}
-.scene-controls .music-glyph {
-  font-size: 20px;
-  display: block;
-}
 .mode-loading .room-interface,
 .mode-intro .room-interface {
   opacity: 0;
@@ -2066,35 +2058,6 @@ a svg {
   color: var(--scene-muted);
   animation: caption-reveal 4s ease both;
   pointer-events: none;
-}
-.music-note {
-  position: absolute;
-  right: 5%;
-  bottom: 95px;
-  width: 240px;
-  padding: 23px;
-  background: color-mix(in srgb, var(--room) 88%, transparent);
-  border: 1px solid color-mix(in srgb, var(--scene-ink) 20%, transparent);
-  border-radius: 18px;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 12px 35px #0001;
-  pointer-events: auto;
-}
-.music-note > button {
-  position: absolute;
-  right: 12px;
-  top: 12px;
-  color: var(--scene-muted);
-}
-.music-note > span {
-  font-size: 12px;
-  font-weight: 600;
-}
-.music-note > p {
-  color: var(--scene-muted);
-  font-size: 11px;
-  line-height: 1.8;
-  margin: 12px 0 0;
 }
 @keyframes logo-arrive {
   from {
@@ -2595,9 +2558,6 @@ a svg {
   .scene-controls {
     padding: 3px 5px;
   }
-  .scene-controls .music-glyph {
-    display: block;
-  }
   .made-with-care {
     display: none;
   }
@@ -2611,10 +2571,6 @@ a svg {
   .intro-caption {
     bottom: 130px;
     white-space: nowrap;
-  }
-  .music-note {
-    bottom: 240px;
-    right: 24px;
   }
   .menubar {
     height: 30px;

@@ -28,7 +28,6 @@ pnpm start
 - Drag windows by their title bars. Close, minimize, and maximize with the traffic lights; restore minimized windows from the Dock.
 - Search with the menu button or Command/Ctrl + K. Escape dismisses search or the active window.
 - Use Display settings for light/dark desktop appearance.
-- Click the AirPods or the music control for the listening-corner note. Spotify playback is not connected yet.
 - The HTML desktop also works when WebGL fails. There is no separate readable page; without JavaScript the home page shows a short notice.
 
 ## Main files

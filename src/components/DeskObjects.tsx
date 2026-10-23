@@ -466,7 +466,7 @@ function roundedProfile(width: number, height: number, radius: number) {
   return shape;
 }
 
-const AirPods = memo(function AirPods({ onMusic }: { onMusic: () => void }) {
+const AirPods = memo(function AirPods() {
   const parts = useMemo(() => {
     const shell = new THREE.ExtrudeGeometry(roundedProfile(0.17, 0.25, 0.069), {
       depth: 0.039,
@@ -542,16 +542,6 @@ const AirPods = memo(function AirPods({ onMusic }: { onMusic: () => void }) {
       name="AirPods Max on stand"
       position={[1.46, 1.69, -0.38]}
       rotation={[0, -0.16, 0]}
-      onClick={(event) => {
-        event.stopPropagation();
-        onMusic();
-      }}
-      onPointerOver={() => {
-        document.body.style.cursor = "pointer";
-      }}
-      onPointerOut={() => {
-        document.body.style.cursor = "auto";
-      }}
     >
       {/* Elliptical weighted base and a post that ends below the canopy. */}
       <mesh
@@ -976,7 +966,6 @@ export const Desk = memo(function Desk({
   onDeskControl,
   reducedMotion,
   onEnter,
-  onMusic,
   waking,
   sleeping,
 }: {
@@ -985,7 +974,6 @@ export const Desk = memo(function Desk({
   onDeskControl: () => void;
   reducedMotion: boolean;
   onEnter: () => void;
-  onMusic: () => void;
   waking: boolean;
   sleeping: boolean;
 }) {
@@ -1221,7 +1209,7 @@ export const Desk = memo(function Desk({
           position={[0.08, 0, -0.78]}
           onClick={(event) => {
             // The monitor is opaque: stop the event before deciding, so a
-            // click on its back never reaches the headphones behind it.
+            // click on its back never reaches anything behind it.
             event.stopPropagation();
             if (screenFacesCamera(event)) onEnter();
           }}
@@ -1307,7 +1295,7 @@ export const Desk = memo(function Desk({
             clearcoat={0.8}
           />
         </mesh>
-        <AirPods onMusic={onMusic} />
+        <AirPods />
         <Owala />
         <CoffeeMug />
         <Tube
