@@ -1110,30 +1110,6 @@ a svg {
 .contact-content {
   padding-top: 10px;
 }
-.postage {
-  float: right;
-  height: 92px;
-  width: 74px;
-  outline: 1px dashed #c5c8b5;
-  outline-offset: 4px;
-  border: 1px solid #d3d6c4;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-around;
-  background: #eaeddf;
-  color: #8c9b79;
-  transform: rotate(8deg);
-  margin: 0 5px 25px 12px;
-}
-.postage > span {
-  font-size: 9px;
-  letter-spacing: 3px;
-  margin-top: 4px;
-}
-.postage small {
-  font-size: 7px;
-}
 .contact-content h2 {
   font-size: 37px;
   line-height: 1.1;
@@ -1712,10 +1688,6 @@ a svg {
   }
   .email-link {
     font-size: 11px;
-  }
-  .postage {
-    height: 75px;
-    width: 60px;
   }
   .desktop-bottom {
     bottom: 10px;

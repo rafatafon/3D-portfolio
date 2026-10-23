@@ -595,10 +595,33 @@ export default function Desktop({
       y: item.y,
       bounds: isPhone()
         ? phoneDragBounds(event.currentTarget, item)
-        : undefined,
+        : wideDragBounds(event.currentTarget, item),
       moved: true,
     };
     focusWindow(item.id);
+  }
+  // Larger screens: a window may hang off either side alike, but at least
+  // `keep` pixels of it stay inside, its title bar stays under the menubar,
+  // and it stays above the Dock; measured from the live layout, like phones,
+  // instead of fixed viewport percentages that assumed the old left-anchored
+  // position (which walled off the left side once windows opened centred).
+  function wideDragBounds(toolbar: HTMLElement, item: OpenWindow): Bounds {
+    const win = toolbar.closest<HTMLElement>(".finder-window")!;
+    const rect = win.getBoundingClientRect();
+    const area = desktopArea(0);
+    const baseLeft = rect.left - item.x;
+    const baseTop = rect.top - item.y;
+    const keep = Math.min(160, rect.width);
+    const minY = area.top + 4 - baseTop;
+    return {
+      minX: area.left + keep - rect.width - baseLeft,
+      maxX: area.right - keep - baseLeft,
+      minY,
+      maxY: Math.max(
+        minY,
+        area.bottom - 8 - toolbar.getBoundingClientRect().height - baseTop,
+      ),
+    };
   }
   // The free desktop in viewport space: under the menubar, above the Dock,
   // inside the side edges, inset by `margin`.
@@ -627,7 +650,9 @@ export default function Desktop({
     const desktop = desktopRef.current;
     if (!desktop) return;
     const reclamp = () => {
-      if (drag.current) return;
+      // A ResizeObserver can still report the element shrinking to nothing
+      // while the desktop unmounts, after React has cleared the ref.
+      if (drag.current || !desktop.isConnected || !desktopRef.current) return;
       const moved = Object.entries(fileOffsets) as [FileId, Offset][];
       if (moved.length) {
         const area = desktopArea(4);
@@ -673,14 +698,15 @@ export default function Desktop({
           if (!element) return item;
           ({ x, y } = clampedOffset(element, { x, y }, area));
         } else {
-          x = Math.max(
-            -window.innerWidth * 0.13,
-            Math.min(window.innerWidth * 0.4, x),
+          const element = desktop.querySelector<HTMLElement>(
+            `[data-window="${item.id}"]`,
           );
-          y = Math.max(
-            -window.innerHeight * 0.09,
-            Math.min(window.innerHeight * 0.56, y),
-          );
+          const toolbar =
+            element?.querySelector<HTMLElement>(".window-toolbar");
+          if (!element || !toolbar) return item;
+          const limits = wideDragBounds(toolbar, item);
+          x = Math.max(limits.minX, Math.min(limits.maxX, x));
+          y = Math.max(limits.minY, Math.min(limits.maxY, y));
         }
         if (x === item.x && y === item.y) return item;
         changed = true;
