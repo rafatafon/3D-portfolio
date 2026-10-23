@@ -1950,6 +1950,12 @@ a svg {
 .mode-loading .scene-container {
   opacity: 0;
 }
+/* Preloader: the "fm." mark rises letter by letter, its period breathes while
+   the scene loads, then Workspace flies it (FLIP via --mark-x/--mark-y/
+   --mark-scale) onto the header wordmark as the paper fades. It rests there
+   through the intro and is removed once the room overlay has faded in. The
+   tracking is the header's -3px expressed in em, so the scaled mark matches
+   the wordmark glyph for glyph. */
 .preloader {
   position: absolute;
   inset: 0;
@@ -1957,70 +1963,82 @@ a svg {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
-  background: #f5f5f3;
+  background-color: #f5f5f3;
   color: #303c34;
-  transition:
-    opacity 0.65s ease,
-    visibility 0.65s ease;
+  transition: background-color 0.65s ease;
 }
-.preloader-done {
-  opacity: 0;
-  visibility: hidden;
+.preloader-handoff {
+  background-color: transparent;
+  color: var(--scene-ink);
   pointer-events: none;
 }
-.preloader-logo {
-  position: relative;
-  font:
-    800 78px/1 Arial,
-    Helvetica,
-    sans-serif;
-  letter-spacing: -7px;
+.preloader-gone {
+  visibility: hidden;
+  transition: visibility 0s linear 0.2s;
+}
+.preloader-mark {
   display: flex;
-  width: 160px;
-  height: 150px;
-  align-items: center;
-  justify-content: center;
-  padding-right: 8px;
+  font-weight: 800;
+  font-size: 74px;
+  line-height: 1;
+  letter-spacing: calc(-3em / 37);
+  white-space: nowrap;
+  transform-origin: 0 0;
+  transform: translate(var(--mark-x, 0), var(--mark-y, 0))
+    scale(var(--mark-scale, 1));
 }
-.preloader-logo > span {
-  animation: logo-arrive 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+.preloader-handoff .preloader-mark {
+  transition:
+    transform var(--mark-time, 0.9s) var(--panel-ease),
+    color var(--mark-time, 0.9s) ease,
+    opacity 0.2s ease;
 }
-.preloader-logo > span:nth-child(2) {
-  animation-delay: 0.12s;
+.preloader-gone .preloader-mark {
+  opacity: 0;
 }
-.preloader-logo > i {
-  font-style: normal;
+.preloader-mark > span {
+  display: block;
+  animation: mark-rise 0.7s cubic-bezier(0.2, 1.2, 0.3, 1) both;
+}
+.preloader-mark > span:nth-child(2) {
+  animation-delay: 0.09s;
+}
+.preloader-mark > .mark-dot {
   color: #647d69;
-  animation: logo-dot 1.6s ease-in-out infinite;
-  transform-origin: 50% 85%;
+  animation-delay: 0.18s;
+  transition: color var(--mark-time, 0.9s) ease;
 }
-.logo-orbit {
-  position: absolute;
-  inset: 0;
-  border: 1px solid #dfe3df;
-  border-radius: 50%;
-  transform: rotate(-30deg);
+.preloader-handoff .mark-dot {
+  color: inherit;
 }
-.logo-orbit:after {
-  content: "";
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #607c69;
-  top: 10px;
-  left: 35px;
-  box-shadow: 0 0 0 5px #f5f5f3;
+.mark-breath {
+  display: block;
+  opacity: 0.72;
+  transform-origin: 50% 80%;
+  animation: mark-breathe 1.9s ease-in-out 0.88s infinite;
 }
-.logo-orbit {
-  animation: logo-orbit 3s linear infinite;
+/* Repeat visits skip the intro, so the header fades in while the mark is
+   still flying; keep its wordmark hidden until the mark lands on it. */
+.workspace:has(.preloader-flying) .room-header .wordmark {
+  opacity: 0;
 }
-.preloader > p {
-  font-size: 11px;
-  color: #737c75;
-  margin: 24px 0 0;
-  letter-spacing: 0.2px;
+@media (max-width: 720px) {
+  .preloader-mark {
+    font-size: 64px;
+    letter-spacing: calc(-3em / 32);
+  }
+}
+@keyframes mark-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.12em);
+  }
+}
+@keyframes mark-breathe {
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 .intro-caption {
   position: absolute;
@@ -2031,34 +2049,6 @@ a svg {
   color: var(--scene-muted);
   animation: caption-reveal 4s ease both;
   pointer-events: none;
-}
-@keyframes logo-arrive {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-    filter: blur(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-    filter: blur(0);
-  }
-}
-@keyframes logo-dot {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.7;
-  }
-  50% {
-    transform: scale(1.25);
-    opacity: 1;
-  }
-}
-@keyframes logo-orbit {
-  to {
-    transform: rotate(330deg);
-  }
 }
 @keyframes caption-reveal {
   0%,
@@ -2165,6 +2155,35 @@ a svg {
   box-shadow:
     0 32px 100px #0007,
     0 1px 2px #ffffff33;
+}
+/* Above phone width the window opens centred: horizontally on the screen
+   (nudged left only as far as needed to clear the desktop-file column) and
+   vertically between the menubar and the Dock (the layer's bottom 84px).
+   --window-x/y still add the cascade and drag offsets. The painted monitor
+   screen (desk/screenTexture.ts) mirrors this placement. */
+@media (min-width: 721px) {
+  .finder-window {
+    --window-w: min(800px, 71vw);
+    --files-reserve: 154px;
+    width: var(--window-w);
+    left: min(50%, calc(100% - var(--files-reserve) - var(--window-w) / 2));
+    top: calc(50% - 42px);
+    transform: translate(
+      calc(-50% + var(--window-x)),
+      calc(-50% + var(--window-y))
+    );
+  }
+}
+@media (min-width: 1600px) {
+  .finder-window {
+    --window-w: 860px;
+  }
+}
+@media (min-width: 721px) and (max-width: 1100px) {
+  .finder-window {
+    --window-w: 77vw;
+    --files-reserve: 122px;
+  }
 }
 .window-toolbar {
   height: 53px;
@@ -2637,12 +2656,12 @@ a svg {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .logo-orbit,
-  .preloader-logo > span,
-  .preloader-logo > i {
+  .preloader-mark > span,
+  .mark-breath,
+  .preloader,
+  .preloader-handoff .preloader-mark,
+  .preloader-mark > .mark-dot {
     animation: none;
-  }
-  .preloader {
     transition: none;
   }
   .intro-caption {
@@ -3460,6 +3479,7 @@ a svg {
     .desktop-files,
     .windows-layer,
     .spotlight,
+    .about-workspace,
     .dock-tooltip
   ),
 .lang-switching .control-center > :not(:has(.language-toggle)) {
@@ -3480,6 +3500,7 @@ a svg {
     .desktop-files,
     .windows-layer,
     .spotlight,
+    .about-workspace,
     .dock-tooltip
   ),
 .lang-settling .control-center > :not(:has(.language-toggle)) {
@@ -3638,5 +3659,214 @@ a svg {
   .language-toggle-thumb,
   .language-toggle button {
     transition: none;
+  }
+}
+
+/* Apple menu: "About this workspace". A compact card modelled on macOS's
+   About This Mac, centred over the desktop (above the windows and the Control
+   Center, below the Spotlight backdrop). It follows the desktop appearance
+   through the --finder-* variables. */
+.about-layer {
+  position: absolute;
+  inset: 30px 0 0;
+  z-index: 140;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  pointer-events: none;
+}
+.about-workspace {
+  --about-surface: #f3f3f5f2;
+  --about-button: #00000012;
+  position: relative;
+  width: 336px;
+  max-width: 100%;
+  padding: 44px 24px 22px;
+  pointer-events: auto;
+  color: var(--finder-ink);
+  background: var(--about-surface);
+  backdrop-filter: blur(40px) saturate(1.3);
+  border: 1px solid var(--finder-line);
+  border-radius: 18px;
+  box-shadow:
+    0 0 0 0.5px #0000002e,
+    0 22px 60px #00000052;
+  text-align: center;
+  font-size: 12px;
+  outline: none;
+  transform-origin: 50% 40%;
+  animation: about-in 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.desktop-dark .about-workspace {
+  --about-surface: #2b2b2ef2;
+  --about-button: #ffffff21;
+  border-color: #ffffff1f;
+  box-shadow:
+    0 0 0 0.5px #000000b3,
+    0 22px 60px #0000008c;
+}
+@keyframes about-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+.about-lights {
+  position: absolute;
+  top: 13px;
+  left: 13px;
+  display: flex;
+  gap: 8px;
+}
+.about-lights > * {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #8e8e9366;
+}
+.about-lights .close-light {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  min-height: 12px;
+  background: #ff5f57;
+  border: 1px solid #00000012;
+  color: #4d0000;
+}
+.about-lights .close-light svg {
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.about-lights .close-light:hover svg,
+.about-lights .close-light:focus-visible svg {
+  opacity: 1;
+}
+.about-laptop {
+  display: block;
+  margin: 6px auto 26px;
+}
+.about-workspace h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.about-subtitle {
+  margin: 3px 0 16px;
+  font-size: 11px;
+  color: var(--finder-muted);
+}
+.about-specs {
+  /* Labels right-aligned against the gap, values left, and the pair sized to
+     its content so the whole block sits centred in the card rather than
+     hugging its left edge. */
+  display: grid;
+  grid-template-columns: max-content minmax(0, max-content);
+  column-gap: 9px;
+  row-gap: 4px;
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto 18px;
+  text-align: left;
+  line-height: 1.35;
+}
+.about-specs > div {
+  display: contents;
+}
+.about-specs dt {
+  font-weight: 600;
+  text-align: right;
+}
+.about-specs dd {
+  margin: 0;
+  color: var(--finder-muted);
+  overflow-wrap: anywhere;
+}
+.about-more {
+  display: inline-block;
+  padding: 5px 16px;
+  border-radius: 7px;
+  background: var(--about-button);
+  color: var(--finder-ink);
+  font-size: 13px;
+  text-decoration: none;
+  transition: filter 0.15s;
+}
+.about-more:hover {
+  filter: brightness(0.94);
+}
+.desktop-dark .about-more:hover {
+  filter: brightness(1.25);
+}
+.about-more:focus-visible,
+.about-lights .close-light:focus-visible {
+  outline: 2px solid var(--finder-selected);
+  outline-offset: 2px;
+}
+.about-fineprint {
+  margin: 16px 0 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--finder-muted);
+}
+@media (max-width: 720px) {
+  .about-workspace {
+    width: 100%;
+    max-width: 358px;
+    padding: 40px 16px 18px;
+  }
+  .about-laptop {
+    margin-bottom: 20px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .about-workspace {
+    animation: none;
+  }
+}
+
+/* Draggable desktop files and About panel (Desktop.tsx: startFileDrag,
+   startAboutDrag, moveDrag). Pointer events with capture; the files and the
+   panel's top strip take no touch gestures, so a drag never scrolls or zooms
+   the page. A moved file keeps its default slot in the column (or the phone
+   grid) and is shifted by --file-x/y, so the other files stay put and the Tab
+   order is unchanged. */
+.desktop-file {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.desktop-file-moved {
+  position: relative;
+  translate: var(--file-x, 0px) var(--file-y, 0px);
+}
+.desktop-file.dragging {
+  position: relative;
+  z-index: 1;
+  cursor: grabbing;
+  transition: none;
+}
+/* The handle spans the card's top padding and edges: the traffic lights,
+   the illustration, the title, and the subtitle. */
+.about-handle {
+  margin: -44px -24px 0;
+  padding: 44px 24px 0;
+  border-radius: 18px 18px 0 0;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.about-workspace {
+  translate: var(--about-x, 0px) var(--about-y, 0px);
+}
+.about-workspace.dragging {
+  transition: none;
+}
+@media (max-width: 720px) {
+  .about-handle {
+    margin: -40px -16px 0;
+    padding: 40px 16px 0;
   }
 }

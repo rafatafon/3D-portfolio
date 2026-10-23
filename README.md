@@ -19,15 +19,17 @@ pnpm start
 
 ## The experience
 
-- An animated fm. preloader covers scene loading, followed by a four-second camera glide and monitor wake-up. Reduced motion and repeat visits in the same session bypass the glide.
+- A minimal fm. mark covers scene loading: the letters rise in with a short stagger, the period breathes while the desk loads, and when it is ready the mark flies into the header's own wordmark, followed by a four-second camera glide and monitor wake-up. Reduced motion and repeat visits in the same session skip the motion.
+- The monitor in the room shows a sharp painting of the desktop exactly as it opens (About window, files, Dock, menubar), repainted when the mood crosses the dark threshold or the language changes.
 - Drag the desk to look around, or reset the camera. Open the desk controller (from the toolbar, or by clicking the small controller under the desk's front-right edge) to set the standing desk's height: hold the arrows to run the motor, tap them for 1 cm, or use the three presets (press S, then a number, to store the current height). Drag the keypad out of the way; the camera stays wherever you were looking from while the desk moves.
 - Drag “Set the mood” from daylight through warm amber to after hours. The range input supports keyboard controls and three preset buttons.
 - Hide the side panel with the toggle beside the title: the identity, introduction, toolbar, and mood slider ease out to the left (upward on phones) and the desk glides to the center; the docked toggle at the left edge brings them back.
 - Click the monitor or “Explore my desktop” to enter.
 - Open About, Projects, Experience, Writing, and Contact from desktop files, the Dock, or Finder's sidebar.
-- Drag windows by their title bars. Close, minimize, and maximize with the traffic lights; restore minimized windows from the Dock.
+- Drag windows by their title bars. Close, minimize, and maximize with the traffic lights; restore minimized windows from the Dock. Desktop files can be dragged anywhere on the desktop with mouse or touch (a tap still opens them), and the About panel drags by its top strip.
 - Search with the menu button or Command/Ctrl + K. Escape dismisses search or the active window.
 - Use the Display dropdown for light/dark appearance and for the language.
+- Click the Apple mark for "About this workspace": the project's stack (Next.js, React, TypeScript, three.js, React Three Fiber, drei, plain CSS, pnpm, Vercel) and the models used (Fable 5.1, GPT-6 Astra), with a link to the source.
 - Switch between English and Spanish with the EN/ES toggle at the top-right of the room or in the Display dropdown; the choice is remembered, and the copy crossfades. The four essays stay in English.
 - The Dock's Finder face opens a Finder window with every item; the house at the left of the Dock returns to the studio.
 - The HTML desktop also works when WebGL fails. There is no separate readable page; without JavaScript the home page shows a short notice.
@@ -40,7 +42,8 @@ pnpm start
 - `src/lib/writing.json`: four complete imported articles, with publication dates and source URLs.
 - `src/components/Notes.tsx` and `ArticleBody.tsx`: internal Notes navigation and shared article rendering.
 - `src/lib/ambience.ts`: lighting palettes, interpolation, and text contrast.
-- `src/components/DeskObjects.tsx`: original desk, chair, laptop, monitor, headphones, bottle, coffee mug, and procedural textures.
+- `src/components/DeskObjects.tsx`: original desk, chair, monitor, headphones, bottle, coffee mug, and procedural textures.
+- `src/components/desk/`: shared primitives, the Magic Keyboard with Touch ID, the Magic Mouse, the MacBook Pro (lid logo, keyed keyboard, trackpad, hinge), the AirPods Max, the Owala bottle, the desk-height controller (a miniature of the keypad with a live LED), and `screenTexture.ts`, which paints the monitor's screen from the desktop's own strings and content.
 - `src/components/StudioScene.tsx`: lighting, reflections, camera choreography, rendering readiness, and failure boundary.
 - `src/components/Workspace.tsx`: preloader, arrival states, ambient controls, and desktop transitions.
 - `src/components/Desktop.tsx`: window management (including the Finder window), Dock, menus, search, appearance, language, and its own chrome strings.

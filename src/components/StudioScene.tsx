@@ -18,6 +18,7 @@ import {
 } from "@react-three/drei";
 import * as THREE from "three";
 import { Desk, SaylChair } from "./DeskObjects";
+import type { Locale } from "@/lib/i18n";
 import { getAmbience } from "@/lib/ambience";
 import { deskOffset } from "@/lib/desk";
 import {
@@ -84,6 +85,8 @@ type SceneProps = {
   onReady: () => void;
   onError: () => void;
   onIntroComplete: () => void;
+  screenDark: boolean;
+  locale: Locale;
 };
 
 function CameraRig({
@@ -475,6 +478,8 @@ export default function StudioScene(props: SceneProps) {
             onDeskControl={props.onDeskControl}
             reducedMotion={props.reducedMotion}
             onEnter={props.onEnter}
+            screenDark={props.screenDark}
+            locale={props.locale}
           />
           <SaylChair />
           <ContactShadows

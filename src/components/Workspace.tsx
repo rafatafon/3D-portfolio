@@ -129,6 +129,11 @@ export default function Workspace() {
   const [dragging, setDragging] = useState(false);
   const started = useRef(0);
   const skipIntro = useRef(false);
+  const [handoff, setHandoff] = useState<
+    "waiting" | "flying" | "resting" | "gone"
+  >("waiting");
+  const mark = useRef<HTMLSpanElement>(null);
+  const roomAt = useRef(0);
   const ambienceRef = useRef(0);
   const ambienceFrame = useRef(0);
   const theme = getAmbience(ambience);
@@ -299,6 +304,94 @@ export default function Workspace() {
     const timeout = setTimeout(finishIntro, 4400);
     return () => clearTimeout(timeout);
   }, [mode, reducedMotion, failed, finishIntro]);
+
+  // Preloader handoff: once the desk is ready the "fm." mark flies (FLIP) onto
+  // the header wordmark, rests there through the intro, and is removed after
+  // the room overlay has faded in over it, so the header's own mark takes over.
+  const placeMark = useCallback(() => {
+    const el = mark.current;
+    const target = el
+      ?.closest(".workspace")
+      ?.querySelector<HTMLElement>(".room-header .wordmark");
+    if (!el || !target) return false;
+    // Measure the untransformed box: the mark may already be mid-flight.
+    const style = getComputedStyle(el);
+    const current =
+      style.transform === "none"
+        ? new DOMMatrix()
+        : new DOMMatrix(style.transform);
+    const from = el.getBoundingClientRect();
+    const to = target.getBoundingClientRect();
+    const scale =
+      parseFloat(getComputedStyle(target).fontSize) /
+      parseFloat(style.fontSize);
+    el.style.setProperty("--mark-x", `${to.left - (from.left - current.e)}px`);
+    el.style.setProperty("--mark-y", `${to.top - (from.top - current.f)}px`);
+    el.style.setProperty("--mark-scale", `${scale}`);
+    return true;
+  }, []);
+
+  useEffect(() => {
+    if (mode === "loading" || handoff !== "waiting") return;
+    const el = mark.current;
+    if (!el) return;
+    // Repeat visits go straight to the room, so the flight is quicker there.
+    el.style.setProperty("--mark-time", mode === "intro" ? "0.9s" : "0.6s");
+    // Settle the breathing period from wherever it is mid-cycle.
+    const breath = el.querySelector<HTMLElement>(".mark-breath");
+    if (breath) {
+      const now = getComputedStyle(breath);
+      breath.animate(
+        [
+          { opacity: now.opacity, transform: now.transform },
+          { opacity: 1, transform: "none" },
+        ],
+        {
+          duration: reducedMotion ? 0 : 400,
+          easing: "ease-out",
+          fill: "forwards",
+        },
+      );
+    }
+    const placed = placeMark();
+    setHandoff(!placed ? "gone" : reducedMotion ? "resting" : "flying");
+  }, [mode, handoff, reducedMotion, placeMark]);
+
+  useEffect(() => {
+    if (handoff !== "flying") return;
+    const el = mark.current;
+    const land = () => setHandoff("resting");
+    const onEnd = (event: TransitionEvent) => {
+      if (event.target === el && event.propertyName === "transform") land();
+    };
+    el?.addEventListener("transitionend", onEnd);
+    const fallback = setTimeout(land, 1200);
+    return () => {
+      el?.removeEventListener("transitionend", onEnd);
+      clearTimeout(fallback);
+    };
+  }, [handoff]);
+
+  useEffect(() => {
+    // Keep the mark on the wordmark if the viewport changes before it leaves.
+    if (handoff !== "flying" && handoff !== "resting") return;
+    const onResize = () => void placeMark();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [handoff, placeMark]);
+
+  useEffect(() => {
+    if (mode !== "loading" && mode !== "intro" && !roomAt.current) {
+      roomAt.current = performance.now();
+    }
+    if (handoff !== "resting" || !roomAt.current) return;
+    // `.room-interface` fades in over 0.45s; leave once it is fully opaque.
+    const delay = reducedMotion
+      ? 0
+      : Math.max(0, roomAt.current + 450 - performance.now());
+    const timer = setTimeout(() => setHandoff("gone"), delay);
+    return () => clearTimeout(timer);
+  }, [mode, handoff, reducedMotion]);
 
   const enter = useCallback(
     (folder: FolderId = "about") => {
@@ -524,6 +617,8 @@ export default function Workspace() {
             onReady={onReady}
             onError={onError}
             onIntroComplete={finishIntro}
+            screenDark={mood >= 75}
+            locale={locale}
           />
         )}
       </div>
@@ -757,18 +852,18 @@ export default function Workspace() {
       </div>
       <div className="transition-shade" aria-hidden="true" />
       <div
-        className={`preloader ${mode !== "loading" ? "preloader-done" : ""}`}
+        className={`preloader${mode !== "loading" ? " preloader-handoff" : ""}${handoff === "flying" ? " preloader-flying" : ""}${handoff === "gone" ? " preloader-gone" : ""}`}
         aria-hidden={mode !== "loading"}
       >
-        <div className="preloader-logo" aria-hidden="true">
+        <span ref={mark} className="preloader-mark" aria-hidden="true">
           <span>f</span>
           <span>m</span>
-          <i>.</i>
-          <div className="logo-orbit" />
-        </div>
-        <p role="status">
-          {t(room.loading)}
-          <span className="loading-dots">…</span>
+          <span className="mark-dot">
+            <span className="mark-breath">.</span>
+          </span>
+        </span>
+        <p role="status" className="sr-only">
+          {mode === "loading" ? t(room.loading) : ""}
         </p>
       </div>
       {mode === "intro" && (

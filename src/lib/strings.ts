@@ -63,7 +63,7 @@ export const room = {
     en: "This browser couldn't open the 3D workspace.",
     es: "Este navegador no pudo abrir el espacio 3D.",
   },
-  loading: { en: "Getting the desk ready", es: "Preparando el espacio" },
+  loading: { en: "Loading the desk", es: "Cargando el escritorio" },
   introCaption: { en: "A little of my world.", es: "Un poco de mi mundo." },
 } as const;
 
