@@ -1950,6 +1950,12 @@ a svg {
 .mode-loading .scene-container {
   opacity: 0;
 }
+/* Preloader: the "fm." mark rises letter by letter, its period breathes while
+   the scene loads, then Workspace flies it (FLIP via --mark-x/--mark-y/
+   --mark-scale) onto the header wordmark as the paper fades. It rests there
+   through the intro and is removed once the room overlay has faded in. The
+   tracking is the header's -3px expressed in em, so the scaled mark matches
+   the wordmark glyph for glyph. */
 .preloader {
   position: absolute;
   inset: 0;
@@ -1957,70 +1963,82 @@ a svg {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
-  background: #f5f5f3;
+  background-color: #f5f5f3;
   color: #303c34;
-  transition:
-    opacity 0.65s ease,
-    visibility 0.65s ease;
+  transition: background-color 0.65s ease;
 }
-.preloader-done {
-  opacity: 0;
-  visibility: hidden;
+.preloader-handoff {
+  background-color: transparent;
+  color: var(--scene-ink);
   pointer-events: none;
 }
-.preloader-logo {
-  position: relative;
-  font:
-    800 78px/1 Arial,
-    Helvetica,
-    sans-serif;
-  letter-spacing: -7px;
+.preloader-gone {
+  visibility: hidden;
+  transition: visibility 0s linear 0.2s;
+}
+.preloader-mark {
   display: flex;
-  width: 160px;
-  height: 150px;
-  align-items: center;
-  justify-content: center;
-  padding-right: 8px;
+  font-weight: 800;
+  font-size: 74px;
+  line-height: 1;
+  letter-spacing: calc(-3em / 37);
+  white-space: nowrap;
+  transform-origin: 0 0;
+  transform: translate(var(--mark-x, 0), var(--mark-y, 0))
+    scale(var(--mark-scale, 1));
 }
-.preloader-logo > span {
-  animation: logo-arrive 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+.preloader-handoff .preloader-mark {
+  transition:
+    transform var(--mark-time, 0.9s) var(--panel-ease),
+    color var(--mark-time, 0.9s) ease,
+    opacity 0.2s ease;
 }
-.preloader-logo > span:nth-child(2) {
-  animation-delay: 0.12s;
+.preloader-gone .preloader-mark {
+  opacity: 0;
 }
-.preloader-logo > i {
-  font-style: normal;
+.preloader-mark > span {
+  display: block;
+  animation: mark-rise 0.7s cubic-bezier(0.2, 1.2, 0.3, 1) both;
+}
+.preloader-mark > span:nth-child(2) {
+  animation-delay: 0.09s;
+}
+.preloader-mark > .mark-dot {
   color: #647d69;
-  animation: logo-dot 1.6s ease-in-out infinite;
-  transform-origin: 50% 85%;
+  animation-delay: 0.18s;
+  transition: color var(--mark-time, 0.9s) ease;
 }
-.logo-orbit {
-  position: absolute;
-  inset: 0;
-  border: 1px solid #dfe3df;
-  border-radius: 50%;
-  transform: rotate(-30deg);
+.preloader-handoff .mark-dot {
+  color: inherit;
 }
-.logo-orbit:after {
-  content: "";
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #607c69;
-  top: 10px;
-  left: 35px;
-  box-shadow: 0 0 0 5px #f5f5f3;
+.mark-breath {
+  display: block;
+  opacity: 0.72;
+  transform-origin: 50% 80%;
+  animation: mark-breathe 1.9s ease-in-out 0.88s infinite;
 }
-.logo-orbit {
-  animation: logo-orbit 3s linear infinite;
+/* Repeat visits skip the intro, so the header fades in while the mark is
+   still flying; keep its wordmark hidden until the mark lands on it. */
+.workspace:has(.preloader-flying) .room-header .wordmark {
+  opacity: 0;
 }
-.preloader > p {
-  font-size: 11px;
-  color: #737c75;
-  margin: 24px 0 0;
-  letter-spacing: 0.2px;
+@media (max-width: 720px) {
+  .preloader-mark {
+    font-size: 64px;
+    letter-spacing: calc(-3em / 32);
+  }
+}
+@keyframes mark-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.12em);
+  }
+}
+@keyframes mark-breathe {
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 .intro-caption {
   position: absolute;
@@ -2031,34 +2049,6 @@ a svg {
   color: var(--scene-muted);
   animation: caption-reveal 4s ease both;
   pointer-events: none;
-}
-@keyframes logo-arrive {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-    filter: blur(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-    filter: blur(0);
-  }
-}
-@keyframes logo-dot {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.7;
-  }
-  50% {
-    transform: scale(1.25);
-    opacity: 1;
-  }
-}
-@keyframes logo-orbit {
-  to {
-    transform: rotate(330deg);
-  }
 }
 @keyframes caption-reveal {
   0%,
@@ -2666,12 +2656,12 @@ a svg {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .logo-orbit,
-  .preloader-logo > span,
-  .preloader-logo > i {
+  .preloader-mark > span,
+  .mark-breath,
+  .preloader,
+  .preloader-handoff .preloader-mark,
+  .preloader-mark > .mark-dot {
     animation: none;
-  }
-  .preloader {
     transition: none;
   }
   .intro-caption {
