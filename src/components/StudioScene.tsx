@@ -480,6 +480,7 @@ export default function StudioScene(props: SceneProps) {
             onEnter={props.onEnter}
             screenDark={props.screenDark}
             locale={props.locale}
+            attentive={props.mode === "room"}
           />
           <SaylChair />
           <ContactShadows
