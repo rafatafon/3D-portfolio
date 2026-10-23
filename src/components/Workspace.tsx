@@ -89,6 +89,9 @@ export default function Workspace() {
   const [presets, setPresets] = useState<Presets>(DEFAULT_PRESETS);
   const [arming, setArming] = useState(false);
   const [savedSlot, setSavedSlot] = useState<number | null>(null);
+  // The mood is the target the slider and stops set; ambience is the applied
+  // value that eases toward it, so colour changes never snap.
+  const [mood, setMood] = useState(0);
   const [ambience, setAmbience] = useState(0);
   const [reset, setReset] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -117,7 +120,10 @@ export default function Workspace() {
   const [dragging, setDragging] = useState(false);
   const started = useRef(0);
   const skipIntro = useRef(false);
+  const ambienceRef = useRef(0);
+  const ambienceFrame = useRef(0);
   const theme = getAmbience(ambience);
+  const moodLabel = getAmbience(mood).label;
 
   useEffect(() => {
     started.current = performance.now();
@@ -176,6 +182,34 @@ export default function Workspace() {
     void document.fonts?.ready.then(place);
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    // Ease the applied ambience toward the mood with a frame-rate-independent
+    // exponential approach: buttons glide in about 0.4 s and a drag trails the
+    // thumb slightly. The live value sits in a ref so a retarget mid-flight
+    // continues from wherever the colours are, and state is set once a frame.
+    if (reducedMotion) {
+      ambienceRef.current = mood;
+      setAmbience(mood);
+      return;
+    }
+    // 0.3 of a point is under one RGB unit; stopping there ends the
+    // invisible tail of frames about a quarter of a second sooner.
+    if (Math.abs(mood - ambienceRef.current) < 0.3) return;
+    let last = performance.now();
+    const step = (now: number) => {
+      const dt = Math.max(0, now - last);
+      last = now;
+      const current = ambienceRef.current;
+      let next = current + (mood - current) * (1 - Math.exp(-dt / 110));
+      if (Math.abs(mood - next) < 0.3) next = mood;
+      ambienceRef.current = next;
+      setAmbience(next);
+      ambienceFrame.current = next === mood ? 0 : requestAnimationFrame(step);
+    };
+    ambienceFrame.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(ambienceFrame.current);
+  }, [mood, reducedMotion]);
 
   const onReady = useCallback(() => setReady(true), []);
   const onError = useCallback(() => {
@@ -633,37 +667,37 @@ export default function Workspace() {
           <div className="ambient-control">
             <div className="ambient-heading">
               <label htmlFor="ambience">Set the mood</label>
-              <span>{theme.label}</span>
+              <span>{moodLabel}</span>
             </div>
             <input
               id="ambience"
               aria-label="Ambient lighting"
-              aria-valuetext={`${theme.label}, ${ambience} percent`}
+              aria-valuetext={`${moodLabel}, ${mood} percent`}
               type="range"
               min="0"
               max="100"
               step="1"
-              value={ambience}
-              onChange={(event) => setAmbience(Number(event.target.value))}
+              value={mood}
+              onChange={(event) => setMood(Number(event.target.value))}
             />
             <div className="ambient-stops">
               <button
                 aria-label="Set daylight ambience"
-                onClick={() => setAmbience(0)}
+                onClick={() => setMood(0)}
               >
                 <Sun size={13} />
                 <span>Light</span>
               </button>
               <button
                 aria-label="Set warm ambience"
-                onClick={() => setAmbience(50)}
+                onClick={() => setMood(50)}
               >
                 <Sunset size={13} />
                 <span>Warm</span>
               </button>
               <button
                 aria-label="Set dark ambience"
-                onClick={() => setAmbience(100)}
+                onClick={() => setMood(100)}
               >
                 <Moon size={13} />
                 <span>Dark</span>
@@ -717,7 +751,7 @@ export default function Workspace() {
         <Desktop
           initialFolder={initialFolder}
           onExit={exit}
-          daylight={ambience < 75}
+          daylight={mood < 75}
           leaving={mode === "leaving"}
         />
       )}

@@ -1,3 +1,23 @@
+/* Ambience colours. Workspace.tsx writes these as inline custom properties on
+   .workspace; registering them as <color> lets them interpolate instead of
+   switching in one frame (see the .workspace transition in the "Seamless
+   workspace" layer). Initial values match the daylight palette in
+   src/lib/ambience.ts. Must stay at the top level, outside any media query. */
+@property --room {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f5f5f3;
+}
+@property --scene-ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #292622;
+}
+@property --scene-muted {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #62605d;
+}
 :root {
   --ink: #282e2b;
   --paper: #f8f7f2;
@@ -1816,6 +1836,19 @@ a svg {
   color: var(--scene-ink);
   background: var(--room);
   isolation: isolate;
+  /* Short on purpose: Workspace.tsx eases the ambience number itself (and the
+     Three.js lights follow that same value), so this only softens the
+     per-frame steps and the one-frame dark/light ink flip in getAmbience. A
+     longer transition would lag the CSS behind the lit scene. */
+  transition:
+    --room 0.12s ease-out,
+    --scene-ink 0.12s ease-out,
+    --scene-muted 0.12s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace {
+    transition: none;
+  }
 }
 .room-header,
 .room-introduction,
@@ -2995,19 +3028,6 @@ a svg {
   .panel-hidden .room-dock {
     transform: translate(-50%, 56px);
   }
-}
-@media (prefers-reduced-motion: reduce) {
-  /* Durations are already near zero; drop the stagger and the visibility
-     delay too so the panel swaps in a single frame. */
-  .scene-frame,
-  .room-header,
-  .room-header .identity,
-  .room-introduction,
-  .intro-heading,
-  .room-dock,
-  .panel-toggle {
-    transition-delay: 0s !important;
-  }
   /* The fixed Explore button leaves with the dock, down and out, and comes
      back with it. */
   .enter-desktop {
@@ -3028,6 +3048,20 @@ a svg {
       visibility 0s linear 0.7s;
   }
 }
+@media (prefers-reduced-motion: reduce) {
+  /* Durations are already near zero; drop the stagger and the visibility
+     delay too so the panel swaps in a single frame. */
+  .scene-frame,
+  .room-header,
+  .room-header .identity,
+  .room-introduction,
+  .intro-heading,
+  .enter-desktop,
+  .room-dock,
+  .panel-toggle {
+    transition-delay: 0s !important;
+  }
+}
 
 /* Desk height keypad: a dark controller with an LED readout, bottom-centre
    above the footer's drag hint (phones keep it over the desk area). The base
@@ -3036,7 +3070,6 @@ a svg {
   position: absolute;
   left: 50%;
   bottom: calc(var(--edge-y) + 44px);
-  .enter-desktop,
   --remote-base: translate(-50%, 0);
   z-index: 4;
   display: flex;

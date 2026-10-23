@@ -399,6 +399,9 @@ class SceneErrorBoundary extends Component<
 
 export default function StudioScene(props: SceneProps) {
   const theme = getAmbience(props.ambience);
+  // Ramp the fill light and contact shadows across the upper half of the
+  // range instead of stepping at 75, so dragging the mood never pops.
+  const night = THREE.MathUtils.clamp((props.ambience - 50) / 50, 0, 1);
   const frame = useRef<HTMLDivElement>(null);
   return (
     <SceneErrorBoundary onError={props.onError}>
@@ -437,7 +440,7 @@ export default function StudioScene(props: SceneProps) {
         />
         <directionalLight
           position={[4, 4, -3]}
-          intensity={props.ambience > 75 ? 1.4 : 1.1}
+          intensity={1.1 + 0.3 * night}
           color={theme.fill}
         />
         <Suspense fallback={null}>
@@ -476,7 +479,7 @@ export default function StudioScene(props: SceneProps) {
           <SaylChair />
           <ContactShadows
             position={[0, -0.013, 0]}
-            opacity={props.ambience > 75 ? 0.65 : 0.37}
+            opacity={0.37 + 0.28 * night}
             scale={12}
             blur={2.3}
             far={4}
