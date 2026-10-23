@@ -498,7 +498,6 @@ export default function Workspace() {
       </button>
     </div>
   );
-  const opening = mode === "loading" || mode === "intro";
   return (
     <main
       className={`workspace mode-${mode}${panelHidden ? " panel-hidden" : ""}${switching ? " lang-switching" : ""}${settling ? " lang-settling" : ""}`}
@@ -772,11 +771,6 @@ export default function Workspace() {
           <span className="loading-dots">…</span>
         </p>
       </div>
-      {opening && (
-        <button className="skip-intro" onClick={finishIntro}>
-          {t(room.skipIntro)} <ArrowRight size={14} />
-        </button>
-      )}
       {mode === "intro" && (
         <div className="intro-caption" aria-live="polite">
           {t(room.introCaption)}

@@ -64,7 +64,6 @@ export const room = {
     es: "Este navegador no pudo abrir el espacio 3D.",
   },
   loading: { en: "Getting the desk ready", es: "Preparando el espacio" },
-  skipIntro: { en: "Skip intro", es: "Saltar intro" },
   introCaption: { en: "A little of my world.", es: "Un poco de mi mundo." },
 } as const;
 

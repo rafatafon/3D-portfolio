@@ -2032,22 +2032,6 @@ a svg {
   animation: caption-reveal 4s ease both;
   pointer-events: none;
 }
-.skip-intro {
-  position: absolute;
-  right: 4.4%;
-  bottom: 32px;
-  z-index: 61;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 11px;
-  padding: 10px 14px;
-  border: 1px solid #939c9033;
-  border-radius: 30px;
-  background: #ffffffbb;
-  color: #303a33;
-  backdrop-filter: blur(12px);
-}
 @keyframes logo-arrive {
   from {
     opacity: 0;
@@ -2551,10 +2535,6 @@ a svg {
   }
   .place-and-time {
     font-size: 9px;
-  }
-  .skip-intro {
-    right: 24px;
-    bottom: 30px;
   }
   .intro-caption {
     bottom: 130px;
