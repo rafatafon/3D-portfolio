@@ -9,7 +9,6 @@ import {
   Copy,
   Download,
   Github,
-  Mail,
   MapPin,
 } from "lucide-react";
 import {
@@ -71,7 +70,6 @@ export const copy = {
     es: "Aprendiendo al construir.",
   },
   resume: { en: "Open full résumé", es: "Ver currículum completo" },
-  postage: { en: "From Honduras", es: "Desde Honduras" },
   contactEyebrow: {
     en: "My inbox is open",
     es: "Mi bandeja de entrada está abierta",
@@ -250,11 +248,6 @@ export default function PortfolioContent({ folder }: { folder: FolderId }) {
 
   return (
     <div className="contact-content">
-      <div className="postage" aria-hidden="true">
-        <span>HN</span>
-        <Mail size={30} />
-        <small>{t(copy.postage)}</small>
-      </div>
       <p className="document-eyebrow">{t(copy.contactEyebrow)}</p>
       <h2>
         {t(copy.contactHeadingTop)}

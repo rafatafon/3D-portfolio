@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useMemo, useRef } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   useFrame,
   useLoader,
@@ -13,7 +13,7 @@ import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { DESK_SPEED, deskOffset } from "@/lib/desk";
 import { Box, textureFromCanvas, type Vec3 } from "./desk/primitives";
 import { AirPodsMax } from "./desk/AirPodsMax";
-import { DeskController } from "./desk/DeskController";
+import { DeskController, useGlow } from "./desk/DeskController";
 import { MacBook } from "./desk/MacBook";
 import { MagicKeyboard } from "./desk/MagicKeyboard";
 import { MagicMouse } from "./desk/MagicMouse";
@@ -24,6 +24,32 @@ import type { Locale } from "@/lib/i18n";
 export { Box };
 
 const white = "#e8e8e5";
+// How the monitor's screen brightens under the pointer or during the arrival
+// pulse, like a backlight turned up, without blowing out the open window:
+// - SCREEN_LIFT: a plain multiplier, small enough that white stays under 250;
+// - SCREEN_KNEE: the gain of a soft knee that lifts dark and mid tones and
+//   leaves white where it is (see screenKnee);
+// - SCREEN_BLEED: a cool additive backlight (linear light, fading out toward
+//   white) that raises the near-black wallpaper about 25 levels.
+// Lifted tones are capped just under the window's white so text keeps its
+// contrast.
+const SCREEN_LIFT = 0.07;
+const SCREEN_KNEE = 2.2;
+const SCREEN_BLEED = new THREE.Color("#9fb4cc").multiplyScalar(0.022);
+const BEZEL_RIM = "#8fa4bb";
+// Peak bezel rim: a little stronger in light moods, softer in the dark room.
+const BEZEL_GLOW = 0.22;
+const BEZEL_GLOW_DARK = 0.18;
+// When the arrival pulses start after the room settles (ms): the monitor,
+// then the controller; touch devices, which have no hover, get a second round.
+const NUDGE_MONITOR = 1400;
+const NUDGE_CONTROLLER = 1200;
+const NUDGE_TOUCH_ROUND = 8500;
+// The pulses play once per page load: returning from the desktop to the room
+// does not replay them, a reload does.
+// Which arrival pulses have played this page load, per object, so one
+// playing early never starves the other.
+const nudged = { monitor: false, controller: false };
 const black = "#25282c";
 
 // The monitor only responds while its screen faces the camera, so a visitor
@@ -168,6 +194,8 @@ function BentPanel({
   screen = false,
   waking = false,
   sleeping = false,
+  glowRef,
+  rim = BEZEL_GLOW,
 }: {
   width: number;
   height: number;
@@ -177,13 +205,41 @@ function BentPanel({
   screen?: boolean;
   waking?: boolean;
   sleeping?: boolean;
+  // The monitor's eased 0–1 affordance lift, shared by the bezel and the
+  // screen so both ease once, in phase (Desk owns the easing).
+  glowRef?: { current: number };
+  // Peak emissive intensity of the bezel's rim.
+  rim?: number;
 }) {
   const screenMaterial = useRef<THREE.MeshBasicMaterial>(null);
+  const screenGain = useMemo(() => ({ value: 1 }), []);
+  const screenBleed = useMemo(() => ({ value: new THREE.Color(0) }), []);
+  const screenKnee = useCallback(
+    (shader: THREE.WebGLProgramParametersWithUniforms) => {
+      shader.uniforms.screenGain = screenGain;
+      shader.uniforms.screenBleed = screenBleed;
+      shader.fragmentShader = shader.fragmentShader
+        .replace(
+          "void main() {",
+          "uniform float screenGain;\nuniform vec3 screenBleed;\nvoid main() {",
+        )
+        .replace(
+          "#include <opaque_fragment>",
+          "vec3 litScreen = outgoingLight * screenGain / (1.0 + (screenGain - 1.0) * outgoingLight) + screenBleed * (1.0 - outgoingLight);\noutgoingLight = min(litScreen, max(outgoingLight, vec3(0.92)));\n#include <opaque_fragment>",
+        );
+    },
+    [screenGain, screenBleed],
+  );
+  const bezelMaterial = useRef<THREE.MeshStandardMaterial>(null);
   const wakeStarted = useRef(0);
   useEffect(() => {
     wakeStarted.current = performance.now();
   }, [waking]);
   useFrame(() => {
+    const lift = glowRef?.current ?? 0;
+    if (bezelMaterial.current)
+      bezelMaterial.current.emissiveIntensity = rim * lift;
+    screenGain.value = 1 + (SCREEN_KNEE - 1) * lift;
     if (!screenMaterial.current) return;
     const brightness = sleeping
       ? 0
@@ -194,7 +250,13 @@ function BentPanel({
             3.5,
           ) * 0.88
         : 0.88;
-    screenMaterial.current.color.setScalar(brightness);
+    screenMaterial.current.color.setScalar(
+      brightness * (1 + SCREEN_LIFT * lift),
+    );
+    // The bleed follows the backlight, so a sleeping screen stays black.
+    screenBleed.value
+      .copy(SCREEN_BLEED)
+      .multiplyScalar((lift * brightness) / 0.88);
   });
   const geometry = useMemo(() => {
     const geo = depth
@@ -221,14 +283,18 @@ function BentPanel({
         <meshBasicMaterial
           ref={screenMaterial}
           map={texture}
+          onBeforeCompile={screenKnee}
           toneMapped={false}
           color={sleeping || waking ? "#000" : "#e1e1e1"}
         />
       ) : (
         <meshStandardMaterial
+          ref={bezelMaterial}
           color="#16181c"
           roughness={0.38}
           metalness={0.3}
+          emissive={BEZEL_RIM}
+          emissiveIntensity={0}
         />
       )}
     </mesh>
@@ -313,6 +379,9 @@ export const Desk = memo(function Desk({
   sleeping,
   screenDark,
   locale,
+  attentive,
+  monitorUsed,
+  controllerUsed,
 }: {
   height: number;
   onHeight: (cm: number, moving: boolean) => void;
@@ -323,7 +392,74 @@ export const Desk = memo(function Desk({
   sleeping: boolean;
   screenDark: boolean;
   locale: Locale;
+  // True while the visitor is in the room and can use the desk.
+  attentive: boolean;
+  // Whether the features behind the two objects were already used through
+  // the HTML (the Explore button, the toolbar's keypad button).
+  monitorUsed: boolean;
+  controllerUsed: boolean;
 }) {
+  // Affordance for the two clickable objects: a quiet lift while the pointer
+  // is over them, and once per page load, on arrival, one soft pulse each (the
+  // monitor, then the controller) so first-time visitors know they do
+  // something. Touch devices, which have no hover, get one more round later
+  // unless the features have been used. Nothing moves at rest, and reduced
+  // motion gets no pulses (hover still lifts, instantly).
+  const [monitorHover, setMonitorHover] = useState(false);
+  const [monitorPulse, setMonitorPulse] = useState(0);
+  const [controllerHover, setControllerHover] = useState(false);
+  const [controllerPulse, setControllerPulse] = useState(0);
+  const used = useRef({ monitor: false, controller: false });
+  const usedOutside = useRef({
+    monitor: monitorUsed,
+    controller: controllerUsed,
+  });
+  usedOutside.current = { monitor: monitorUsed, controller: controllerUsed };
+  // The monitor's lift eases here once and is shared by its two panels.
+  const monitorLift = useRef(0);
+  useGlow(monitorHover ? 1 : 0, monitorPulse, reducedMotion, (value) => {
+    monitorLift.current = value;
+  });
+  useEffect(() => {
+    if (!attentive || reducedMotion) return;
+    if (nudged.monitor && nudged.controller) return;
+    const timers: number[] = [];
+    const pulse = (
+      key: "monitor" | "controller",
+      set: (at: number) => void,
+      at: number,
+    ) => {
+      timers.push(
+        window.setTimeout(() => {
+          // Counted only once a pulse actually starts, so leaving the room
+          // early (or a development double-mount) does not use it up.
+          nudged[key] = true;
+          if (!used.current[key] && !usedOutside.current[key])
+            set(performance.now());
+        }, at),
+      );
+    };
+    // A pulse that already played is not repeated; a controller pulse left
+    // on its own takes the monitor's slot instead of waiting behind it.
+    const monitorAt = nudged.monitor ? null : NUDGE_MONITOR;
+    const controllerAt = nudged.controller
+      ? null
+      : monitorAt === null
+        ? NUDGE_MONITOR
+        : NUDGE_MONITOR + NUDGE_CONTROLLER;
+    const round = (offset: number) => {
+      if (monitorAt !== null)
+        pulse("monitor", setMonitorPulse, monitorAt + offset);
+      if (controllerAt !== null)
+        pulse("controller", setControllerPulse, controllerAt + offset);
+    };
+    round(0);
+    if (window.matchMedia("(hover: none)").matches)
+      round(NUDGE_TOUCH_ROUND - NUDGE_MONITOR);
+    // Only the timers are cancelled: a pulse already running finishes its
+    // envelope on its own rather than snapping to rest.
+    return () => timers.forEach(clearTimeout);
+  }, [attentive, reducedMotion]);
   const sourceWallpaper = useTexture("/images/pro-wallpaper-portrait.jpg");
   const wallpaper = useMemo(() => {
     const image = sourceWallpaper.image as HTMLImageElement;
@@ -478,14 +614,17 @@ export const Desk = memo(function Desk({
           name="Desk height controller"
           onClick={(event) => {
             event.stopPropagation();
+            used.current.controller = true;
             onDeskControl();
           }}
           onPointerOver={(event) => {
             event.stopPropagation();
             document.body.style.cursor = "pointer";
+            setControllerHover(true);
           }}
           onPointerOut={() => {
             document.body.style.cursor = "auto";
+            setControllerHover(false);
           }}
         >
           {/* A larger, invisible hit target: the box itself is only 4.5 cm tall. */}
@@ -496,6 +635,9 @@ export const Desk = memo(function Desk({
           <DeskController
             initial={Math.round(height)}
             register={registerReadout}
+            glow={controllerHover ? 1 : 0}
+            pulseAt={controllerPulse}
+            reducedMotion={reducedMotion}
           />
         </group>
         <Box
@@ -512,22 +654,25 @@ export const Desk = memo(function Desk({
             // The monitor is opaque: stop the event before deciding, so a
             // click on its back never reaches anything behind it.
             event.stopPropagation();
-            if (screenFacesCamera(event)) onEnter();
+            if (!screenFacesCamera(event)) return;
+            used.current.monitor = true;
+            onEnter();
           }}
           onPointerOver={(event) => {
             event.stopPropagation();
-            document.body.style.cursor = screenFacesCamera(event)
-              ? "pointer"
-              : "auto";
+            const facing = screenFacesCamera(event);
+            document.body.style.cursor = facing ? "pointer" : "auto";
+            setMonitorHover(facing);
           }}
           onPointerMove={(event) => {
             event.stopPropagation();
-            document.body.style.cursor = screenFacesCamera(event)
-              ? "pointer"
-              : "auto";
+            const facing = screenFacesCamera(event);
+            document.body.style.cursor = facing ? "pointer" : "auto";
+            setMonitorHover(facing);
           }}
           onPointerOut={() => {
             document.body.style.cursor = "auto";
+            setMonitorHover(false);
           }}
         >
           <Box
@@ -550,6 +695,8 @@ export const Desk = memo(function Desk({
             height={0.95}
             depth={0.06}
             position={[0, 2.34, 0]}
+            glowRef={monitorLift}
+            rim={screenDark ? BEZEL_GLOW_DARK : BEZEL_GLOW}
           />
           <BentPanel
             width={2.105}
@@ -559,6 +706,7 @@ export const Desk = memo(function Desk({
             screen
             waking={waking}
             sleeping={sleeping}
+            glowRef={monitorLift}
           />
           <Label
             text="LG"

@@ -393,9 +393,18 @@ export default function Workspace() {
     return () => clearTimeout(timer);
   }, [mode, handoff, reducedMotion]);
 
+  // Once the desktop or the keypad has been used, however it was opened, the
+  // room's arrival pulse for that object has nothing left to announce.
+  const [used, setUsed] = useState({ monitor: false, controller: false });
+  const markUsed = useCallback(
+    (key: "monitor" | "controller") =>
+      setUsed((prev) => (prev[key] ? prev : { ...prev, [key]: true })),
+    [],
+  );
   const enter = useCallback(
     (folder: FolderId = "about") => {
       if (mode !== "room") return;
+      markUsed("monitor");
       setInitialFolder(folder);
       setRemoteOpen(false);
       document.body.style.cursor = "auto";
@@ -406,13 +415,15 @@ export default function Workspace() {
       setMode("entering");
       transitionTimer.current = setTimeout(() => setMode("desktop"), ENTER_MS);
     },
-    [mode, reducedMotion, failed, ready],
+    [mode, reducedMotion, failed, ready, markUsed],
   );
   const enterMonitor = useCallback(() => enter(), [enter]);
   // Clicking the controller on the 3D desk opens the keypad too.
   const openRemote = useCallback(() => {
-    if (mode === "room") setRemoteOpen(true);
-  }, [mode]);
+    if (mode !== "room") return;
+    markUsed("controller");
+    setRemoteOpen(true);
+  }, [mode, markUsed]);
 
   const exit = useCallback(() => {
     if (transitionTimer.current) clearTimeout(transitionTimer.current);
@@ -580,7 +591,10 @@ export default function Workspace() {
       </button>
       <button
         ref={deskButton}
-        onClick={() => setRemoteOpen((open) => !open)}
+        onClick={() => {
+          markUsed("controller");
+          setRemoteOpen((open) => !open);
+        }}
         aria-haspopup="dialog"
         aria-expanded={remoteOpen}
         aria-controls="desk-remote"
@@ -619,6 +633,8 @@ export default function Workspace() {
             onIntroComplete={finishIntro}
             screenDark={mood >= 75}
             locale={locale}
+            monitorUsed={used.monitor}
+            controllerUsed={used.controller}
           />
         )}
       </div>

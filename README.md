@@ -24,11 +24,11 @@ pnpm start
 - Drag the desk to look around, or reset the camera. Open the desk controller (from the toolbar, or by clicking the small controller under the desk's front-right edge) to set the standing desk's height: hold the arrows to run the motor, tap them for 1 cm, or use the three presets (press S, then a number, to store the current height). Drag the keypad out of the way; the camera stays wherever you were looking from while the desk moves.
 - Drag “Set the mood” from daylight through warm amber to after hours. The range input supports keyboard controls and three preset buttons.
 - Hide the side panel with the toggle beside the title: the identity, introduction, toolbar, and mood slider ease out to the left (upward on phones) and the desk glides to the center; the docked toggle at the left edge brings them back.
-- Click the monitor or “Explore my desktop” to enter.
+- Click the monitor or “Explore my desktop” to enter. The monitor's screen and the desk controller's LED brighten slightly under the pointer, and pulse once on your first arrival so you know they do something.
 - Open About, Projects, Experience, Writing, and Contact from desktop files, the Dock, or Finder's sidebar.
 - Drag windows by their title bars. Close, minimize, and maximize with the traffic lights; restore minimized windows from the Dock. Desktop files can be dragged anywhere on the desktop with mouse or touch (a tap still opens them), and the About panel drags by its top strip.
 - Search with the menu button or Command/Ctrl + K. Escape dismisses search or the active window.
-- Use the Display dropdown for light/dark appearance and for the language.
+- Use the Display dropdown for light/dark appearance and for the language. In dark appearance the icons switch to a Tahoe-style dark set (dark glass tiles with coloured glyphs, graphite folders, dark paper documents), crossfading over a third of a second.
 - Click the Apple mark for "About this workspace": the project's stack (Next.js, React, TypeScript, three.js, React Three Fiber, drei, plain CSS, pnpm, Vercel) and the models used (Fable 5.1, GPT-6 Astra), with a link to the source.
 - Switch between English and Spanish with the EN/ES toggle at the top-right of the room or in the Display dropdown; the choice is remembered, and the copy crossfades. The four essays stay in English.
 - The Dock's Finder face opens a Finder window with every item; the house at the left of the Dock returns to the studio.

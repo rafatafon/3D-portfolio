@@ -45,6 +45,75 @@ const palettes = {
 };
 type Palette = (typeof palettes)["light"];
 
+// Icon colours: the `--ic-*` custom properties on `.folder-icon`,
+// `.paper-icon`, `.mail-icon`, and the Dock tiles, light and under
+// `.desktop-dark` (the "Dark icon style" section of globals.css).
+const iconColors = {
+  light: {
+    foldTab: "#5aade4",
+    foldTabHi: "#bbebff",
+    foldBack: "#3c9ddf",
+    foldSheet: "#e3e9e6",
+    foldFrontA: "#78ccff",
+    foldFrontB: "#50b3f2",
+    foldEdge: "#8ad2ff",
+    foldFrontHi: "rgba(199, 237, 255, 0.85)",
+    paperA: "#ffffff",
+    paperB: "#edf0f4",
+    paperRim: "rgba(255, 255, 239, 0.4)",
+    paperCorner: "#c9c8bd",
+    paperLine: "#a1aaa0",
+    paperPdf: "#a45043",
+    contactA: "#8bb7c8",
+    contactB: "#557f96",
+    contactRim: "rgba(180, 207, 218, 0.3)",
+    contactSheen: "rgba(227, 243, 255, 0.24)",
+    contactGlyph: "#f3f0df",
+    tileRim: "rgba(255, 255, 255, 0.32)",
+    tileSheen: "rgba(255, 255, 255, 0)",
+    tileLine: "#c9cbd0",
+    studio: ["#f4dcb6", "#c48a55", "#ffffff"],
+    projects: ["#a5a3ff", "#5856d6", "#ffffff"],
+    mail: ["#46adff", "#0865e5", "#ffffff"],
+    files: ["#d1efff", "#93cafd", "#2581bf", "#95d2ff"],
+    notes: ["#ffd54a", "#fafaf9", "#fafaf9"],
+    textedit: ["#ffffff", "#eceef2", "#3379dc"],
+    finder: ["#6dcaff", "#d5efff", "#17395c"],
+  },
+  dark: {
+    foldTab: "#464a52",
+    foldTabHi: "#60646d",
+    foldBack: "#2c2f35",
+    foldSheet: "#7c7f87",
+    foldFrontA: "#3a3d44",
+    foldFrontB: "#2c2f35",
+    foldEdge: "#4b4f57",
+    foldFrontHi: "#555963",
+    paperA: "#393b41",
+    paperB: "#2d2f34",
+    paperRim: "rgba(255, 255, 255, 0.1)",
+    paperCorner: "#5d6068",
+    paperLine: "#9a9da5",
+    paperPdf: "#c0675a",
+    contactA: "#2a2c31",
+    contactB: "#1b1c20",
+    contactRim: "rgba(255, 255, 255, 0.12)",
+    contactSheen: "rgba(255, 255, 255, 0.16)",
+    contactGlyph: "#8db5c7",
+    tileRim: "rgba(255, 255, 255, 0.12)",
+    tileSheen: "rgba(255, 255, 255, 0.16)",
+    tileLine: "#50535b",
+    studio: ["#2a2c31", "#1b1c20", "#dcae7c"],
+    projects: ["#2a2c31", "#1b1c20", "#9997ee"],
+    mail: ["#2a2c31", "#1b1c20", "#4c9ce6"],
+    files: ["#2a2c31", "#1b1c20", "#7cbcea", "#3c719c"],
+    notes: ["#d4a72c", "#2a2c31", "#1b1c20"],
+    textedit: ["#2a2c31", "#1b1c20", "#5b8fd8"],
+    finder: ["#2f7bb4", "#8dbbdc", "#0d2236"],
+  },
+};
+type IconColors = (typeof iconColors)["light"];
+
 // Lucide 0.468 icon geometry (24-unit view box), flattened to path data.
 const icons = {
   search: "M3 11a8 8 0 1 0 16 0a8 8 0 1 0 -16 0 M21 21l-4.3-4.3",
@@ -228,28 +297,35 @@ function drawWallpaper(ctx: Ctx, wallpaper: CanvasImageSource) {
 
 // FileIcon kinds, drawn from the `.folder-icon`, `.paper-icon`, and
 // `.mail-icon` rules.
-function paperIcon(ctx: Ctx, x: number, y: number, w: number, pdf: boolean) {
+function paperIcon(
+  ctx: Ctx,
+  c: IconColors,
+  x: number,
+  y: number,
+  w: number,
+  pdf: boolean,
+) {
   const h = 54;
   ctx.save();
   shadow(ctx, "rgba(30, 51, 51, 0.13)", 3, 4);
   const fill = ctx.createLinearGradient(x, y, x + w, y + h);
-  fill.addColorStop(0, "#ffffff");
-  fill.addColorStop(1, "#edf0f4");
+  fill.addColorStop(0, c.paperA);
+  fill.addColorStop(1, c.paperB);
   ctx.fillStyle = fill;
   roundRect(ctx, x, y, w, h, [3, 9, 3, 3]);
   ctx.fill();
   noShadow(ctx);
-  ctx.strokeStyle = "rgba(255, 255, 239, 0.4)";
+  ctx.strokeStyle = c.paperRim;
   ctx.lineWidth = 1;
   roundRect(ctx, x + 0.5, y + 0.5, w - 1, h - 1, [2.5, 8.5, 2.5, 2.5]);
   ctx.stroke();
-  ctx.fillStyle = "#c9c8bd";
+  ctx.fillStyle = c.paperCorner;
   ctx.beginPath();
   ctx.moveTo(x + w - 10, y + 10);
   ctx.lineTo(x + w, y + 10);
   ctx.lineTo(x + w, y);
   ctx.fill();
-  ctx.fillStyle = "#a1aaa0";
+  ctx.fillStyle = c.paperLine;
   for (let i = 0; i < 4; i++) {
     roundRect(
       ctx,
@@ -265,70 +341,78 @@ function paperIcon(ctx: Ctx, x: number, y: number, w: number, pdf: boolean) {
     text(ctx, "PDF", x + 8, y + h - 11.5, {
       size: 9,
       weight: 700,
-      color: "#a45043",
+      color: c.paperPdf,
       spacing: 0.5,
     });
   ctx.restore();
 }
 
-function folderIcon(ctx: Ctx, x: number, y: number) {
+function folderIcon(ctx: Ctx, c: IconColors, x: number, y: number) {
   const w = 62;
   const h = 47;
   ctx.save();
   shadow(ctx, "rgba(30, 51, 51, 0.13)", 3, 4);
-  ctx.fillStyle = "#3c9ddf";
+  ctx.fillStyle = c.foldBack;
   roundRect(ctx, x, y, w, h, [3, 5, 5, 5]);
   ctx.fill();
   noShadow(ctx);
   roundRect(ctx, x, y - 5, 29, 13, [5, 8, 0, 0]);
-  ctx.fillStyle = "#5aade4";
+  ctx.fillStyle = c.foldTab;
   ctx.fill();
   ctx.save();
   ctx.clip();
-  ctx.fillStyle = "#bbebff";
+  ctx.fillStyle = c.foldTabHi;
   ctx.fillRect(x, y - 5, 29, 1);
   ctx.restore();
-  ctx.fillStyle = "#e3e9e6";
+  ctx.fillStyle = c.foldSheet;
   ctx.fillRect(x + 5, y + 2, w - 10, 8);
   const front = ctx.createLinearGradient(0, y + 6, 0, y + h);
-  front.addColorStop(0, "#78ccff");
-  front.addColorStop(1, "#50b3f2");
+  front.addColorStop(0, c.foldFrontA);
+  front.addColorStop(1, c.foldFrontB);
   roundRect(ctx, x, y + 6, w, h - 6, [4, 4, 6, 6]);
   ctx.fillStyle = front;
   ctx.fill();
   ctx.save();
   ctx.clip();
-  ctx.fillStyle = "rgba(199, 237, 255, 0.85)";
+  ctx.fillStyle = c.foldFrontHi;
   ctx.fillRect(x, y + 7, w, 1);
   ctx.restore();
-  ctx.strokeStyle = "#8ad2ff";
+  ctx.strokeStyle = c.foldEdge;
   ctx.lineWidth = 1;
   roundRect(ctx, x + 0.5, y + 6.5, w - 1, h - 7, [3.5, 3.5, 5.5, 5.5]);
   ctx.stroke();
   ctx.restore();
 }
 
-function mailIcon(ctx: Ctx, x: number, y: number) {
+function mailIcon(ctx: Ctx, c: IconColors, x: number, y: number) {
   const w = 56;
   const h = 49;
   ctx.save();
   shadow(ctx, "rgba(30, 51, 51, 0.13)", 3, 4);
   const fill = ctx.createLinearGradient(0, y, 0, y + h);
-  fill.addColorStop(0, "#8bb7c8");
-  fill.addColorStop(1, "#557f96");
+  fill.addColorStop(0, c.contactA);
+  fill.addColorStop(1, c.contactB);
   roundRect(ctx, x, y, w, h, 10);
   ctx.fillStyle = fill;
   ctx.fill();
   noShadow(ctx);
   ctx.save();
   ctx.clip();
-  ctx.fillStyle = "rgba(227, 243, 255, 0.24)";
+  ctx.fillStyle = c.contactSheen;
   ctx.fillRect(x, y + 1, w, 1);
   ctx.restore();
-  ctx.strokeStyle = "rgba(180, 207, 218, 0.3)";
+  ctx.strokeStyle = c.contactRim;
   roundRect(ctx, x + 0.5, y + 0.5, w - 1, h - 1, 9.5);
   ctx.stroke();
-  icon(ctx, icons.mail, x + (w - 36) / 2, y + (h - 36) / 2, 36, "#f3f0df", 1.1);
+  icon(
+    ctx,
+    icons.mail,
+    x + (w - 36) / 2,
+    y + (h - 36) / 2,
+    36,
+    c.contactGlyph,
+    1.1,
+  );
   ctx.restore();
 }
 
@@ -369,7 +453,7 @@ function drawMenubar(ctx: Ctx, blur: HTMLCanvasElement, locale: Locale) {
   icon(ctx, icons.search, indicators - 17 - 14, 8, 14, "#fff");
 }
 
-function drawDesktopFiles(ctx: Ctx, locale: Locale) {
+function drawDesktopFiles(ctx: Ctx, c: IconColors, locale: Locale) {
   const center = 1992 + 105 / 2;
   const label: TextStyle = { size: 11, color: "#fffdf4", align: "center" };
   const items = [
@@ -380,11 +464,11 @@ function drawDesktopFiles(ctx: Ctx, locale: Locale) {
   for (const item of items) {
     const top = y + 2;
     let iconHeight = 54;
-    if (item.kind === "folder") folderIcon(ctx, center - 31, top + 7);
+    if (item.kind === "folder") folderIcon(ctx, c, center - 31, top + 7);
     else if (item.kind === "contact") {
-      mailIcon(ctx, center - 28, top);
+      mailIcon(ctx, c, center - 28, top);
       iconHeight = 49;
-    } else paperIcon(ctx, center - 21, top, 42, item.kind === "resume");
+    } else paperIcon(ctx, c, center - 21, top, 42, item.kind === "resume");
     const lines = wrap(ctx, item.name, 93, label);
     const labelTop = top + iconHeight + 7;
     ctx.save();
@@ -406,6 +490,7 @@ function drawDesktopFiles(ctx: Ctx, locale: Locale) {
 
 function appIcon(
   ctx: Ctx,
+  c: IconColors,
   x: number,
   draw: (x: number, y: number) => void,
   fill?: string | CanvasGradient,
@@ -421,32 +506,32 @@ function appIcon(
   noShadow(ctx);
   ctx.save();
   ctx.clip();
+  // The top highlight (`inset 0 1px 0`) sits under the tile's content, like
+  // the CSS box-shadow; transparent on light tiles.
+  ctx.fillStyle = c.tileSheen;
+  ctx.fillRect(x, y + 1, w, 1);
   draw(x, y);
   ctx.restore();
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.32)";
+  ctx.strokeStyle = c.tileRim;
   ctx.lineWidth = 1;
   roundRect(ctx, x + 0.5, y + 0.5, w - 1, h - 1, 11.5);
   ctx.stroke();
   ctx.restore();
 }
 
-function vertical(ctx: Ctx, top: string, bottom: string, stop = 1) {
+function vertical(ctx: Ctx, top: string, bottom: string) {
   const g = ctx.createLinearGradient(0, 829, 0, 877);
   g.addColorStop(0, top);
-  if (stop < 1) {
-    g.addColorStop(stop, top);
-    g.addColorStop(stop, bottom);
-  }
   g.addColorStop(1, bottom);
   return g;
 }
 
-function ruled(ctx: Ctx, x: number, y: number) {
-  ctx.fillStyle = "#c9cbd0";
+function ruled(ctx: Ctx, c: IconColors, x: number, y: number) {
+  ctx.fillStyle = c.tileLine;
   for (const top of [23, 30, 37]) ctx.fillRect(x + 7, y + top, 32, 1);
 }
 
-function drawDock(ctx: Ctx, blur: HTMLCanvasElement) {
+function drawDock(ctx: Ctx, c: IconColors, blur: HTMLCanvasElement) {
   const x = (VIEW_W - 544) / 2;
   const y = 816.5;
   ctx.save();
@@ -470,36 +555,38 @@ function drawDock(ctx: Ctx, blur: HTMLCanvasElement) {
   const at = (i: number) => x + 11 + i * 62 + (i > 0 ? 15 : 0) + 6;
   appIcon(
     ctx,
+    c,
     at(0),
-    (ix) => icon(ctx, icons.house, ix + 10, 840, 26, "#fff", 1.7),
-    vertical(ctx, "#f4dcb6", "#c48a55"),
+    (ix) => icon(ctx, icons.house, ix + 10, 840, 26, c.studio[2], 1.7),
+    vertical(ctx, c.studio[0], c.studio[1]),
   );
-  appIcon(ctx, at(1), (ix, iy) => {
+  appIcon(ctx, c, at(1), (ix, iy) => {
     ctx.save();
     ctx.translate(ix - 1, iy);
-    ctx.fillStyle = "#6dcaff";
+    ctx.fillStyle = c.finder[0];
     ctx.fill(path(finderIcon.face));
-    ctx.fillStyle = "#d5efff";
+    ctx.fillStyle = c.finder[1];
     ctx.fill(path(finderIcon.light));
-    ctx.strokeStyle = "#17395c";
+    ctx.strokeStyle = c.finder[2];
     ctx.lineWidth = 2;
     ctx.lineCap = "round";
     ctx.stroke(path(finderIcon.smile));
     ctx.restore();
   });
   const paper = ctx.createLinearGradient(at(2), 829, at(2) + 46, 877);
-  paper.addColorStop(0, "#ffffff");
-  paper.addColorStop(1, "#eceef2");
+  paper.addColorStop(0, c.textedit[0]);
+  paper.addColorStop(1, c.textedit[1]);
   appIcon(
     ctx,
+    c,
     at(2),
     (ix, iy) => {
-      ruled(ctx, ix, iy);
+      ruled(ctx, c, ix, iy);
       ctx.save();
       ctx.translate(ix + 26, iy + 29);
       ctx.rotate((-15 * Math.PI) / 180);
-      setFont(ctx, { size: 44, color: "#3379dc" });
-      ctx.fillStyle = "#3379dc";
+      setFont(ctx, { size: 44, color: c.textedit[2] });
+      ctx.fillStyle = c.textedit[2];
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText("✎", 0, 0);
@@ -509,28 +596,32 @@ function drawDock(ctx: Ctx, blur: HTMLCanvasElement) {
   );
   appIcon(
     ctx,
+    c,
     at(3),
-    (ix) => icon(ctx, icons.layoutGrid, ix + 9, 839, 28, "#fff", 1.6),
-    vertical(ctx, "#a5a3ff", "#5856d6"),
+    (ix) => icon(ctx, icons.layoutGrid, ix + 9, 839, 28, c.projects[2], 1.6),
+    vertical(ctx, c.projects[0], c.projects[1]),
   );
   appIcon(
     ctx,
+    c,
     at(4),
     (ix) =>
-      icon(ctx, icons.folder, ix + 6.5, 836.5, 33, "#2581bf", 0.8, "#95d2ff"),
-    vertical(ctx, "#d1efff", "#93cafd"),
+      icon(ctx, icons.folder, ix + 6.5, 836.5, 33, c.files[2], 0.8, c.files[3]),
+    vertical(ctx, c.files[0], c.files[1]),
   );
+  // Notes: a hard-edged strip over the top 28%, then the body gradient.
+  const notes = ctx.createLinearGradient(0, 829, 0, 877);
+  notes.addColorStop(0, c.notes[0]);
+  notes.addColorStop(0.28, c.notes[0]);
+  notes.addColorStop(0.28, c.notes[1]);
+  notes.addColorStop(1, c.notes[2]);
+  appIcon(ctx, c, at(5), (ix, iy) => ruled(ctx, c, ix, iy), notes);
   appIcon(
     ctx,
-    at(5),
-    (ix, iy) => ruled(ctx, ix, iy),
-    vertical(ctx, "#ffd54a", "#fafaf9", 0.28),
-  );
-  appIcon(
-    ctx,
+    c,
     at(6),
-    (ix) => icon(ctx, icons.mail, ix + 7, 837, 32, "#fff", 1.4),
-    vertical(ctx, "#46adff", "#0865e5"),
+    (ix) => icon(ctx, icons.mail, ix + 7, 837, 32, c.mail[2], 1.4),
+    vertical(ctx, c.mail[0], c.mail[1]),
   );
   ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
   ctx.fillRect(x + 78, 833, 1, 40);
@@ -539,7 +630,7 @@ function drawDock(ctx: Ctx, blur: HTMLCanvasElement) {
   ctx.save();
   ctx.translate(x + 489.9, 833.5);
   ctx.scale(0.72, 0.72);
-  paperIcon(ctx, 0, 0, 39, true);
+  paperIcon(ctx, c, 0, 0, 39, true);
   ctx.restore();
   // The open About me window's dot.
   ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
@@ -781,7 +872,8 @@ export function paintScreenTexture({
       drawWallpaper(ctx, wallpaper);
       const blur = blurredCopy(ctx.canvas);
       drawMenubar(ctx, blur, locale);
-      drawDesktopFiles(ctx, locale);
+      const iconSet = dark ? iconColors.dark : iconColors.light;
+      drawDesktopFiles(ctx, iconSet, locale);
       drawWindow(
         ctx,
         blur,
@@ -789,7 +881,7 @@ export function paintScreenTexture({
         dark ? palettes.dark : palettes.light,
         locale,
       );
-      drawDock(ctx, blur);
+      drawDock(ctx, iconSet, blur);
     },
     SCREEN_WIDTH,
     SCREEN_HEIGHT,

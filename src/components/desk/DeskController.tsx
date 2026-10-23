@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { useThree } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { Box, textureFromCanvas, type Vec3 } from "./primitives";
 
@@ -166,19 +166,107 @@ function paintKeyGlyphs(ctx: CanvasRenderingContext2D) {
   });
 }
 
+// Affordance timing shared with the monitor: hover lifts ease in over about
+// 0.14 s and out over 0.25 s; the arrival pulse is a 1.2 s sine swell (rise
+// 0.5 s, hold 0.2 s, fall 0.5 s) to the same peak as hover.
+const EASE_IN = 0.14;
+const EASE_OUT = 0.25;
+const PULSE_RISE = 0.5;
+const PULSE_HOLD = 0.2;
+export const PULSE_LENGTH = PULSE_RISE * 2 + PULSE_HOLD;
+
+function pulseEnvelope(seconds: number) {
+  if (seconds <= 0 || seconds >= PULSE_LENGTH) return 0;
+  const fall = PULSE_LENGTH - seconds;
+  const edge = Math.min(seconds, fall, PULSE_RISE) / PULSE_RISE;
+  return 0.5 - 0.5 * Math.cos(Math.PI * edge);
+}
+
+// Drives a 0–1 glow from a hover target and an optional pulse start time
+// (performance.now() ms; 0 for none), calling `apply` every frame and asking
+// for frames only while the value is still changing.
+export function useGlow(
+  glow: number,
+  pulseAt: number,
+  reducedMotion: boolean,
+  apply: (value: number) => void,
+) {
+  const invalidate = useThree((state) => state.invalidate);
+  const lift = useRef(0);
+  useEffect(() => {
+    invalidate();
+  }, [glow, pulseAt, invalidate]);
+  useFrame((_, delta) => {
+    const gap = glow - lift.current;
+    if (Math.abs(gap) > 0.002) {
+      lift.current += reducedMotion
+        ? gap
+        : gap *
+          (1 -
+            Math.exp(-Math.min(delta, 0.1) / (gap > 0 ? EASE_IN : EASE_OUT)));
+      invalidate();
+    } else lift.current = glow;
+    let pulse = 0;
+    if (pulseAt) {
+      const elapsed = (performance.now() - pulseAt) / 1000;
+      pulse = pulseEnvelope(elapsed);
+      // One more frame past the end settles the value back to rest.
+      if (elapsed < PULSE_LENGTH + 0.1) invalidate();
+    }
+    apply(Math.max(lift.current, pulse));
+  });
+}
+
+// How much the LED brightens under the pointer or during the arrival pulse,
+// and the peak opacity of the cyan halo that makes the window glow.
+const LED_LIFT = 0.6;
+const HALO_OPACITY = 0.55;
+// Kept inside the body and clear of the first key: the glow belongs to
+// the window alone.
+const haloWidth = ledWidth * 1.1;
+const haloHeight = ledHeight * 1.6;
+
+function paintHalo(ctx: CanvasRenderingContext2D) {
+  // A soft cyan disc; the wider plane stretches it into an ellipse.
+  const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gradient.addColorStop(0, "rgba(127, 220, 255, 0.85)");
+  gradient.addColorStop(0.45, "rgba(127, 220, 255, 0.4)");
+  gradient.addColorStop(1, "rgba(127, 220, 255, 0)");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 128, 128);
+}
+
 export function DeskController({
   initial,
   register,
+  glow = 0,
+  pulseAt = 0,
+  reducedMotion = false,
 }: {
   initial: number;
   register: (set: (cm: number) => void) => void;
+  // 0–1 hover target for the LED window's glow.
+  glow?: number;
+  // Start time (performance.now() ms) of the arrival pulse; 0 for none.
+  pulseAt?: number;
+  reducedMotion?: boolean;
 }) {
   const invalidate = useThree((state) => state.invalidate);
+  const ledMaterial = useRef<THREE.MeshBasicMaterial>(null);
+  const halo = useRef<THREE.Mesh>(null);
+  const haloMaterial = useRef<THREE.MeshBasicMaterial>(null);
+  useGlow(glow, pulseAt, reducedMotion, (value) => {
+    ledMaterial.current?.color.setScalar(1 + LED_LIFT * value);
+    if (haloMaterial.current)
+      haloMaterial.current.opacity = HALO_OPACITY * value;
+    if (halo.current) halo.current.visible = value > 0.002;
+  });
   const textures = useMemo(
     () => ({
       body: textureFromCanvas(paintGradientBody, 8, 64),
       led: textureFromCanvas((ctx) => paintLed(ctx, initial), LED_W, LED_H),
       keys: textureFromCanvas(paintKeyGlyphs, KEY_W, KEY_H),
+      halo: textureFromCanvas(paintHalo, 128, 128),
     }),
     // The initial height only seeds the first paint; later heights repaint.
     [],
@@ -213,8 +301,27 @@ export function DeskController({
       <mesh position={[ledX, centre[1], face + 0.0004]}>
         <planeGeometry args={[ledWidth, ledHeight]} />
         <meshBasicMaterial
+          ref={ledMaterial}
           map={textures.led}
           transparent
+          toneMapped={false}
+          depthWrite={false}
+        />
+      </mesh>
+      {/* Additive halo over the window, shown only while it glows. */}
+      <mesh
+        ref={halo}
+        position={[ledX, centre[1], face + 0.0009]}
+        visible={false}
+        renderOrder={1}
+      >
+        <planeGeometry args={[haloWidth, haloHeight]} />
+        <meshBasicMaterial
+          ref={haloMaterial}
+          map={textures.halo}
+          transparent
+          opacity={0}
+          blending={THREE.AdditiveBlending}
           toneMapped={false}
           depthWrite={false}
         />

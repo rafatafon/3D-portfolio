@@ -589,17 +589,16 @@ a svg {
   left: 5px;
   right: 5px;
   height: 8px;
-  background: #e3e9e6;
+  background: var(--ic-fold-sheet);
 }
 .paper-icon {
   width: 42px;
   height: 54px;
   flex-direction: column;
-  background: linear-gradient(130deg, #fffdf4, #dddccf);
   border-radius: 3px 9px 3px 3px;
   padding: 14px 8px 8px;
   gap: 4px;
-  box-shadow: inset 0 0 0 1px #ffffef66;
+  box-shadow: inset 0 0 0 1px var(--ic-paper-rim);
 }
 .paper-icon:after {
   content: "";
@@ -608,11 +607,11 @@ a svg {
   right: 0;
   border-style: solid;
   border-width: 0 0 10px 10px;
-  border-color: transparent transparent #c9c8bd transparent;
+  border-color: transparent transparent var(--ic-paper-corner) transparent;
 }
 .paper-icon > i {
   height: 2px;
-  background: #a1aaa0;
+  background: var(--ic-paper-line);
   width: 100%;
   border-radius: 2px;
 }
@@ -621,7 +620,7 @@ a svg {
 }
 .paper-icon b {
   font-size: 9px;
-  color: #a45043;
+  color: var(--ic-paper-pdf);
   position: absolute;
   bottom: 6px;
   left: 8px;
@@ -629,19 +628,24 @@ a svg {
   text-shadow: none;
 }
 .mail-icon {
+  --ic-tile-a: #8bb7c8;
+  --ic-tile-b: #557f96;
+  --ic-rim: #b4cfda4d;
+  --ic-sheen: #e3f3ff3d;
+  --ic-glyph: #f3f0df;
   height: 49px;
   width: 56px;
   border-radius: 10px;
-  background: linear-gradient(#8bb7c8, #557f96);
-  border: 1px solid #b4cfda4d;
+  background: linear-gradient(var(--ic-tile-a), var(--ic-tile-b));
+  border: 1px solid var(--ic-rim);
   align-items: center;
   justify-content: center;
-  box-shadow: inset 0 1px 0 #e3f3ff3d;
+  box-shadow: inset 0 1px 0 var(--ic-sheen);
 }
 .mail-icon svg {
   width: 36px;
   height: 36px;
-  stroke: #f3f0df;
+  stroke: var(--ic-glyph);
 }
 .file-icon.small {
   transform: scale(0.72);
@@ -1105,30 +1109,6 @@ a svg {
 }
 .contact-content {
   padding-top: 10px;
-}
-.postage {
-  float: right;
-  height: 92px;
-  width: 74px;
-  outline: 1px dashed #c5c8b5;
-  outline-offset: 4px;
-  border: 1px solid #d3d6c4;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-around;
-  background: #eaeddf;
-  color: #8c9b79;
-  transform: rotate(8deg);
-  margin: 0 5px 25px 12px;
-}
-.postage > span {
-  font-size: 9px;
-  letter-spacing: 3px;
-  margin-top: 4px;
-}
-.postage small {
-  font-size: 7px;
 }
 .contact-content h2 {
   font-size: 37px;
@@ -1709,10 +1689,6 @@ a svg {
   .email-link {
     font-size: 11px;
   }
-  .postage {
-    height: 75px;
-    width: 60px;
-  }
   .desktop-bottom {
     bottom: 10px;
     height: 73px;
@@ -2124,20 +2100,38 @@ a svg {
 .desktop-files {
   top: 65px;
 }
+/* Icon colours are registered custom properties (see "Dark icon style" at
+   the end), so the Dark appearance can ease them instead of snapping. */
+.folder-icon {
+  --ic-fold-tab: #5aade4;
+  --ic-fold-tab-hi: #bbebff;
+  --ic-fold-back: #3c9ddf;
+  --ic-fold-sheet: #e3e9e6;
+  --ic-fold-front-a: #78ccff;
+  --ic-fold-front-b: #50b3f2;
+  --ic-fold-edge: #8ad2ff;
+  --ic-fold-front-hi: #c7edff;
+}
 .folder-icon > span {
-  background: #5aade4;
-  box-shadow: inset 0 1px 0 #bbebff;
+  background: var(--ic-fold-tab);
+  box-shadow: inset 0 1px 0 var(--ic-fold-tab-hi);
 }
 .folder-icon:before {
-  background: #3c9ddf;
+  background: var(--ic-fold-back);
 }
 .folder-icon:after {
-  background: linear-gradient(#78ccff, #50b3f2);
-  border-color: #8ad2ff;
-  box-shadow: inset 0 1px 1px #c7edff;
+  background: linear-gradient(var(--ic-fold-front-a), var(--ic-fold-front-b));
+  border-color: var(--ic-fold-edge);
+  box-shadow: inset 0 1px 1px var(--ic-fold-front-hi);
 }
 .paper-icon {
-  background: linear-gradient(125deg, #fff, #edf0f4);
+  --ic-paper-a: #fff;
+  --ic-paper-b: #edf0f4;
+  --ic-paper-rim: #ffffef66;
+  --ic-paper-corner: #c9c8bd;
+  --ic-paper-line: #a1aaa0;
+  --ic-paper-pdf: #a45043;
+  background: linear-gradient(125deg, var(--ic-paper-a), var(--ic-paper-b));
 }
 .windows-layer {
   top: 30px;
@@ -2357,6 +2351,9 @@ a svg {
   bottom: 78px;
 }
 .app-icon {
+  --ic-rim: #ffffff52;
+  --ic-sheen: #fff0;
+  --ic-line: #c9cbd0;
   width: 48px;
   height: 48px;
   display: flex;
@@ -2366,24 +2363,49 @@ a svg {
   position: relative;
   overflow: hidden;
   box-shadow:
-    inset 0 0 0 1px #ffffff52,
+    inset 0 0 0 1px var(--ic-rim),
+    inset 0 1px 0 var(--ic-sheen),
     0 3px 5px #0004;
 }
 .finder-app > svg {
   width: 48px;
   height: 48px;
 }
+.finder-app {
+  --ic-finder-face: #6dcaff;
+  --ic-finder-light: #d5efff;
+  --ic-finder-smile: #17395c;
+}
+.finder-face {
+  fill: var(--ic-finder-face);
+}
+.finder-light {
+  fill: var(--ic-finder-light);
+}
+.finder-smile {
+  stroke: var(--ic-finder-smile);
+}
 .mail-app {
-  background: linear-gradient(#46adff, #0865e5);
-  color: white;
+  --ic-tile-a: #46adff;
+  --ic-tile-b: #0865e5;
+  --ic-glyph: #fff;
+  background: linear-gradient(var(--ic-tile-a), var(--ic-tile-b));
+  color: var(--ic-glyph);
 }
 .notes-app {
-  background: linear-gradient(#ffd54a 0 28%, #fafaf9 28%);
+  --ic-strip: #ffd54a;
+  --ic-tile-a: #fafaf9;
+  --ic-tile-b: #fafaf9;
+  background: linear-gradient(
+    var(--ic-strip) 0 28%,
+    var(--ic-tile-a) 28%,
+    var(--ic-tile-b)
+  );
 }
 .notes-app > i,
 .textedit-app > i {
   height: 1px;
-  background: #c9cbd0;
+  background: var(--ic-line);
   position: absolute;
   left: 7px;
   right: 7px;
@@ -2398,11 +2420,21 @@ a svg {
   top: 37px;
 }
 .files-app {
-  background: linear-gradient(#d1efff, #93cafd);
-  color: #2581bf;
+  --ic-tile-a: #d1efff;
+  --ic-tile-b: #93cafd;
+  --ic-glyph: #2581bf;
+  --ic-glyph-fill: #95d2ff;
+  background: linear-gradient(var(--ic-tile-a), var(--ic-tile-b));
+  color: var(--ic-glyph);
+}
+.files-app > svg {
+  fill: var(--ic-glyph-fill);
 }
 .textedit-app {
-  background: linear-gradient(135deg, #fff, #eceef2);
+  --ic-tile-a: #fff;
+  --ic-tile-b: #eceef2;
+  --ic-accent: #3379dc;
+  background: linear-gradient(135deg, var(--ic-tile-a), var(--ic-tile-b));
 }
 .textedit-app b {
   position: absolute;
@@ -2410,7 +2442,7 @@ a svg {
   bottom: -3px;
   font-size: 44px;
   line-height: 1;
-  color: #3379dc;
+  color: var(--ic-accent);
   transform: rotate(-15deg);
   font-weight: 400;
 }
@@ -3342,12 +3374,18 @@ a svg {
   flex-shrink: 0;
 }
 .studio-app {
-  background: linear-gradient(#f4dcb6, #c48a55);
-  color: #fff;
+  --ic-tile-a: #f4dcb6;
+  --ic-tile-b: #c48a55;
+  --ic-glyph: #fff;
+  background: linear-gradient(var(--ic-tile-a), var(--ic-tile-b));
+  color: var(--ic-glyph);
 }
 .projects-app {
-  background: linear-gradient(#a5a3ff, #5856d6);
-  color: #fff;
+  --ic-tile-a: #a5a3ff;
+  --ic-tile-b: #5856d6;
+  --ic-glyph: #fff;
+  background: linear-gradient(var(--ic-tile-a), var(--ic-tile-b));
+  color: var(--ic-glyph);
 }
 .finder-grid {
   display: grid;
@@ -3868,5 +3906,215 @@ a svg {
   .about-handle {
     margin: -40px -16px 0;
     padding: 40px 16px 0;
+  }
+}
+
+/* Dark icon style, after macOS Tahoe's "Dark" icons. Under the Dark
+   appearance (.desktop-dark) every illustrated icon (desktop files, the
+   Finder grid, Spotlight results, and the Dock) keeps its glyph in a muted
+   version of its hue on monochrome charcoal glass; folders turn graphite and
+   documents become dark paper. The colours are registered <color> custom
+   properties set on each icon in the rules above, so toggling the appearance
+   eases every gradient, rim and glyph over 0.35 s on the room's curve instead
+   of snapping. The monitor painter (desk/screenTexture.ts, `iconColors`)
+   mirrors these values; change both together. */
+@property --ic-tile-a {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-tile-b {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-rim {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-sheen {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-glyph {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-glyph-fill {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-strip {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-line {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-accent {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-finder-face {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-finder-light {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-finder-smile {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-fold-tab {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-fold-tab-hi {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-fold-back {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-fold-sheet {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-fold-front-a {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-fold-front-b {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-fold-edge {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-fold-front-hi {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-paper-a {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-paper-b {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-paper-rim {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-paper-corner {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-paper-line {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --ic-paper-pdf {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+.file-icon,
+.app-icon {
+  transition-property:
+    --ic-tile-a, --ic-tile-b, --ic-rim, --ic-sheen, --ic-glyph, --ic-glyph-fill,
+    --ic-strip, --ic-line, --ic-accent, --ic-finder-face, --ic-finder-light,
+    --ic-finder-smile, --ic-fold-tab, --ic-fold-tab-hi, --ic-fold-back,
+    --ic-fold-sheet, --ic-fold-front-a, --ic-fold-front-b, --ic-fold-edge,
+    --ic-fold-front-hi, --ic-paper-a, --ic-paper-b, --ic-paper-rim,
+    --ic-paper-corner, --ic-paper-line, --ic-paper-pdf;
+  transition-duration: 0.35s;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.desktop-dark :is(.app-icon, .mail-icon) {
+  --ic-tile-a: #2a2c31;
+  --ic-tile-b: #1b1c20;
+  --ic-rim: #ffffff1f;
+  --ic-sheen: #ffffff29;
+  --ic-line: #50535b;
+}
+.desktop-dark .studio-app {
+  --ic-glyph: #dcae7c;
+}
+.desktop-dark .projects-app {
+  --ic-glyph: #9997ee;
+}
+.desktop-dark .mail-app {
+  --ic-glyph: #4c9ce6;
+}
+.desktop-dark .files-app {
+  --ic-glyph: #7cbcea;
+  --ic-glyph-fill: #3c719c;
+}
+.desktop-dark .notes-app {
+  --ic-strip: #d4a72c;
+}
+.desktop-dark .textedit-app {
+  --ic-accent: #5b8fd8;
+}
+.desktop-dark .finder-app {
+  --ic-finder-face: #2f7bb4;
+  --ic-finder-light: #8dbbdc;
+  --ic-finder-smile: #0d2236;
+}
+.desktop-dark .mail-icon {
+  --ic-glyph: #8db5c7;
+}
+.desktop-dark .folder-icon {
+  --ic-fold-tab: #464a52;
+  --ic-fold-tab-hi: #60646d;
+  --ic-fold-back: #2c2f35;
+  --ic-fold-sheet: #7c7f87;
+  --ic-fold-front-a: #3a3d44;
+  --ic-fold-front-b: #2c2f35;
+  --ic-fold-edge: #4b4f57;
+  --ic-fold-front-hi: #555963;
+}
+.desktop-dark .paper-icon {
+  --ic-paper-a: #393b41;
+  --ic-paper-b: #2d2f34;
+  --ic-paper-rim: #ffffff1a;
+  --ic-paper-corner: #5d6068;
+  --ic-paper-line: #9a9da5;
+  --ic-paper-pdf: #c0675a;
+}
+@media (prefers-reduced-motion: reduce) {
+  .file-icon,
+  .app-icon {
+    transition: none;
   }
 }
