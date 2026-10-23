@@ -2910,6 +2910,7 @@ a svg {
     left var(--panel-time) var(--panel-ease),
     width var(--panel-time) var(--panel-ease),
     top var(--panel-time) var(--panel-ease),
+    bottom var(--panel-time) var(--panel-ease),
     height var(--panel-time) var(--panel-ease);
 }
 .panel-hidden .scene-frame {
