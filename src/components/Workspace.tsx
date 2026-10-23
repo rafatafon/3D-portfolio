@@ -524,6 +524,8 @@ export default function Workspace() {
             onReady={onReady}
             onError={onError}
             onIntroComplete={finishIntro}
+            screenDark={mood >= 75}
+            locale={locale}
           />
         )}
       </div>
