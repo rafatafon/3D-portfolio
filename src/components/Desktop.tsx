@@ -160,6 +160,9 @@ type OpenWindow = {
   y: number;
   order: number;
 };
+// Matches the phone media query in globals.css.
+const PHONE_QUERY = "(max-width: 720px)";
+const isPhone = () => window.matchMedia(PHONE_QUERY).matches;
 const navIcons = {
   about: FileText,
   projects: Folder,
@@ -172,10 +175,13 @@ export default function Desktop({
   initialFolder,
   onExit,
   daylight,
+  leaving = false,
 }: {
   initialFolder: FolderId;
   onExit: () => void;
   daylight: boolean;
+  // Still mounted while the workspace fades it out; keep it out of reach.
+  leaving?: boolean;
 }) {
   const [windows, setWindows] = useState<OpenWindow[]>([
     {
@@ -200,6 +206,8 @@ export default function Desktop({
     startY: number;
     x: number;
     y: number;
+    // Phones clamp against the measured layout (offset ranges for x and y).
+    bounds?: { minX: number; maxX: number; minY: number; maxY: number };
   } | null>(null);
   const active = [...windows]
     .filter((w) => !w.minimized)
@@ -222,15 +230,18 @@ export default function Desktop({
         return previous.map((w) =>
           w.id === id ? { ...w, minimized: false, order: nextOrder } : w,
         );
-      const offset = (previous.length % 5) * 24;
+      // Phones cascade mostly downward: the window is ~91% of the width, so
+      // 5px steps keep the whole stack on screen while 18px shows each title.
+      const step = previous.length % 5;
+      const phone = isPhone();
       return [
         ...previous,
         {
           id,
           minimized: false,
           maximized: false,
-          x: offset,
-          y: offset,
+          x: step * (phone ? 5 : 24),
+          y: step * (phone ? 18 : 24),
           order: nextOrder,
         },
       ];
@@ -291,11 +302,7 @@ export default function Desktop({
   }, [active, searchOpen, controlCenter]);
 
   function startDrag(event: React.PointerEvent<HTMLElement>, item: OpenWindow) {
-    if (
-      item.maximized ||
-      window.innerWidth < 720 ||
-      (event.target as HTMLElement).closest("button")
-    )
+    if (item.maximized || (event.target as HTMLElement).closest("button"))
       return;
     event.currentTarget.setPointerCapture(event.pointerId);
     drag.current = {
@@ -304,20 +311,55 @@ export default function Desktop({
       startY: event.clientY,
       x: item.x,
       y: item.y,
+      bounds: isPhone()
+        ? phoneDragBounds(event.currentTarget, item)
+        : undefined,
     };
     focusWindow(item.id);
   }
+  // On phones the window may overhang a quarter of its width to the right (to
+  // the left only until the traffic lights would leave the screen); the title
+  // bar stays under the menubar and the bottom edge above the Dock and "Back to
+  // studio". Measured once per drag, in the same (viewport) space.
+  function phoneDragBounds(toolbar: HTMLElement, item: OpenWindow) {
+    const win = toolbar.closest<HTMLElement>(".finder-window")!;
+    const layer = win.parentElement!.getBoundingClientRect();
+    const rect = win.getBoundingClientRect();
+    const baseLeft = rect.left - item.x;
+    const baseTop = rect.top - item.y;
+    const floor = Math.min(
+      ...Array.from(
+        desktopRef.current?.querySelectorAll<HTMLElement>(
+          ".desktop-bottom .dock, .return-studio",
+        ) ?? [],
+        (el) => el.getBoundingClientRect().top,
+      ),
+      layer.bottom,
+    );
+    const overhang = rect.width * 0.25;
+    const lights = toolbar.querySelector(".traffic-lights");
+    const leftOverhang = lights
+      ? Math.min(overhang, lights.getBoundingClientRect().left - rect.left - 4)
+      : overhang;
+    const minY = layer.top + 4 - baseTop;
+    return {
+      minX: layer.left - leftOverhang - baseLeft,
+      maxX: layer.right - rect.width + overhang - baseLeft,
+      minY,
+      maxY: Math.max(minY, floor - 8 - rect.height - baseTop),
+    };
+  }
   function moveDrag(event: React.PointerEvent<HTMLElement>) {
     if (!drag.current) return;
-    const { id, startX, startY, x, y } = drag.current;
-    const nextX = Math.max(
-      -window.innerWidth * 0.13,
-      Math.min(window.innerWidth * 0.4, x + event.clientX - startX),
-    );
-    const nextY = Math.max(
-      -window.innerHeight * 0.09,
-      Math.min(window.innerHeight * 0.56, y + event.clientY - startY),
-    );
+    const { id, startX, startY, x, y, bounds } = drag.current;
+    const {
+      minX = -window.innerWidth * 0.13,
+      maxX = window.innerWidth * 0.4,
+      minY = -window.innerHeight * 0.09,
+      maxY = window.innerHeight * 0.56,
+    } = bounds ?? {};
+    const nextX = Math.max(minX, Math.min(maxX, x + event.clientX - startX));
+    const nextY = Math.max(minY, Math.min(maxY, y + event.clientY - startY));
     setWindows((previous) =>
       previous.map((w) => (w.id === id ? { ...w, x: nextX, y: nextY } : w)),
     );
@@ -328,6 +370,7 @@ export default function Desktop({
       ref={desktopRef}
       className={`desktop ${dark ? "desktop-dark" : "desktop-light"}`}
       aria-label="Interactive portfolio desktop"
+      inert={leaving}
     >
       <div className="desktop-wallpaper" aria-hidden="true" />
       <nav className="menubar" aria-label="Desktop menu">

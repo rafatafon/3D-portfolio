@@ -36,6 +36,7 @@ import {
   clampHeight,
 } from "@/lib/desk";
 import SevenSegment from "./SevenSegment";
+import { ENTER_MS, LEAVE_MS } from "@/lib/transitions";
 
 const StudioScene = dynamic(() => import("./StudioScene"), { ssr: false });
 const INTRO_KEY = "fm-workspace-intro-v2";
@@ -88,11 +89,13 @@ export default function Workspace() {
   const [presets, setPresets] = useState<Presets>(DEFAULT_PRESETS);
   const [arming, setArming] = useState(false);
   const [savedSlot, setSavedSlot] = useState<number | null>(null);
+  // The mood is the target the slider and stops set; ambience is the applied
+  // value that eases toward it, so colour changes never snap.
+  const [mood, setMood] = useState(0);
   const [ambience, setAmbience] = useState(0);
   const [reset, setReset] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [initialFolder, setInitialFolder] = useState<FolderId>("about");
-  const [musicNote, setMusicNote] = useState(false);
   const [panelHidden, setPanelHidden] = useState(false);
   const [compact, setCompact] = useState(false);
   const transitionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -117,7 +120,10 @@ export default function Workspace() {
   const [dragging, setDragging] = useState(false);
   const started = useRef(0);
   const skipIntro = useRef(false);
+  const ambienceRef = useRef(0);
+  const ambienceFrame = useRef(0);
   const theme = getAmbience(ambience);
+  const moodLabel = getAmbience(mood).label;
 
   useEffect(() => {
     started.current = performance.now();
@@ -177,6 +183,34 @@ export default function Workspace() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    // Ease the applied ambience toward the mood with a frame-rate-independent
+    // exponential approach: buttons glide in about 0.4 s and a drag trails the
+    // thumb slightly. The live value sits in a ref so a retarget mid-flight
+    // continues from wherever the colours are, and state is set once a frame.
+    if (reducedMotion) {
+      ambienceRef.current = mood;
+      setAmbience(mood);
+      return;
+    }
+    // 0.3 of a point is under one RGB unit; stopping there ends the
+    // invisible tail of frames about a quarter of a second sooner.
+    if (Math.abs(mood - ambienceRef.current) < 0.3) return;
+    let last = performance.now();
+    const step = (now: number) => {
+      const dt = Math.max(0, now - last);
+      last = now;
+      const current = ambienceRef.current;
+      let next = current + (mood - current) * (1 - Math.exp(-dt / 110));
+      if (Math.abs(mood - next) < 0.3) next = mood;
+      ambienceRef.current = next;
+      setAmbience(next);
+      ambienceFrame.current = next === mood ? 0 : requestAnimationFrame(step);
+    };
+    ambienceFrame.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(ambienceFrame.current);
+  }, [mood, reducedMotion]);
+
   const onReady = useCallback(() => setReady(true), []);
   const onError = useCallback(() => {
     setFailed(true);
@@ -224,7 +258,6 @@ export default function Workspace() {
     (folder: FolderId = "about") => {
       if (mode !== "room") return;
       setInitialFolder(folder);
-      setMusicNote(false);
       setRemoteOpen(false);
       document.body.style.cursor = "auto";
       if (reducedMotion || failed || !ready) {
@@ -232,12 +265,11 @@ export default function Workspace() {
         return;
       }
       setMode("entering");
-      transitionTimer.current = setTimeout(() => setMode("desktop"), 1250);
+      transitionTimer.current = setTimeout(() => setMode("desktop"), ENTER_MS);
     },
     [mode, reducedMotion, failed, ready],
   );
   const enterMonitor = useCallback(() => enter(), [enter]);
-  const showMusic = useCallback(() => setMusicNote(true), []);
   // Clicking the controller on the 3D desk opens the keypad too.
   const openRemote = useCallback(() => {
     if (mode === "room") setRemoteOpen(true);
@@ -249,17 +281,17 @@ export default function Workspace() {
     setMode(reducedMotion || failed ? "room" : "leaving");
     transitionTimer.current = setTimeout(
       () => setMode("room"),
-      reducedMotion || failed ? 0 : 800,
+      reducedMotion || failed ? 0 : LEAVE_MS,
     );
   }, [reducedMotion, failed]);
 
   useEffect(() => {
     // Focus once the room is rendered: the overlay is inert until then. A
-    // collapsed desktop panel hides the Explore button, so use the toggle.
+    // collapsed panel hides the Explore button, so use the toggle.
     if (mode !== "room" || !returnFocus.current) return;
     returnFocus.current = false;
-    (panelHidden && !compact ? panelToggle : entryButton).current?.focus();
-  }, [mode, panelHidden, compact]);
+    (panelHidden ? panelToggle : entryButton).current?.focus();
+  }, [mode, panelHidden]);
 
   const onHeight = useCallback((cm: number, moving: boolean) => {
     liveRef.current = cm;
@@ -418,13 +450,6 @@ export default function Workspace() {
       >
         <ArrowUpDown size={15} />
       </button>
-      <button
-        onClick={showMusic}
-        aria-label="About my listening corner"
-        title="My listening corner"
-      >
-        <span className="music-glyph">♫</span>
-      </button>
     </div>
   );
   const opening = mode === "loading" || mode === "intro";
@@ -450,7 +475,6 @@ export default function Workspace() {
             reset={reset}
             reducedMotion={reducedMotion}
             onEnter={enterMonitor}
-            onMusic={showMusic}
             onDeskControl={openRemote}
             onReady={onReady}
             onError={onError}
@@ -481,7 +505,7 @@ export default function Workspace() {
             ref={entryButton}
             className="enter-desktop"
             onClick={() => enter()}
-            inert={panelHidden && !compact}
+            inert={panelHidden}
           >
             <Monitor size={17} />
             <span>Explore my desktop</span>
@@ -643,37 +667,37 @@ export default function Workspace() {
           <div className="ambient-control">
             <div className="ambient-heading">
               <label htmlFor="ambience">Set the mood</label>
-              <span>{theme.label}</span>
+              <span>{moodLabel}</span>
             </div>
             <input
               id="ambience"
               aria-label="Ambient lighting"
-              aria-valuetext={`${theme.label}, ${ambience} percent`}
+              aria-valuetext={`${moodLabel}, ${mood} percent`}
               type="range"
               min="0"
               max="100"
               step="1"
-              value={ambience}
-              onChange={(event) => setAmbience(Number(event.target.value))}
+              value={mood}
+              onChange={(event) => setMood(Number(event.target.value))}
             />
             <div className="ambient-stops">
               <button
                 aria-label="Set daylight ambience"
-                onClick={() => setAmbience(0)}
+                onClick={() => setMood(0)}
               >
                 <Sun size={13} />
                 <span>Light</span>
               </button>
               <button
                 aria-label="Set warm ambience"
-                onClick={() => setAmbience(50)}
+                onClick={() => setMood(50)}
               >
                 <Sunset size={13} />
                 <span>Warm</span>
               </button>
               <button
                 aria-label="Set dark ambience"
-                onClick={() => setAmbience(100)}
+                onClick={() => setMood(100)}
               >
                 <Moon size={13} />
                 <span>Dark</span>
@@ -697,21 +721,6 @@ export default function Workspace() {
           )}
           <span className="made-with-care">Make yourself at home.</span>
         </footer>
-        {musicNote && (
-          <div className="music-note" role="status">
-            <button
-              onClick={() => setMusicNote(false)}
-              aria-label="Close listening note"
-            >
-              <X size={15} />
-            </button>
-            <span>On my desk, in my ears.</span>
-            <p>
-              My listening corner.
-              <br />A playlist is on its way.
-            </p>
-          </div>
-        )}
       </div>
       <div className="transition-shade" aria-hidden="true" />
       <div
@@ -738,11 +747,12 @@ export default function Workspace() {
           A little of my world.
         </div>
       )}
-      {mode === "desktop" && (
+      {(mode === "desktop" || mode === "leaving") && (
         <Desktop
           initialFolder={initialFolder}
           onExit={exit}
-          daylight={ambience < 75}
+          daylight={mood < 75}
+          leaving={mode === "leaving"}
         />
       )}
     </main>

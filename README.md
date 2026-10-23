@@ -28,12 +28,12 @@ pnpm start
 - Drag windows by their title bars. Close, minimize, and maximize with the traffic lights; restore minimized windows from the Dock.
 - Search with the menu button or Command/Ctrl + K. Escape dismisses search or the active window.
 - Use Display settings for light/dark desktop appearance.
-- Click the AirPods or the music control for the listening-corner note. Spotify playback is not connected yet.
 - The HTML desktop also works when WebGL fails. There is no separate readable page; without JavaScript the home page shows a short notice.
 
 ## Main files
 
-- `src/lib/content.ts`: profile, projects, verified experience, and résumé URL.
+- `src/lib/content.ts`: profile, social links, projects, verified experience, and the résumé path (`public/Fredy-Maldonado-CV.pdf`).
+- `src/lib/transitions.ts`: timings and easing for entering and leaving the desktop.
 - `src/lib/writing.json`: four complete imported articles, with publication dates and source URLs.
 - `src/components/Notes.tsx` and `ArticleBody.tsx`: internal Notes navigation and shared article rendering.
 - `src/lib/ambience.ts`: lighting palettes, interpolation, and text contrast.
@@ -54,6 +54,6 @@ Profile and employment history were verified against the user's LinkedIn profile
 
 All four published blog posts were imported from fredymaldonado.com on 2026-10-18. Notes opens the full articles internally, and each one also has a static `/writing/[slug]` page that links back to the workspace. Article text was checked against the downloaded source. Framer wrappers, scripts, styles, and empty code widgets were discarded; the original prose and semantic formatting are preserved. Source URLs are retained as provenance, not runtime dependencies.
 
-The new portrait and wallpaper are copied unchanged. The wallpaper rotates clockwise at display time, and the screen textures crop to preserve its proportions. The résumé still points to the existing Framer-hosted PDF.
+The new portrait and wallpaper are copied unchanged. The wallpaper rotates clockwise at display time, and the screen textures crop to preserve its proportions. The résumé is served locally from `public/Fredy-Maldonado-CV.pdf`.
 
 The hardware is original procedural geometry, not manufacturer CAD or copied portfolio assets. The contact action opens the visitor's email client. No database, email service, Spotify integration, production deployment, or domain changes are configured.

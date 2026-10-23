@@ -1,3 +1,23 @@
+/* Ambience colours. Workspace.tsx writes these as inline custom properties on
+   .workspace; registering them as <color> lets them interpolate instead of
+   switching in one frame (see the .workspace transition in the "Seamless
+   workspace" layer). Initial values match the daylight palette in
+   src/lib/ambience.ts. Must stay at the top level, outside any media query. */
+@property --room {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f5f5f3;
+}
+@property --scene-ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #292622;
+}
+@property --scene-muted {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #62605d;
+}
 :root {
   --ink: #282e2b;
   --paper: #f8f7f2;
@@ -289,13 +309,17 @@ a svg {
 .scene-fallback {
   display: none;
 }
+/* Entering and leaving the desktop. Timings pair with src/lib/transitions.ts:
+   entering lasts 1.2 s, leaving 1 s. The shade sits above the desktop so the
+   same dark dip can bridge the swap in both directions. */
 .transition-shade {
   position: absolute;
   inset: 0;
+  z-index: 25;
   pointer-events: none;
-  background: #564a3d;
+  background: #090a0b;
   opacity: 0;
-  transition: opacity 0.35s 0.85s;
+  transition: opacity 0.45s ease-out;
 }
 .mode-entering .room-interface,
 .mode-leaving .room-interface,
@@ -303,15 +327,44 @@ a svg {
   opacity: 0;
   pointer-events: none;
 }
+/* Entering: the camera flies to the screen for 1.1 s; the shade catches the
+   end of the flight from 0.8 s and is solid when the desktop mounts at 1.2 s,
+   then clears over it (the base transition above). */
 .mode-entering .transition-shade {
   opacity: 1;
+  transition: opacity 0.35s ease-in 0.8s;
 }
 .mode-desktop .scene-container {
   visibility: hidden;
+  /* Keep the close-up under the desktop while the shade clears. */
+  transition: visibility 0s 0.6s;
 }
+/* Leaving: the desktop stays mounted and fades under a short dip while the
+   camera starts its pull-back (0.15 s to 1 s); the room overlay returns at
+   1 s. */
 .mode-leaving .transition-shade {
-  opacity: 0;
-  transition: none;
+  animation: shade-dip 0.45s ease-in-out both;
+}
+.mode-leaving .desktop {
+  pointer-events: none;
+  animation: desktop-out 0.25s ease both;
+}
+@keyframes shade-dip {
+  0% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes desktop-out {
+  to {
+    opacity: 0;
+    transform: scale(1.02);
+  }
 }
 .noscript {
   position: fixed;
@@ -1023,26 +1076,6 @@ a svg {
   padding: 11px 13px;
   font-size: 11px;
 }
-.notes-illustration {
-  border-left: 1px solid #bdaa91;
-  padding: 18px 25px 15px;
-  background: repeating-linear-gradient(
-    #f5f0e5 0px,
-    #f5f0e5 26px,
-    #ded8c8 27px
-  );
-  font-family: Georgia, serif;
-  color: #7e7c66;
-  font-style: italic;
-  font-size: 28px;
-  margin-bottom: 25px;
-  line-height: 27px;
-}
-.notes-illustration span {
-  display: block;
-  font-size: 16px;
-  margin-top: 8px;
-}
 .writing-list {
   margin-top: 25px;
 }
@@ -1568,7 +1601,18 @@ a svg {
     left: 7%;
     font-size: 27px;
   }
-  .finder-window,
+  /* Phone windows cascade from the top-left like on desktop: about 91% of the
+     width and 64% of the windows layer, offset by --window-x/y (Desktop.tsx
+     steps 5px across and 18px down, so the whole stack stays on screen). */
+  .finder-window {
+    left: 8px;
+    top: 12px;
+    width: calc(100% - 32px);
+    height: 64%;
+    min-width: 0;
+    min-height: 0;
+    border-radius: 10px;
+  }
   .finder-window.window-maximized {
     left: 8px;
     right: 8px;
@@ -1576,9 +1620,7 @@ a svg {
     bottom: 99px;
     height: auto;
     width: auto;
-    min-width: 0;
-    transform: none !important;
-    border-radius: 10px;
+    transform: none;
   }
   .window-toolbar {
     padding: 0 12px;
@@ -1794,6 +1836,19 @@ a svg {
   color: var(--scene-ink);
   background: var(--room);
   isolation: isolate;
+  /* Short on purpose: Workspace.tsx eases the ambience number itself (and the
+     Three.js lights follow that same value), so this only softens the
+     per-frame steps and the one-frame dark/light ink flip in getAmbience. A
+     longer transition would lag the CSS behind the lit scene. */
+  transition:
+    --room 0.12s ease-out,
+    --scene-ink 0.12s ease-out,
+    --scene-muted 0.12s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace {
+    transition: none;
+  }
 }
 .room-header,
 .room-introduction,
@@ -1911,17 +1966,6 @@ a svg {
 .scene-controls button[aria-pressed="true"] {
   background: color-mix(in srgb, var(--scene-ink) 10%, transparent);
 }
-.scene-controls button:last-child {
-  padding: 0;
-  width: 35px;
-}
-.scene-controls .music-glyph {
-  font-size: 20px;
-  display: block;
-}
-.transition-shade {
-  background: #090a0b;
-}
 .mode-loading .room-interface,
 .mode-intro .room-interface {
   opacity: 0;
@@ -2027,35 +2071,6 @@ a svg {
   color: var(--scene-muted);
   animation: caption-reveal 4s ease both;
   pointer-events: none;
-}
-.music-note {
-  position: absolute;
-  right: 5%;
-  bottom: 95px;
-  width: 240px;
-  padding: 23px;
-  background: color-mix(in srgb, var(--room) 88%, transparent);
-  border: 1px solid color-mix(in srgb, var(--scene-ink) 20%, transparent);
-  border-radius: 18px;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 12px 35px #0001;
-  pointer-events: auto;
-}
-.music-note > button {
-  position: absolute;
-  right: 12px;
-  top: 12px;
-  color: var(--scene-muted);
-}
-.music-note > span {
-  font-size: 12px;
-  font-weight: 600;
-}
-.music-note > p {
-  color: var(--scene-muted);
-  font-size: 11px;
-  line-height: 1.8;
-  margin: 12px 0 0;
 }
 @keyframes logo-arrive {
   from {
@@ -2556,9 +2571,6 @@ a svg {
   .scene-controls {
     padding: 3px 5px;
   }
-  .scene-controls .music-glyph {
-    display: block;
-  }
   .made-with-care {
     display: none;
   }
@@ -2572,10 +2584,6 @@ a svg {
   .intro-caption {
     bottom: 130px;
     white-space: nowrap;
-  }
-  .music-note {
-    bottom: 240px;
-    right: 24px;
   }
   .menubar {
     height: 30px;
@@ -2602,10 +2610,10 @@ a svg {
   .menu-left button:nth-child(3) {
     display: none;
   }
-  .finder-window,
-  .finder-window.window-maximized {
+  .finder-window {
     border-radius: 14px;
-    top: 12px;
+  }
+  .finder-window.window-maximized {
     bottom: 106px;
   }
   .window-toolbar {
@@ -3020,6 +3028,25 @@ a svg {
   .panel-hidden .room-dock {
     transform: translate(-50%, 56px);
   }
+  /* The fixed Explore button leaves with the dock, down and out, and comes
+     back with it. */
+  .enter-desktop {
+    transition:
+      background 0.2s,
+      transform var(--panel-time) var(--panel-ease),
+      opacity calc(var(--panel-time) * 0.7) var(--panel-ease),
+      visibility 0s linear 0s;
+  }
+  .panel-hidden .enter-desktop {
+    visibility: hidden;
+    opacity: 0;
+    transform: translate(-50%, 56px);
+    transition:
+      background 0.2s,
+      transform var(--panel-time) var(--panel-ease),
+      opacity calc(var(--panel-time) * 0.7) var(--panel-ease),
+      visibility 0s linear 0.7s;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   /* Durations are already near zero; drop the stagger and the visibility
@@ -3029,6 +3056,7 @@ a svg {
   .room-header .identity,
   .room-introduction,
   .intro-heading,
+  .enter-desktop,
   .room-dock,
   .panel-toggle {
     transition-delay: 0s !important;

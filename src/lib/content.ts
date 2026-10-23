@@ -5,7 +5,8 @@ export const profile = {
   email: "rafaelmaldonadowork@gmail.com",
   github: "https://github.com/rafatafon",
   linkedin: "https://www.linkedin.com/in/fredy-rafael-maldonado",
-  cv: "https://framerusercontent.com/assets/cAKwsE62CI2ZohnHGUJV9tX2r8.pdf",
+  x: "https://x.com/rafatafon",
+  cv: "/Fredy-Maldonado-CV.pdf",
   introduction: "I build useful things with software.",
   bio: "I'm a software engineer from Honduras and the founder of Archimedes Systems. I build production AI systems, automation, and full-stack platforms, turning business requirements into reliable software. I earned my BSc in Software Engineering in Germany on a full merit scholarship.",
 };

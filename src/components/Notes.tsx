@@ -52,9 +52,6 @@ export default function Notes() {
         </article>
       ) : (
         <>
-          <div className="notes-illustration" aria-hidden="true">
-            Notes to self<span>and anyone curious.</span>
-          </div>
           <h2>Thoughts & notes</h2>
           <p className="content-subtitle">
             Software, learning, and making things happen.
