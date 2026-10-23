@@ -16,13 +16,13 @@ A personal desk suspended visually in a seamless neutral studio backdrop. No wal
 2. Four-second camera glide past the chair and accessories. The monitor wakes near the end.
 3. The camera settles and the workspace interface appears.
 
-Skip is available throughout. Reduced motion bypasses the camera animation. Session storage remembers a completed/skipped intro; a returning visit waits only for readiness. A stalled or failed renderer exposes the HTML desktop, with a server-rendered portfolio available without JavaScript.
+Reduced motion bypasses the camera animation. Session storage remembers a completed intro; a returning visit waits only for readiness. A stalled or failed renderer exposes the HTML desktop, with a server-rendered portfolio available without JavaScript.
 
 The camera can be dragged, the desk height set from a dark keypad controller (LED readout, hold-to-move arrows, savable presets), and the mood adjusted continuously. Clicking the monitor transitions to the desktop. The headphones are decorative; a music player is deferred until the tracks and playback behaviour are specified.
 
 ## Desktop and content
 
-Tahoe-inspired Finder chrome, translucent menus and Dock, traffic-light controls, custom app icons, light/dark appearance, draggable windows, and keyboard search. This is a website interface, not a running copy of macOS.
+Tahoe-inspired Finder chrome, translucent menus and Dock, traffic-light controls, custom app icons, light/dark appearance, draggable windows, and keyboard search. The Dock starts with a house that returns to the studio, and the Finder face opens a window listing every item. This is a website interface, not a running copy of macOS. The whole site reads in English or Spanish: a small EN/ES pill at the top-right of the room and in the Display dropdown crossfades the copy.
 
 The supplied 1200 × 2596 black wallpaper is stored unchanged at `public/images/pro-wallpaper-portrait.jpg` and rotated clockwise at display time. The desktop and device screens crop proportionally to fit.
 
@@ -32,7 +32,7 @@ Models are original code geometry, not manufacturer CAD or Henry Heffernan's ass
 
 ## Annotation refinement — October 18
 
-The Sayl is 12% larger, with the base kept on the floor. AirPods use beveled aluminum cups, recessed cushions, a fine mesh sling, and a cradle beneath the headband on an elliptical silver base. About uses Fredy’s supplied portrait. The new 1200 × 2596 wallpaper is rotated clockwise in CSS/canvas, with proportional cropping on the device screens. Experience follows the five roles and exact month ranges verified on LinkedIn. Notes contains the four complete published essays and opens them within the Finder window; standalone static article pages share the same content.
+The Sayl is 12% larger, with the base kept on the floor. AirPods use beveled aluminum cups, recessed cushions, a fine mesh sling, and a cradle beneath the headband on an elliptical silver base. About uses Fredy’s supplied portrait. The new 1200 × 2596 wallpaper is rotated clockwise in CSS/canvas on larger screens (upright on phones), with proportional cropping on the device screens. Experience follows the five roles and exact month ranges verified on LinkedIn. Notes contains the four complete published essays and opens them within the Finder window; standalone static article pages share the same content.
 
 ## Desk accessories — October 19
 
