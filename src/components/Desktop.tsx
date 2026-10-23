@@ -653,6 +653,38 @@ export default function Desktop({
         if (clamped.x !== aboutOffset.x || clamped.y !== aboutOffset.y)
           setAboutOffset(clamped);
       }
+      // Windows too: a window dragged on a wide screen keeps its offset when
+      // the viewport narrows (and the phone layout moves its base to the
+      // top-left), which could leave it entirely off-screen. Phones keep the
+      // whole window inside; larger screens keep the drag's overhang limits
+      // so a window deliberately pushed past an edge does not snap back.
+      let changed = false;
+      const phone = isPhone();
+      const area = phone ? desktopArea(8) : null;
+      const next = windows.map((item) => {
+        if (item.minimized || item.maximized) return item;
+        let { x, y } = item;
+        if (area) {
+          const element = desktop.querySelector<HTMLElement>(
+            `[data-window="${item.id}"]`,
+          );
+          if (!element) return item;
+          ({ x, y } = clampedOffset(element, { x, y }, area));
+        } else {
+          x = Math.max(
+            -window.innerWidth * 0.13,
+            Math.min(window.innerWidth * 0.4, x),
+          );
+          y = Math.max(
+            -window.innerHeight * 0.09,
+            Math.min(window.innerHeight * 0.56, y),
+          );
+        }
+        if (x === item.x && y === item.y) return item;
+        changed = true;
+        return { ...item, x, y };
+      });
+      if (changed) setWindows(next);
     };
     const observer = new ResizeObserver(reclamp);
     observer.observe(desktop);
