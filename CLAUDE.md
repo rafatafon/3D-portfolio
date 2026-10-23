@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Fredy Maldonado's personal portfolio. Next.js 16 App Router, React 19, strict TypeScript. The home page is an interactive 3D desk (React Three Fiber + drei + three) that leads into a macOS-style HTML "desktop" holding the portfolio content. Local only: no deployment, database, email service, or env vars are configured.
+Fredy Maldonado's personal portfolio. Next.js 16 App Router, React 19, strict TypeScript. The home page is an interactive 3D desk (React Three Fiber + drei + three) that leads into a macOS-style HTML "desktop" holding the portfolio content. Production is deployed on Vercel from `main` and served at https://fredymaldonado.com (`www` redirects to the apex). The code is MIT-licensed; the content (essays, profile copy, images, résumé) is not. Vercel Web Analytics is mounted once in the root layout (`@vercel/analytics/next`); it only reports from Vercel deployments and needs no keys. No database, email service, or env vars are configured. `next.config.ts` redirects the previous Framer site's `/blog/<slug>` URLs to `/writing/<slug>` permanently; keep those redirects working if an article slug changes.
 
 Next.js 16 differs from older versions (see `AGENTS.md`). Read the relevant guide in `node_modules/next/dist/docs/` before writing Next-specific code.
 

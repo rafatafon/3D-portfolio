@@ -1,6 +1,6 @@
 # Fredy's workspace
 
-A local Next.js portfolio with an interactive 3D desk, adjustable ambient lighting, and a macOS-inspired desktop. The application lives directly in this project root.
+A Next.js portfolio with an interactive 3D desk, adjustable ambient lighting, and a macOS-inspired desktop, live at https://fredymaldonado.com. The application lives directly in this project root.
 
 ## Run locally
 
@@ -37,6 +37,7 @@ pnpm start
 ## Main files
 
 - `src/lib/content.ts`: profile, social links, projects, verified experience, and the résumé path (`public/Fredy-Maldonado-CV.pdf`).
+- `next.config.ts`: permanent redirects from the previous site's `/blog/<slug>` URLs to the `/writing/<slug>` pages.
 - `src/lib/transitions.ts`: timings and easing for entering and leaving the desktop.
 - `src/lib/i18n.tsx`, `src/lib/strings.ts`, `src/components/LanguageToggle.tsx`: locale provider and hook, room/keypad strings in both languages, and the EN/ES toggle.
 - `src/lib/writing.json`: four complete imported articles, with publication dates and source URLs.
@@ -53,6 +54,7 @@ pnpm start
 - `src/app/writing/[slug]/page.tsx`: static, shareable article pages that also work without JavaScript.
 - `DESIGN.md`: current visual direction and scope.
 - `VALIDATION.md`: verified checks and remaining limitations.
+- `LICENSE`: MIT, for the code.
 
 ## Content and assets
 
@@ -62,4 +64,12 @@ All four published blog posts were imported from fredymaldonado.com on 2026-10-1
 
 The new portrait and wallpaper are copied unchanged. The wallpaper rotates clockwise at display time on screens wider than 720px (phones show it upright), and the screen textures crop to preserve its proportions. The résumé is served locally from `public/Fredy-Maldonado-CV.pdf`.
 
-The hardware is original procedural geometry, not manufacturer CAD or copied portfolio assets. The contact action opens the visitor's email client. No database, email service, Spotify integration, production deployment, or domain changes are configured.
+The hardware is original procedural geometry, not manufacturer CAD or copied portfolio assets. The contact action opens the visitor's email client. No database, email service, or Spotify integration is configured.
+
+## Deployment
+
+Production is deployed on Vercel from `main` and served at https://fredymaldonado.com; `www.fredymaldonado.com` redirects to it. The domain moved from the previous Framer site on 2026-10-23, and the four essays' old `/blog/<slug>` URLs redirect permanently to their `/writing/<slug>` pages. Vercel Web Analytics (page views and visitors, no cookies) is mounted in the root layout and reports only from Vercel deployments.
+
+## License
+
+The code is released under the MIT License (see `LICENSE`). The content is not: the essays in `src/lib/writing.json`, the profile and project copy in `src/lib/content.ts`, the portrait, the wallpaper, and the résumé remain © Fredy Maldonado, all rights reserved.
