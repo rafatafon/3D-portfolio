@@ -67,4 +67,4 @@ The hardware is original procedural geometry, not manufacturer CAD or copied por
 
 ## Deployment
 
-Production is the Vercel project `3d-portfolio`, built from `main` and served at https://fredymaldonado.com; `www.fredymaldonado.com` redirects to it with a 308. DNS stays at GoDaddy (an A record on `@` and a CNAME on `www` pointing at Vercel). The domain moved from the previous Framer site on 2026-10-23, and the four essays' old `/blog/<slug>` URLs redirect permanently to their `/writing/<slug>` pages.
+Production is the Vercel project `3d-portfolio`, built from `main` and served at https://fredymaldonado.com; `www.fredymaldonado.com` redirects to it with a 308. DNS stays at GoDaddy (an A record on `@` and a CNAME on `www` pointing at Vercel). The domain moved from the previous Framer site on 2026-10-23, and the four essays' old `/blog/<slug>` URLs redirect permanently to their `/writing/<slug>` pages. Vercel Web Analytics (page views and visitors, no cookies) is mounted in the root layout and reports only from Vercel deployments.
