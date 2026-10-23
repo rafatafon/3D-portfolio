@@ -8,6 +8,11 @@ updates:
     groups:
       dependencies:
         patterns: ["*"]
+    # Major versions (new compilers, icon sets, Node type majors) are upgraded
+    # deliberately, not by the bot: it keeps sending minor and patch updates.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   # Keeps the SHA-pinned actions in ci.yml current.
   - package-ecosystem: github-actions
     directory: /
