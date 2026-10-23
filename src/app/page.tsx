@@ -1,4 +1,5 @@
 import Workspace from "@/components/Workspace";
+import { LocaleProvider } from "@/lib/i18n";
 
 export default function Home() {
   return (
@@ -6,7 +7,9 @@ export default function Home() {
       <h1 className="sr-only">
         Fredy Maldonado — Software engineer based in Honduras
       </h1>
-      <Workspace />
+      <LocaleProvider>
+        <Workspace />
+      </LocaleProvider>
       <noscript>
         <div className="noscript">
           <h2>Welcome to my workspace.</h2>

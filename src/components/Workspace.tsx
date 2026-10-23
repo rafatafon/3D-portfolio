@@ -37,6 +37,9 @@ import {
 } from "@/lib/desk";
 import SevenSegment from "./SevenSegment";
 import { ENTER_MS, LEAVE_MS } from "@/lib/transitions";
+import { LOCALE_FADE_IN_MS, useLocale } from "@/lib/i18n";
+import { keypad, moodLabel as moodName, room } from "@/lib/strings";
+import LanguageToggle from "./LanguageToggle";
 
 const StudioScene = dynamic(() => import("./StudioScene"), { ssr: false });
 const INTRO_KEY = "fm-workspace-intro-v2";
@@ -77,6 +80,11 @@ function storePresets(presets: Presets) {
 }
 
 export default function Workspace() {
+  const { locale, switching, t } = useLocale();
+  // After the swap the new copy fades back in; `settling` keeps the fade-in
+  // class on for that long (see "Language toggle and crossfade" in CSS).
+  const [settling, setSettling] = useState(false);
+  const wasSwitching = useRef(false);
   const [mode, setMode] = useState<SceneMode>("loading");
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -103,6 +111,7 @@ export default function Workspace() {
   const panelToggle = useRef<HTMLButtonElement>(null);
   const introduction = useRef<HTMLElement>(null);
   const firstLine = useRef<HTMLSpanElement>(null);
+  const placedLocale = useRef<string | null>(null);
   const returnFocus = useRef(false);
   const liveRef = useRef(DESK_SIT);
   const remote = useRef<HTMLDivElement>(null);
@@ -123,7 +132,38 @@ export default function Workspace() {
   const ambienceRef = useRef(0);
   const ambienceFrame = useRef(0);
   const theme = getAmbience(ambience);
-  const moodLabel = getAmbience(mood).label;
+  const moodLabel = t(moodName(getAmbience(mood).label));
+
+  useEffect(() => {
+    // Next applies the English metadata title after hydration, which can
+    // land after a stored Spanish choice; keep the title in the visitor's
+    // language whenever the head changes.
+    const title = t(room.documentTitle);
+    const apply = () => {
+      if (document.title !== title) document.title = title;
+    };
+    apply();
+    const observer = new MutationObserver(apply);
+    observer.observe(document.head, {
+      subtree: true,
+      childList: true,
+      characterData: true,
+    });
+    return () => observer.disconnect();
+  }, [t]);
+
+  useEffect(() => {
+    if (switching) {
+      wasSwitching.current = true;
+      setSettling(false);
+      return;
+    }
+    if (!wasSwitching.current) return;
+    wasSwitching.current = false;
+    setSettling(true);
+    const timer = setTimeout(() => setSettling(false), LOCALE_FADE_IN_MS);
+    return () => clearTimeout(timer);
+  }, [switching]);
 
   useEffect(() => {
     started.current = performance.now();
@@ -161,27 +201,33 @@ export default function Workspace() {
     const section = introduction.current;
     const line = firstLine.current;
     if (!toggle || !section || !line) return;
-    const place = () => {
+    const place = (glide = false) => {
       const x = section.offsetLeft + line.offsetLeft + line.offsetWidth + 14;
       const y =
         section.offsetTop +
         line.offsetTop +
         (line.offsetHeight - toggle.offsetHeight) / 2;
-      // Re-seat instantly: only a toggle should animate the button.
-      toggle.style.transition = "none";
+      // Re-seat instantly on resize: only a toggle should animate the
+      // button. A new title language glides it to the new line end.
+      if (!glide) toggle.style.transition = "none";
       toggle.style.setProperty("--toggle-x", `${Math.round(x)}px`);
       toggle.style.setProperty("--toggle-y", `${Math.round(y)}px`);
       toggle.style.setProperty("--dock-x", `${section.offsetLeft}px`);
+      if (glide) return;
       void toggle.offsetWidth;
       toggle.style.transition = "";
     };
-    place();
-    const observer = new ResizeObserver(place);
+    const titleChanged =
+      placedLocale.current !== null && placedLocale.current !== locale;
+    placedLocale.current = locale;
+    place(titleChanged);
+    const resize = () => place();
+    const observer = new ResizeObserver(resize);
     observer.observe(section);
     observer.observe(document.documentElement);
-    void document.fonts?.ready.then(place);
+    void document.fonts?.ready.then(resize);
     return () => observer.disconnect();
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     // Ease the applied ambience toward the mood with a frame-rate-independent
@@ -431,11 +477,11 @@ export default function Workspace() {
   // The toolbar sits above the mood slider on desktop and in the footer on
   // phones, where the slider is centred at the bottom.
   const controls = (
-    <div className="scene-controls" aria-label="Workspace controls">
+    <div className="scene-controls" aria-label={t(room.controls)}>
       <button
         onClick={() => setReset((value) => value + 1)}
-        aria-label="Reset camera view"
-        title="Reset view"
+        aria-label={t(room.resetLabel)}
+        title={t(room.resetTitle)}
       >
         <RotateCcw size={15} />
       </button>
@@ -445,8 +491,8 @@ export default function Workspace() {
         aria-haspopup="dialog"
         aria-expanded={remoteOpen}
         aria-controls="desk-remote"
-        aria-label="Desk height"
-        title="Desk height"
+        aria-label={t(room.deskHeight)}
+        title={t(room.deskHeight)}
       >
         <ArrowUpDown size={15} />
       </button>
@@ -455,7 +501,7 @@ export default function Workspace() {
   const opening = mode === "loading" || mode === "intro";
   return (
     <main
-      className={`workspace mode-${mode}${panelHidden ? " panel-hidden" : ""}`}
+      className={`workspace mode-${mode}${panelHidden ? " panel-hidden" : ""}${switching ? " lang-switching" : ""}${settling ? " lang-settling" : ""}`}
       style={
         {
           "--room": theme.background,
@@ -484,10 +530,10 @@ export default function Workspace() {
       </div>
       <div className="room-interface" inert={mode !== "room"}>
         <header id="room-identity" className="room-header" inert={panelHidden}>
-          <a className="identity" href="/" aria-label="Fredy Maldonado home">
+          <a className="identity" href="/" aria-label={t(room.home)}>
             <span className="wordmark">fm.</span>
-            <span>
-              Fredy Maldonado<small>Software engineer</small>
+            <span className="identity-name">
+              Fredy Maldonado<small>{t(room.role)}</small>
             </span>
           </a>
         </header>
@@ -495,10 +541,10 @@ export default function Workspace() {
           <div id="room-title" className="intro-heading" inert={panelHidden}>
             <h2>
               <span ref={firstLine} className="intro-line">
-                Welcome to my
+                {t(room.titleFirst)}
               </span>
               <br />
-              workspace.
+              {t(room.titleSecond)}
             </h2>
           </div>
           <button
@@ -508,7 +554,7 @@ export default function Workspace() {
             inert={panelHidden}
           >
             <Monitor size={17} />
-            <span>Explore my desktop</span>
+            <span>{t(room.explore)}</span>
             <ArrowRight size={17} />
           </button>
         </section>
@@ -518,10 +564,8 @@ export default function Workspace() {
           onClick={() => setPanelHidden((value) => !value)}
           aria-expanded={!panelHidden}
           aria-controls="room-identity room-title room-dock"
-          aria-label={
-            panelHidden ? "Show the side panel" : "Hide the side panel"
-          }
-          title={panelHidden ? "Show the side panel" : "Hide the side panel"}
+          aria-label={t(panelHidden ? room.showPanel : room.hidePanel)}
+          title={t(panelHidden ? room.showPanel : room.hidePanel)}
         >
           {panelHidden ? (
             <PanelLeftOpen size={16} strokeWidth={1.7} />
@@ -534,7 +578,7 @@ export default function Workspace() {
           ref={remote}
           className={`desk-remote${remoteOpen ? " open" : ""}${dragging ? " dragging" : ""}`}
           role="dialog"
-          aria-label="Desk height controller"
+          aria-label={t(keypad.dialog)}
           tabIndex={-1}
           inert={!remoteOpen}
           onKeyDown={remoteKeys}
@@ -577,8 +621,8 @@ export default function Workspace() {
             aria-live="polite"
             aria-label={
               savedSlot === null
-                ? `${liveHeight.toFixed(1)} centimeters`
-                : `Saved preset ${savedSlot + 1}`
+                ? t(keypad.reading)(liveHeight.toFixed(1))
+                : t(keypad.saved)(savedSlot + 1)
             }
           >
             <SevenSegment text={readout} />
@@ -589,12 +633,8 @@ export default function Workspace() {
               <button
                 key={direction}
                 className="remote-key"
-                aria-label={direction > 0 ? "Raise desk" : "Lower desk"}
-                title={
-                  direction > 0
-                    ? "Hold to raise, tap for 1 cm"
-                    : "Hold to lower, tap for 1 cm"
-                }
+                aria-label={t(direction > 0 ? keypad.raise : keypad.lower)}
+                title={t(direction > 0 ? keypad.raiseTitle : keypad.lowerTitle)}
                 onPointerDown={(event) => {
                   event.currentTarget.setPointerCapture(event.pointerId);
                   beginHold(direction);
@@ -628,10 +668,10 @@ export default function Workspace() {
                 className={`remote-key${savedSlot === slot ? " saved" : ""}`}
                 aria-label={
                   arming
-                    ? `Save current height as preset ${slot + 1}`
-                    : `Preset ${slot + 1}, ${cm} centimeters`
+                    ? t(keypad.storeIn)(slot + 1)
+                    : t(keypad.preset)(slot + 1, cm)
                 }
-                title={arming ? "Save here" : `${cm} cm`}
+                title={arming ? t(keypad.storeTitle) : `${cm} cm`}
                 onClick={() => pressPreset(slot)}
               >
                 {slot + 1}
@@ -640,8 +680,8 @@ export default function Workspace() {
             <button
               className={`remote-key remote-save${arming ? " armed" : ""}`}
               aria-pressed={arming}
-              aria-label="Save a preset: press S, then 1, 2, or 3"
-              title="Save preset"
+              aria-label={t(keypad.save)}
+              title={t(keypad.saveTitle)}
               onClick={() => setArming((value) => !value)}
             >
               S
@@ -649,7 +689,7 @@ export default function Workspace() {
           </div>
           <button
             className="remote-close"
-            aria-label="Close desk controller"
+            aria-label={t(keypad.close)}
             onClick={closeRemote}
           >
             <X size={13} />
@@ -657,22 +697,22 @@ export default function Workspace() {
         </div>
         {failed && (
           <div className="webgl-notice" role="status">
-            The desktop is ready.
+            {t(room.webglReady)}
             <br />
-            This browser couldn't open the 3D workspace.
+            {t(room.webglFailed)}
           </div>
         )}
         <div id="room-dock" className="room-dock" inert={panelHidden}>
           {!compact && controls}
           <div className="ambient-control">
             <div className="ambient-heading">
-              <label htmlFor="ambience">Set the mood</label>
+              <label htmlFor="ambience">{t(room.mood)}</label>
               <span>{moodLabel}</span>
             </div>
             <input
               id="ambience"
-              aria-label="Ambient lighting"
-              aria-valuetext={`${moodLabel}, ${mood} percent`}
+              aria-label={t(room.lighting)}
+              aria-valuetext={t(room.moodValue)(moodLabel, mood)}
               type="range"
               min="0"
               max="100"
@@ -681,34 +721,27 @@ export default function Workspace() {
               onChange={(event) => setMood(Number(event.target.value))}
             />
             <div className="ambient-stops">
-              <button
-                aria-label="Set daylight ambience"
-                onClick={() => setMood(0)}
-              >
-                <Sun size={13} />
-                <span>Light</span>
-              </button>
-              <button
-                aria-label="Set warm ambience"
-                onClick={() => setMood(50)}
-              >
-                <Sunset size={13} />
-                <span>Warm</span>
-              </button>
-              <button
-                aria-label="Set dark ambience"
-                onClick={() => setMood(100)}
-              >
-                <Moon size={13} />
-                <span>Dark</span>
-              </button>
+              {room.stops.map((stop, index) => {
+                const Icon = [Sun, Sunset, Moon][index];
+                return (
+                  <button
+                    key={stop.label.en}
+                    aria-label={t(stop.aria)}
+                    onClick={() => setMood(index * 50)}
+                  >
+                    <Icon size={13} />
+                    <span>{t(stop.label)}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
         <footer className="room-footer">
           <div className="place-and-time">
             <span className="location-dot" />
-            Honduras<span className="footer-separator">/</span>
+            <span className="place-name">{t(room.location)}</span>
+            <span className="footer-separator">/</span>
             <LocalTime />
           </div>
           {compact ? (
@@ -716,11 +749,12 @@ export default function Workspace() {
           ) : (
             <div className="scene-hint">
               <MousePointer2 size={13} />
-              <span>Drag to look around. Click the screen to step inside.</span>
+              <span>{t(room.hint)}</span>
             </div>
           )}
-          <span className="made-with-care">Make yourself at home.</span>
+          <span className="made-with-care">{t(room.welcome)}</span>
         </footer>
+        <LanguageToggle className="language-toggle-room" />
       </div>
       <div className="transition-shade" aria-hidden="true" />
       <div
@@ -734,17 +768,18 @@ export default function Workspace() {
           <div className="logo-orbit" />
         </div>
         <p role="status">
-          Getting the desk ready<span className="loading-dots">…</span>
+          {t(room.loading)}
+          <span className="loading-dots">…</span>
         </p>
       </div>
       {opening && (
         <button className="skip-intro" onClick={finishIntro}>
-          Skip intro <ArrowRight size={14} />
+          {t(room.skipIntro)} <ArrowRight size={14} />
         </button>
       )}
       {mode === "intro" && (
         <div className="intro-caption" aria-live="polite">
-          A little of my world.
+          {t(room.introCaption)}
         </div>
       )}
       {(mode === "desktop" || mode === "leaving") && (

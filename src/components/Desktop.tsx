@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ArrowLeft,
   ArrowUpRight,
   BriefcaseBusiness,
   ChevronRight,
@@ -23,9 +22,90 @@ import {
   BatteryFull,
   Moon,
   Sun,
+  Languages,
 } from "lucide-react";
 import { folders, profile, type FolderId } from "@/lib/content";
+import { useLocale, type Localized } from "@/lib/i18n";
+import LanguageToggle from "./LanguageToggle";
 import PortfolioContent from "./PortfolioContent";
+
+// Desktop chrome copy. Folder names come from `folders` in content.ts.
+const strings = {
+  desktop: {
+    en: "Interactive portfolio desktop",
+    es: "Escritorio interactivo del portafolio",
+  },
+  menu: { en: "Desktop menu", es: "Menú del escritorio" },
+  aboutFredy: { en: "About Fredy", es: "Sobre Fredy" },
+  finder: { en: "Finder", es: "Finder" },
+  file: { en: "File", es: "Archivo" },
+  go: { en: "Go", es: "Ir" },
+  contact: { en: "Contact", es: "Contacto" },
+  searchFiles: {
+    en: "Search portfolio files",
+    es: "Buscar archivos del portafolio",
+  },
+  displaySettings: { en: "Display settings", es: "Ajustes de pantalla" },
+  display: { en: "Display", es: "Pantalla" },
+  darkAppearance: { en: "Dark appearance", es: "Apariencia oscura" },
+  on: { en: "On", es: "Activada" },
+  off: { en: "Off", es: "Desactivada" },
+  language: { en: "Language", es: "Idioma" },
+  done: { en: "Done", es: "Listo" },
+  portfolioFiles: { en: "Portfolio files", es: "Archivos del portafolio" },
+  open: {
+    en: (name: string) => `Open ${name}`,
+    es: (name: string) => `Abrir ${name}`,
+  },
+  openResume: {
+    en: "Open résumé PDF (in a new tab)",
+    es: "Abrir el currículum en PDF (en una pestaña nueva)",
+  },
+  resumeFile: { en: "Résumé.pdf", es: "Currículum.pdf" },
+  resume: { en: "Résumé", es: "Currículum" },
+  window: {
+    en: (name: string) => `${name} window`,
+    es: (name: string) => `Ventana ${name}`,
+  },
+  closeWindow: {
+    en: (name: string) => `Close ${name} window`,
+    es: (name: string) => `Cerrar la ventana ${name}`,
+  },
+  minimizeWindow: {
+    en: (name: string) => `Minimize ${name} window`,
+    es: (name: string) => `Minimizar la ventana ${name}`,
+  },
+  maximizeWindow: {
+    en: (name: string) => `Maximize ${name} window`,
+    es: (name: string) => `Maximizar la ventana ${name}`,
+  },
+  searchInFinder: { en: "Search in Finder", es: "Buscar en Finder" },
+  favorites: { en: "Favorites", es: "Favoritos" },
+  allFiles: { en: "All files", es: "Todos los archivos" },
+  location: { en: "Location", es: "Ubicación" },
+  studio: { en: "The studio", es: "El estudio" },
+  workspace: { en: "Fredy's workspace", es: "Espacio de Fredy" },
+  madeWithCare: { en: "Made with care", es: "Hecho con cariño" },
+  findFile: {
+    en: "Find a portfolio file",
+    es: "Busca un archivo del portafolio",
+  },
+  searchPlaceholder: {
+    en: "Find something in my workspace…",
+    es: "Busca algo en mi espacio de trabajo…",
+  },
+  searchFolders: { en: "Search folders", es: "Buscar carpetas" },
+  closeSearch: { en: "Close search", es: "Cerrar búsqueda" },
+  noResults: {
+    en: "No files found. Try “projects” or “about”.",
+    es: "No se encontraron archivos. Prueba con “proyectos” o “sobre mí”.",
+  },
+  dock: { en: "Application dock", es: "Dock de aplicaciones" },
+} satisfies Record<string, Localized<unknown>>;
+
+// The Finder window lists every desktop item; it is a window but not a
+// portfolio folder, so it stays out of `FolderId`.
+type WindowId = FolderId | "finder";
 
 export function FileIcon({
   kind = "folder",
@@ -78,8 +158,8 @@ function AppleMark() {
   );
 }
 
-function DockIcon({ id }: { id: FolderId }) {
-  if (id === "projects")
+function DockIcon({ id }: { id: WindowId }) {
+  if (id === "finder")
     return (
       <span className="app-icon finder-app" aria-hidden="true">
         <svg viewBox="0 0 48 48">
@@ -99,6 +179,12 @@ function DockIcon({ id }: { id: FolderId }) {
             strokeLinecap="round"
           />
         </svg>
+      </span>
+    );
+  if (id === "projects")
+    return (
+      <span className="app-icon projects-app" aria-hidden="true">
+        <LayoutGrid size={28} strokeWidth={1.6} />
       </span>
     );
   if (id === "contact")
@@ -132,28 +218,32 @@ function DockIcon({ id }: { id: FolderId }) {
 }
 
 export function LocalTime({ date = false }: { date?: boolean }) {
+  const { locale } = useLocale();
   const [time, setTime] = useState("");
   useEffect(() => {
+    const tag = locale === "es" ? "es-HN" : "en-US";
+    // toLocaleTimeString keeps the date fields it is given, so the menubar
+    // reads "Thu, Oct 22, 3:45 PM" / "jue, 22 oct, 3:45 p. m.".
     const tick = () =>
       setTime(
-        new Intl.DateTimeFormat("en-US", {
+        new Date().toLocaleTimeString(tag, {
           timeZone: "America/Tegucigalpa",
           ...(date
             ? ({ weekday: "short", month: "short", day: "numeric" } as const)
             : {}),
           hour: "numeric",
           minute: "2-digit",
-        }).format(new Date()),
+        }),
       );
     tick();
     const interval = setInterval(tick, 30000);
     return () => clearInterval(interval);
-  }, [date]);
+  }, [date, locale]);
   return <span>{time || "Honduras"}</span>;
 }
 
 type OpenWindow = {
-  id: FolderId;
+  id: WindowId;
   minimized: boolean;
   maximized: boolean;
   x: number;
@@ -183,6 +273,11 @@ export default function Desktop({
   // Still mounted while the workspace fades it out; keep it out of reach.
   leaving?: boolean;
 }) {
+  const { t } = useLocale();
+  const windowName = (id: WindowId) =>
+    id === "finder"
+      ? t(strings.finder)
+      : t(folders.find((f) => f.id === id)!.name);
   const [windows, setWindows] = useState<OpenWindow[]>([
     {
       id: initialFolder,
@@ -201,7 +296,7 @@ export default function Desktop({
   const desktopRef = useRef<HTMLElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{
-    id: FolderId;
+    id: WindowId;
     startX: number;
     startY: number;
     x: number;
@@ -223,7 +318,7 @@ export default function Desktop({
     target?.focus({ preventScroll: true });
   }, [active, searchOpen]);
 
-  const openFolder = useCallback((id: FolderId) => {
+  const openFolder = useCallback((id: WindowId) => {
     const nextOrder = ++order.current;
     setWindows((previous) => {
       if (previous.some((w) => w.id === id))
@@ -251,16 +346,16 @@ export default function Desktop({
     setQuery("");
   }, []);
 
-  function closeWindow(id: FolderId) {
+  function closeWindow(id: WindowId) {
     setWindows((previous) => previous.filter((w) => w.id !== id));
   }
-  function focusWindow(id: FolderId) {
+  function focusWindow(id: WindowId) {
     const nextOrder = ++order.current;
     setWindows((previous) =>
       previous.map((w) => (w.id === id ? { ...w, order: nextOrder } : w)),
     );
   }
-  function toggleMaximize(id: FolderId) {
+  function toggleMaximize(id: WindowId) {
     setWindows((previous) =>
       previous.map((w) =>
         w.id === id ? { ...w, maximized: !w.maximized } : w,
@@ -319,21 +414,19 @@ export default function Desktop({
     focusWindow(item.id);
   }
   // Phones keep the whole window in view: an 8px margin on both sides, the
-  // title bar under the menubar, and the bottom edge above the Dock and "Back
-  // to studio". Measured once per drag, in the same (viewport) space.
+  // title bar under the menubar, and the bottom edge 8px above the Dock.
+  // Measured once per drag, in the same (viewport) space.
   function phoneDragBounds(toolbar: HTMLElement, item: OpenWindow) {
     const win = toolbar.closest<HTMLElement>(".finder-window")!;
     const layer = win.parentElement!.getBoundingClientRect();
     const rect = win.getBoundingClientRect();
     const baseLeft = rect.left - item.x;
     const baseTop = rect.top - item.y;
+    const dock = desktopRef.current?.querySelector<HTMLElement>(
+      ".desktop-bottom .dock",
+    );
     const floor = Math.min(
-      ...Array.from(
-        desktopRef.current?.querySelectorAll<HTMLElement>(
-          ".desktop-bottom .dock, .return-studio",
-        ) ?? [],
-        (el) => el.getBoundingClientRect().top,
-      ),
+      dock?.getBoundingClientRect().top ?? layer.bottom,
       layer.bottom,
     );
     const margin = 8;
@@ -366,32 +459,33 @@ export default function Desktop({
     <section
       ref={desktopRef}
       className={`desktop ${dark ? "desktop-dark" : "desktop-light"}`}
-      aria-label="Interactive portfolio desktop"
+      aria-label={t(strings.desktop)}
       inert={leaving}
     >
       <div className="desktop-wallpaper" aria-hidden="true" />
-      <nav className="menubar" aria-label="Desktop menu">
+      <nav className="menubar" aria-label={t(strings.menu)}>
         <div className="menu-left">
           <button
             className="desktop-brand"
             onClick={() => openFolder("about")}
-            aria-label="About Fredy"
+            aria-label={t(strings.aboutFredy)}
           >
             <AppleMark />
           </button>
-          <button
-            className="finder-menu"
-            onClick={() => openFolder("projects")}
-          >
-            Finder
+          <button className="finder-menu" onClick={() => openFolder("finder")}>
+            {t(strings.finder)}
           </button>
-          <button onClick={() => openFolder("projects")}>File</button>
-          <button onClick={() => openFolder("writing")}>Go</button>
-          <button onClick={() => openFolder("contact")}>Contact</button>
+          <button onClick={() => openFolder("projects")}>
+            {t(strings.file)}
+          </button>
+          <button onClick={() => openFolder("writing")}>{t(strings.go)}</button>
+          <button onClick={() => openFolder("contact")}>
+            {t(strings.contact)}
+          </button>
         </div>
         <div className="menu-right">
           <button
-            aria-label="Search portfolio files"
+            aria-label={t(strings.searchFiles)}
             onClick={() => setSearchOpen((v) => !v)}
           >
             <Search size={14} />
@@ -401,7 +495,7 @@ export default function Desktop({
             <Wifi size={15} />
           </span>
           <button
-            aria-label="Display settings"
+            aria-label={t(strings.displaySettings)}
             aria-expanded={controlCenter}
             onClick={() => setControlCenter((v) => !v)}
           >
@@ -415,40 +509,48 @@ export default function Desktop({
         <div
           className="control-center"
           role="region"
-          aria-label="Display settings"
+          aria-label={t(strings.displaySettings)}
         >
-          <strong>Display</strong>
+          <strong>{t(strings.display)}</strong>
           <button onClick={() => setDark((v) => !v)} aria-pressed={dark}>
             {dark ? <Moon size={18} /> : <Sun size={18} />}
             <span>
-              Dark appearance<small>{dark ? "On" : "Off"}</small>
+              {t(strings.darkAppearance)}
+              <small>{dark ? t(strings.on) : t(strings.off)}</small>
             </span>
           </button>
-          <button onClick={() => setControlCenter(false)}>Done</button>
+          <div className="control-center-row">
+            <Languages size={18} aria-hidden="true" />
+            <span>{t(strings.language)}</span>
+            <LanguageToggle className="language-toggle-panel" />
+          </div>
+          <button onClick={() => setControlCenter(false)}>
+            {t(strings.done)}
+          </button>
         </div>
       )}
-      <div className="desktop-files" aria-label="Portfolio files">
+      <div className="desktop-files" aria-label={t(strings.portfolioFiles)}>
         {folders.map((folder) => (
           <button
             className="desktop-file"
             key={folder.id}
             onClick={() => openFolder(folder.id)}
-            aria-label={`Open ${folder.name}`}
+            aria-label={t(strings.open)(t(folder.name))}
           >
             <FileIcon kind={folder.kind} />
-            <span>{folder.file}</span>
+            <span>{t(folder.file)}</span>
           </button>
         ))}
         <a
-          className="desktop-file"
+          className="desktop-file desktop-file-resume"
           href={profile.cv}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Open résumé PDF in a new tab"
+          aria-label={t(strings.openResume)}
         >
           <FileIcon kind="resume" />
           <span>
-            Résumé.pdf <ArrowUpRight size={10} />
+            {t(strings.resumeFile)} <ArrowUpRight size={10} />
           </span>
         </a>
       </div>
@@ -462,7 +564,7 @@ export default function Desktop({
               data-window={item.id}
               tabIndex={-1}
               role="dialog"
-              aria-label={`${folders.find((f) => f.id === item.id)!.name} window`}
+              aria-label={t(strings.window)(windowName(item.id))}
               className={`finder-window ${active === item.id ? "window-active" : ""} ${item.maximized ? "window-maximized" : ""}`}
               style={
                 {
@@ -493,14 +595,14 @@ export default function Desktop({
                 <div className="traffic-lights">
                   <button
                     className="close-light"
-                    aria-label={`Close ${folders.find((f) => f.id === item.id)!.name} window`}
+                    aria-label={t(strings.closeWindow)(windowName(item.id))}
                     onClick={() => closeWindow(item.id)}
                   >
                     <X size={9} />
                   </button>
                   <button
                     className="minimize-light"
-                    aria-label={`Minimize ${folders.find((f) => f.id === item.id)!.name} window`}
+                    aria-label={t(strings.minimizeWindow)(windowName(item.id))}
                     onClick={() =>
                       setWindows((previous) =>
                         previous.map((w) =>
@@ -513,15 +615,13 @@ export default function Desktop({
                   </button>
                   <button
                     className="maximize-light"
-                    aria-label={`Maximize ${folders.find((f) => f.id === item.id)!.name} window`}
+                    aria-label={t(strings.maximizeWindow)(windowName(item.id))}
                     onClick={() => toggleMaximize(item.id)}
                   >
                     <Maximize2 size={8} />
                   </button>
                 </div>
-                <span className="window-title">
-                  {folders.find((f) => f.id === item.id)!.name}
-                </span>
+                <span className="window-title">{windowName(item.id)}</span>
                 <div className="toolbar-tools">
                   <span aria-hidden="true">
                     <PanelLeft size={16} />
@@ -531,7 +631,7 @@ export default function Desktop({
                   </span>
                   <button
                     onClick={() => setSearchOpen(true)}
-                    aria-label="Search in Finder"
+                    aria-label={t(strings.searchInFinder)}
                   >
                     <Search size={16} />
                   </button>
@@ -539,7 +639,14 @@ export default function Desktop({
               </header>
               <div className="window-body">
                 <aside className="finder-sidebar">
-                  <p>Favorites</p>
+                  <p>{t(strings.favorites)}</p>
+                  <button
+                    className={item.id === "finder" ? "sidebar-selected" : ""}
+                    onClick={() => openFolder("finder")}
+                  >
+                    <LayoutGrid size={15} />
+                    {t(strings.allFiles)}
+                  </button>
                   {folders.map((folder) => {
                     const Icon = navIcons[folder.id];
                     return (
@@ -551,35 +658,73 @@ export default function Desktop({
                         onClick={() => openFolder(folder.id)}
                       >
                         <Icon size={15} />
-                        {folder.name}
+                        {t(folder.name)}
                       </button>
                     );
                   })}
-                  <p className="sidebar-location-label">Location</p>
+                  <p className="sidebar-location-label">
+                    {t(strings.location)}
+                  </p>
                   <button onClick={onExit}>
-                    <House size={15} /> The studio
+                    <House size={15} /> {t(strings.studio)}
                   </button>
                   <a
                     href={profile.cv}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <Download size={15} /> Résumé
+                    <Download size={15} /> {t(strings.resume)}
                   </a>
                   <div className="sidebar-footer">
-                    <i /> Fredy's workspace
+                    <i /> {t(strings.workspace)}
                   </div>
                 </aside>
                 <div className="window-content" tabIndex={0}>
-                  <PortfolioContent folder={item.id} />
+                  {item.id === "finder" ? (
+                    <div
+                      className="finder-grid"
+                      role="list"
+                      aria-label={t(strings.portfolioFiles)}
+                    >
+                      {folders.map((folder) => (
+                        <button
+                          key={folder.id}
+                          role="listitem"
+                          className="finder-item"
+                          onClick={() => openFolder(folder.id)}
+                          aria-label={t(strings.open)(t(folder.name))}
+                        >
+                          <FileIcon kind={folder.kind} />
+                          <span>{t(folder.file)}</span>
+                        </button>
+                      ))}
+                      <a
+                        role="listitem"
+                        className="finder-item"
+                        href={profile.cv}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={t(strings.openResume)}
+                      >
+                        <FileIcon kind="resume" />
+                        <span>
+                          {t(strings.resumeFile)} <ArrowUpRight size={10} />
+                        </span>
+                      </a>
+                    </div>
+                  ) : (
+                    <PortfolioContent folder={item.id} />
+                  )}
                 </div>
               </div>
               <footer className="window-status">
                 <Folder size={11} />
                 <span>Fredy Maldonado</span>
                 <ChevronRight size={10} />
-                <span>{folders.find((f) => f.id === item.id)!.name}</span>
-                <span className="window-status-end">Made with care</span>
+                <span>{windowName(item.id)}</span>
+                <span className="window-status-end">
+                  {t(strings.madeWithCare)}
+                </span>
               </footer>
             </section>
           ))}
@@ -594,7 +739,7 @@ export default function Desktop({
             ref={searchRef}
             className="spotlight"
             role="dialog"
-            aria-label="Find a portfolio file"
+            aria-label={t(strings.findFile)}
             aria-modal="true"
             onClick={(event) => event.stopPropagation()}
           >
@@ -602,14 +747,14 @@ export default function Desktop({
               <Search size={22} />
               <input
                 autoFocus
-                placeholder="Find something in my workspace…"
+                placeholder={t(strings.searchPlaceholder)}
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                aria-label="Search folders"
+                aria-label={t(strings.searchFolders)}
               />
               <button
                 onClick={() => setSearchOpen(false)}
-                aria-label="Close search"
+                aria-label={t(strings.closeSearch)}
               >
                 <X size={18} />
               </button>
@@ -617,7 +762,7 @@ export default function Desktop({
             <ul>
               {folders
                 .filter((folder) =>
-                  `${folder.name} ${folder.file}`
+                  `${t(folder.name)} ${t(folder.file)}`
                     .toLowerCase()
                     .includes(query.toLowerCase()),
                 )
@@ -625,39 +770,52 @@ export default function Desktop({
                   <li key={folder.id}>
                     <button onClick={() => openFolder(folder.id)}>
                       <FileIcon kind={folder.kind} small />
-                      <span>{folder.name}</span>
+                      <span>{t(folder.name)}</span>
                       <ChevronRight size={16} />
                     </button>
                   </li>
                 ))}
             </ul>
             {!folders.some((folder) =>
-              `${folder.name} ${folder.file}`
+              `${t(folder.name)} ${t(folder.file)}`
                 .toLowerCase()
                 .includes(query.toLowerCase()),
-            ) && (
-              <p className="search-empty">
-                No files found. Try “projects” or “about”.
-              </p>
-            )}
+            ) && <p className="search-empty">{t(strings.noResults)}</p>}
           </div>
         </div>
       )}
 
       <div className="desktop-bottom">
-        <button className="return-studio" onClick={onExit}>
-          <ArrowLeft size={14} /> Back to studio
-        </button>
-        <nav className="dock" aria-label="Application dock">
+        <nav className="dock" aria-label={t(strings.dock)}>
+          <button
+            className="dock-item dock-studio"
+            onClick={onExit}
+            aria-label={t(strings.studio)}
+          >
+            <span className="app-icon studio-app" aria-hidden="true">
+              <House size={26} strokeWidth={1.7} />
+            </span>
+            <span className="dock-tooltip">{t(strings.studio)}</span>
+          </button>
+          <span className="dock-divider" />
+          <button
+            className={`dock-item ${windows.some((w) => w.id === "finder") ? "dock-open" : ""}`}
+            onClick={() => openFolder("finder")}
+            aria-label={t(strings.open)(t(strings.finder))}
+          >
+            <DockIcon id="finder" />
+            <span className="dock-tooltip">{t(strings.finder)}</span>
+            <i />
+          </button>
           {folders.map((folder) => (
             <button
               key={folder.id}
               className={`dock-item ${windows.some((w) => w.id === folder.id) ? "dock-open" : ""}`}
               onClick={() => openFolder(folder.id)}
-              aria-label={`Open ${folder.name}`}
+              aria-label={t(strings.open)(t(folder.name))}
             >
               <DockIcon id={folder.id} />
-              <span className="dock-tooltip">{folder.name}</span>
+              <span className="dock-tooltip">{t(folder.name)}</span>
               <i />
             </button>
           ))}
@@ -667,10 +825,10 @@ export default function Desktop({
             href={profile.cv}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Open résumé PDF"
+            aria-label={t(strings.openResume)}
           >
             <FileIcon kind="resume" small />
-            <span className="dock-tooltip">Résumé</span>
+            <span className="dock-tooltip">{t(strings.resume)}</span>
           </a>
         </nav>
       </div>
